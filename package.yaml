@@ -1,0 +1,32 @@
+name:                vmensa
+version:             0.1.0
+synopsis:            Use the openmensa API to fetch all meals from selected canteens in Dresden and process them according to some dietary requirements.
+license:             GPL-3
+author:              Tony Zorman
+maintainer:          tonyzorman@mailbox.org
+
+default-extensions:
+  - OverloadedStrings
+  - TypeApplications
+  - NamedFieldPuns
+  - DeriveAnyClass
+  - DeriveGeneric
+
+ghc-options:
+  -Wall
+  -Wcompat
+  -Wincomplete-record-updates
+  -Wincomplete-uni-patterns
+  -Wredundant-constraints
+
+dependencies:
+  - base
+  - aeson
+  - async
+  - http-conduit
+  - text
+
+executables:
+  vmensa:
+    source-dirs: src
+    main: Main.hs

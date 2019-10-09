@@ -1,0 +1,33 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.2.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: c3bcb1c82fff0e45e258f665ce87d166c59a5835455e8f8299d9ff1cb9b943cc
+
+name:           vmensa
+version:        0.1.0
+synopsis:       Use the openmensa API to fetch all meals from selected canteens in Dresden and process them according to some dietary requirements.
+author:         Tony Zorman
+maintainer:     tonyzorman@mailbox.org
+license:        GPL-3
+license-file:   LICENSE
+build-type:     Simple
+
+executable vmensa
+  main-is: Main.hs
+  other-modules:
+      Core.Types
+      Paths_vmensa
+  hs-source-dirs:
+      src
+  default-extensions: OverloadedStrings TypeApplications NamedFieldPuns DeriveAnyClass DeriveGeneric
+  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
+  build-depends:
+      aeson
+    , async
+    , base
+    , http-conduit
+    , text
+  default-language: Haskell2010
