@@ -31,7 +31,7 @@ import GHC.Generics ( Generic )
 -- | Mensa type for a canteen.
 data Mensa = Mensa
     { date   :: Text
-    , closed :: Bool    -- TODO: The API always reports this to be false?
+    , closed :: Bool    -- ^ This sadly only reports days closed, not hours.
     , meals  :: [Meal]
     } deriving (Generic, FromJSON)
 
