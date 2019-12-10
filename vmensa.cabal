@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c3bcb1c82fff0e45e258f665ce87d166c59a5835455e8f8299d9ff1cb9b943cc
+-- hash: ce1003f27376e0f4bf4c44d0a04ecfc6affbcc2e018ccc2d6e5680036d1ec96f
 
 name:           vmensa
 version:        0.1.0
@@ -22,12 +22,13 @@ executable vmensa
       Paths_vmensa
   hs-source-dirs:
       src
-  default-extensions: OverloadedStrings TypeApplications NamedFieldPuns DeriveAnyClass DeriveGeneric
-  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
+  default-extensions: OverloadedStrings TypeApplications DeriveAnyClass DeriveGeneric
+  ghc-options: -O2 -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
   build-depends:
       aeson
     , async
     , base
     , http-conduit
     , text
+    , time
   default-language: Haskell2010

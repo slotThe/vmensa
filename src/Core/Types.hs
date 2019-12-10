@@ -10,11 +10,8 @@
 module Core.Types
     ( -- * Types for a 'Mensa' and its meals.
       Mensa(..)
-    , Mensa'(..)
     , Meal(..)
-
-    -- * Empty 'Mensa' as a fail-safe.
-    , emptyMensa
+    , Prices(..)
     )
 where
 
@@ -23,25 +20,18 @@ import           Data.Text ( Text )
 import qualified Data.Text as T
 
 -- Other imports
-import Data.Aeson   ( FromJSON )
-import Data.List    ( intersperse )
-import GHC.Generics ( Generic )
+import Data.Aeson
+import Data.List
+import GHC.Generics
 
 
 -- | Mensa type for a canteen.
-data Mensa = Mensa
-    { date   :: Text
-    , closed :: Bool    -- ^ This sadly only reports days closed, not hours.
-    , meals  :: [Meal]
-    } deriving (Generic, FromJSON)
-
--- | Empty 'Mensa' type.
-emptyMensa :: Mensa
-emptyMensa = Mensa "" True []
+newtype Mensa = Mensa [Meal]
+    deriving (Generic, FromJSON)
 
 -- | Pretty print only the things I'm interested in.
 instance Show Mensa where
-    show (Mensa _ c m) = "Closed: " ++ show c ++ lshow m
+    show (Mensa m) = lshow m
       where
         -- Show elements of a list with better formatting.  See note [lprint].
         lshow :: [Meal] -> String
@@ -67,35 +57,45 @@ instance Show Mensa where
   as a normal 'show' would.  The author finds this much easier to read.
 -}
 
--- | The API returns a canteen as a one element array for some reason.
-newtype Mensa' = Mensa' [Mensa]
-    deriving (Generic, FromJSON)
-
 -- | Type for a meal.
 data Meal = Meal
     { id       :: Int
     , name     :: Text
-    , category :: Text
-    , prices   :: Prices
     , notes    :: [Text]
+    , prices   :: Prices
+    , category :: Text
+    , image    :: Text
+    , url      :: Text
     } deriving (Generic, FromJSON)
 
 -- | All the different price types.
-data Prices = Prices
-    { students  :: Double
-    , employees :: Double
-    , pupils    :: Double
-    , others    :: Double
-    } deriving (Generic, FromJSON)
+data Prices
+    = Prices { students  :: Double
+             , employees :: Double
+             }
+    -- Who at the Studentenwerk thought that this was a good idea?
+    | NoPrice [Double]
+
+-- | Manually derive `FromJSON` instance due to dumb field names.
+instance FromJSON Prices where
+    parseJSON (Object v) = Prices
+        <$> v .: "Studierende"
+        <*> v .: "Bedienstete"
+    parseJSON _ = pure $ NoPrice []
 
 -- | Pretty print only the things I'm interested in.
 instance Show Meal where
     show Meal{ category, name, notes, prices } =
         T.unpack
             $  name
-            <> "\nPreis: "     <> tshow (students prices) <> "€"
+            <> "\nPreis: "     <> tshow (mstudents prices)
             <> "\nNotes: "     <> mconcat (intersperse ", " notes)
             <> "\nKategorie: " <> category
       where
-        tshow :: Show a => a -> Text
-        tshow = T.pack . show
+        tshow :: (Eq a, Num a, Show a) => a -> Text
+        tshow (-1) = "ausverkauft"
+        tshow s    = T.pack (show s) <> "€"
+
+        mstudents :: Prices -> Double
+        mstudents (Prices  s _) = s
+        mstudents (NoPrice _  ) = -1
