@@ -1,3 +1,5 @@
+{-# LANGUAGE InstanceSigs #-}
+
 {- |
    Module      : Core.Types
    Description : All types needed for JSON parsing the openmensa API
@@ -20,9 +22,9 @@ import           Data.Text ( Text )
 import qualified Data.Text as T
 
 -- Other imports
-import Data.Aeson
-import Data.List
-import GHC.Generics
+import Data.Aeson   ( FromJSON(parseJSON), Value(Object), (.:) )
+import Data.List    ( intersperse )
+import GHC.Generics ( Generic )
 
 
 -- | Mensa type for a canteen.
@@ -31,15 +33,12 @@ newtype Mensa = Mensa [Meal]
 
 -- | Pretty print only the things I'm interested in.
 instance Show Mensa where
+    show :: Mensa -> String
     show (Mensa m) = lshow m
       where
         -- Show elements of a list with better formatting.  See note [lprint].
         lshow :: [Meal] -> String
-        lshow = foldr ((<>) . ("\n\n" <>) . show) ""
-        -- lshow = foldl' ((. show) . (<>) . (<> "\n\n")) ""
-           {- This is probably going too far, the efficiency gains from using
-              'foldl'' are not noticeable here anyways.
-           -}
+        lshow = foldr ((<>) . ("\n" <>) . show) ""
 
 {- Note [lprint]
    ~~~~~~~~~~~~~~~~~~~~~~
@@ -85,12 +84,14 @@ instance FromJSON Prices where
 
 -- | Pretty print only the things I'm interested in.
 instance Show Meal where
+    show :: Meal -> String
     show Meal{ category, name, notes, prices } =
         T.unpack
             $  name
             <> "\nPreis: "     <> tshow (mstudents prices)
             <> "\nNotes: "     <> mconcat (intersperse ", " notes)
             <> "\nKategorie: " <> category
+            <> "\n"
       where
         tshow :: (Eq a, Num a, Show a) => a -> Text
         tshow (-1) = "ausverkauft"

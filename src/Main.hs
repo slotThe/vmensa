@@ -16,7 +16,9 @@ module Main
 import Core.Types ( Meal, Mensa(Mensa), Prices(NoPrice), notes, prices )
 
 -- Text
-import Data.Text ( Text )
+import           Data.Text    ( Text )
+import qualified Data.Text    as T
+import qualified Data.Text.IO as T
 
 -- Other imports
 import Control.Applicative      ( liftA2 )
@@ -30,12 +32,12 @@ import Network.HTTP.Conduit     ( simpleHttp )
 main :: IO ()
 main = do
     -- Get current date in YYYY-MM-DD format.
-    d <- show . utctDay <$> getCurrentTime
+    d <- tshow . utctDay <$> getCurrentTime
 
     -- See note [withAsync]
-    withAsync (getMeal $ zelt d)       $ \m1 -> do
-     withAsync (getMeal $ siedepunkt d) $ \m2 -> do
-      withAsync (getMeal $ alte d)       $ \m3 -> do
+    withAsync (getMeal $ zelt d)       $ \m1 ->
+     withAsync (getMeal $ siedepunkt d) $ \m2 ->
+      withAsync (getMeal $ alte d)       $ \m3 ->
        withAsync (getMeal $ uboot d)      $ \m4 -> do
            mprint "Heute im Zelt:" m1
            mprint "Heute im Siedepunkt:" m2
@@ -43,17 +45,17 @@ main = do
            mprint "Heute im U-Boot:" m4
   where
     -- | Pretty print an 'Async Mensa' with some prefix string.
-    mprint :: String -> Async Mensa -> IO ()
+    mprint :: Text -> Async Mensa -> IO ()
     mprint s m = do
-        putStrLn ""
-        printSeparator
-        putStrLn s
-        printSeparator
+        T.putStrLn ""
+        T.putStrLn separator
+        T.putStrLn s
+        T.putStrLn separator
         print =<< wait m
 
     -- | Separator for visual separation of different canteens.
-    printSeparator :: IO ()
-    printSeparator = putStrLn
+    separator :: Text
+    separator =
         "=====================================================================\
         \==========="
 
@@ -66,9 +68,9 @@ main = do
 -}
 
 -- | Fetch all meals of a certain canteen and process them.
-getMeal :: String -> IO Mensa
+getMeal :: Text -> IO Mensa
 getMeal mensa = do
-    men <- decode @Mensa <$> simpleHttp mensa
+    men <- decode  <$> simpleHttp (T.unpack mensa)
     pure $ case men of
         Nothing -> Mensa []
         Just m  -> getVegOptions m
@@ -99,17 +101,21 @@ getVegOptions (Mensa meals) = Mensa $ filter options meals
 -- | Template URL for getting all meals of a certain Mensa.
 openMensaURL
     :: Int     -- ^ Number of the Mensa
-    -> String  -- ^ Current date
-    -> String
+    -> Text  -- ^ Current date
+    -> Text
 openMensaURL num date =
     "https://api.studentenwerk-dresden.de/openmensa/v2/canteens/"
-        ++ show num ++ "/days/"
-        ++ date     ++ "/meals"
+        <> tshow num <> "/days/"
+        <> date      <> "/meals"
 
 -- | Canteens I want to check out.
 -- Numbers from 'https://api.studentenwerk-dresden.de/openmensa/v2/canteens'
-alte, uboot, siedepunkt, zelt :: String -> String
+alte, uboot, siedepunkt, zelt :: Text -> Text
 zelt       = openMensaURL 35
 uboot      = openMensaURL 29
 siedepunkt = openMensaURL 9
 alte       = openMensaURL 4
+
+-- | Helper function for showing things.
+tshow :: Show a => a -> Text
+tshow = T.pack . show
