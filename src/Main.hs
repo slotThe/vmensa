@@ -13,11 +13,19 @@ module Main
     ) where
 
 -- Local imports
+import Core.CLI
+    ( Diet(Vegetarian)
+    , Dinner(Dinner)
+    , Lunch(Lunch)
+    , Options(Options, allMeals, onlyDinner, onlyLunch)
+    , options
+    )
 import Core.Types
-    ( Meal(notes, prices)
+    ( Meal(category, notes, prices)
     , Mensa(Mensa)
     , Prices(NoPrice)
     , showMensa
+    , empty
     )
 
 -- Text
@@ -30,21 +38,27 @@ import Control.Applicative      ( liftA2 )
 import Control.Concurrent.Async ( Async, wait, withAsync )
 import Data.Aeson               ( decode )
 import Data.Foldable            ( traverse_ )
+import Data.Monoid              ( All(All, getAll) )
 import Data.Time                ( getCurrentTime, utctDay )
 import Network.HTTP.Conduit     ( simpleHttp )
+import Options.Applicative      ( execParser )
 
 
 -- | Fetch all meals, procces, format, and print them.
 main :: IO ()
 main = do
+    -- Parse command line options.
+    opts <- execParser options
+    let getMeal' = getMeal opts
+
     -- Get current date in YYYY-MM-DD format.
     d <- tshow . utctDay <$> getCurrentTime
 
     -- See note [withAsync]
-    withAsync (getMeal $ zelt d)       $ \m1 ->
-     withAsync (getMeal $ siedepunkt d) $ \m2 ->
-      withAsync (getMeal $ alte d)       $ \m3 ->
-       withAsync (getMeal $ uboot d)      $ \m4 -> do
+    withAsync (getMeal' $ zelt d)       $ \m1 ->
+     withAsync (getMeal' $ siedepunkt d) $ \m2 ->
+      withAsync (getMeal' $ alte d)       $ \m3 ->
+       withAsync (getMeal' $ uboot d)      $ \m4 -> do
            mprint "Heute in der alten Mensa:" m3
            mprint "Heute im U-Boot:" m4
            mprint "Heute im Zelt:" m1
@@ -54,13 +68,15 @@ main = do
     mprint :: Text -> Async Mensa -> IO ()
     mprint s m = do
         mensa <- wait m
-        traverse_ T.putStrLn
-            [ ""
-            , separator
-            , s
-            , separator
-            , showMensa mensa
-            ]
+        if empty mensa
+            then pure ()
+            else traverse_ T.putStrLn
+                     [ ""
+                     , separator
+                     , s
+                     , separator
+                     , showMensa mensa
+                     ]
 
     -- | Separator for visual separation of different canteens.
     separator :: Text
@@ -77,35 +93,49 @@ main = do
 -}
 
 -- | Fetch all meals of a certain canteen and process them.
-getMeal :: Text -> IO Mensa
-getMeal mensa = do
-    men <- decode  <$> simpleHttp (T.unpack mensa)
+-- FIXME: I'm not entirely satisfied with how this is handled.
+getMeal :: Options -> Text -> IO Mensa
+getMeal Options{ allMeals = v, onlyDinner = d, onlyLunch = l } mensa = do
+    men <- decode <$> simpleHttp (T.unpack mensa)
     pure $ case men of
         Nothing -> Mensa []
-        Just m  -> getVegOptions m
+        Just m  -> getOptions (ifV ++ ifD ++ ifL) m
+  where
+    ifV = case v of Vegetarian -> [veggie]; _ -> []
+    ifD = case d of Dinner     -> [dinner]; _ -> []
+    ifL = case l of Lunch      -> [lunch] ; _ -> []
+
+    veggie :: Meal -> Bool
+    veggie =
+        liftA2 (||)
+               ("Menü ist vegetarisch" `elem`)
+               ("Menü ist vegan" `elem`)
+        . notes
+
+    dinner :: Meal -> Bool
+    dinner = ("Abendangebot" `T.isInfixOf`) . category
+
+    lunch :: Meal -> Bool
+    lunch = not . dinner
 
 -- | Filter for the meal options I'm interested in.
-getVegOptions :: Mensa -> Mensa
-getVegOptions (Mensa meals) = Mensa $ filter options meals
+getOptions :: [Meal -> Bool] -> Mensa -> Mensa
+getOptions opts (Mensa meals) = Mensa $ filter availableOpts meals
   where
-    options :: Meal -> Bool
-    options = liftA2 (&&) notSoldOut diet
+    availableOpts :: Meal -> Bool
+    availableOpts = liftA2 (&&) notSoldOut (foldOpts opts)
 
     notSoldOut :: Meal -> Bool
     notSoldOut = available . prices
 
-    diet :: Meal -> Bool
-    diet = liftA2 (||) veggie vegan . notes
+    -- | Every predicate should be satisfied in order for the result to be
+    -- accepted.
+    foldOpts :: [Meal -> Bool] -> Meal -> Bool
+    foldOpts os = getAll . foldMap (All .) os
 
     available :: Prices -> Bool
     available (NoPrice _) = False
     available _           = True
-
-    veggie :: [Text] -> Bool
-    veggie = ("Menü ist vegetarisch" `elem`)
-
-    vegan :: [Text] -> Bool
-    vegan  = ("Menü ist vegan" `elem`)
 
 -- | Template URL for getting all meals of a certain Mensa.
 openMensaURL

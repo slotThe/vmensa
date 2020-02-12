@@ -27,6 +27,7 @@ dependencies:
   - http-conduit
   - text
   - time
+  - optparse-applicative
 
 executables:
   vmensa:

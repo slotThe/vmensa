@@ -15,6 +15,7 @@ module Core.Types
     , Meal(..)
     , Prices(..)
     , showMensa
+    , empty
     )
 where
 
@@ -32,6 +33,11 @@ import GHC.Generics        ( Generic )
 -- | Mensa type for a canteen.
 newtype Mensa = Mensa [Meal]
     deriving (Generic, FromJSON)
+
+-- | A 'Mensa' is empty if it doensn't have any food to serve.
+empty :: Mensa -> Bool
+empty (Mensa []) = True
+empty _          = False
 
 -- | Type for a meal.
 data Meal = Meal
@@ -65,7 +71,8 @@ instance FromJSON Prices where
    See Note [pretty printing]
 -}
 showMensa :: Mensa -> Text
-showMensa (Mensa m) = T.init . T.unlines . map showMeal $ m
+showMensa (Mensa []) = ""  -- Init is not safe on an empty list.
+showMensa (Mensa m ) = T.init . T.unlines . map showMeal $ m
   where
     {- | Pretty print only the things I'm interested in.
        This is not a show instance because printing text is faster than printing a
