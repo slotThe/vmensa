@@ -22,9 +22,10 @@ import           Data.Text ( Text )
 import qualified Data.Text as T
 
 -- Other imports
-import Data.Aeson   ( FromJSON(parseJSON), Value(Object), (.:) )
-import Data.List    ( intersperse )
-import GHC.Generics ( Generic )
+import Control.Applicative ( (<|>) )
+import Data.Aeson          ( FromJSON(parseJSON), Value(Object), (.:) )
+import Data.List           ( intersperse )
+import GHC.Generics        ( Generic )
 
 
 -- | Mensa type for a canteen.
@@ -78,8 +79,8 @@ data Prices
 -- | Manually derive `FromJSON` instance due to dumb field names.
 instance FromJSON Prices where
     parseJSON (Object v) = Prices
-        <$> v .: "Studierende"
-        <*> v .: "Bedienstete"
+        <$> (v .: "Studierende" <|> v .: "Preis 1")
+        <*> (v .: "Bedienstete" <|> v .: "Preis 2")
     parseJSON _ = pure $ NoPrice []
 
 -- | Pretty print only the things I'm interested in.
