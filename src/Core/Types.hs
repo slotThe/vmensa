@@ -3,7 +3,7 @@
 {- |
    Module      : Core.Types
    Description : All types needed for JSON parsing the openmensa API
-   Copyright   : (c) Tony Zorman, 2019
+   Copyright   : (c) Tony Zorman, 2019, 2020
    License     : GPL-3
    Maintainer  : tonyzorman@mailbox.org
    Stability   : experimental
@@ -14,6 +14,7 @@ module Core.Types
       Mensa(..)
     , Meal(..)
     , Prices(..)
+    , showMensa
     )
 where
 
@@ -32,31 +33,6 @@ import GHC.Generics        ( Generic )
 newtype Mensa = Mensa [Meal]
     deriving (Generic, FromJSON)
 
--- | Pretty print only the things I'm interested in.
-instance Show Mensa where
-    show :: Mensa -> String
-    show (Mensa m) = lshow m
-      where
-        -- Show elements of a list with better formatting.  See note [lprint].
-        lshow :: [Meal] -> String
-        lshow = foldr ((<>) . ("\n" <>) . show) ""
-
-{- Note [lprint]
-   ~~~~~~~~~~~~~~~~~~~~~~
-   Given a list [a,b], this will print
-   @
-     a
-
-     b
-   @
-  instead of
-  @
-    [a
-    b]
-  @
-  as a normal 'show' would.  The author finds this much easier to read.
--}
-
 -- | Type for a meal.
 data Meal = Meal
     { id       :: Int
@@ -64,7 +40,7 @@ data Meal = Meal
     , notes    :: [Text]
     , prices   :: Prices
     , category :: Text
-    , image    :: Text
+    , image    :: Text  -- ^ Sadly not an image of the actual food :(
     , url      :: Text
     } deriving (Generic, FromJSON)
 
@@ -83,16 +59,25 @@ instance FromJSON Prices where
         <*> (v .: "Bedienstete" <|> v .: "Preis 2")
     parseJSON _ = pure $ NoPrice []
 
--- | Pretty print only the things I'm interested in.
-instance Show Meal where
-    show :: Meal -> String
-    show Meal{ category, name, notes, prices } =
-        T.unpack
-            $  name
-            <> "\nPreis: "     <> tshow (mstudents prices)
-            <> "\nNotes: "     <> mconcat (intersperse ", " notes)
-            <> "\nKategorie: " <> category
-            <> "\n"
+{- | Pretty print only the things I'm interested in.
+   This is not a show instance because printing text is faster than printing a
+   string.
+   See Note [pretty printing]
+-}
+showMensa :: Mensa -> Text
+showMensa (Mensa m) = T.init . T.unlines . map showMeal $ m
+  where
+    {- | Pretty print only the things I'm interested in.
+       This is not a show instance because printing text is faster than printing a
+       string.
+    -}
+    showMeal :: Meal -> Text
+    showMeal Meal{ category, name, notes, prices } =
+           "\n"
+        <> name
+        <> "\nPreis: "     <> tshow (mstudents prices)
+        <> "\nNotes: "     <> mconcat (intersperse ", " notes)
+        <> "\nKategorie: " <> category
       where
         tshow :: (Eq a, Num a, Show a) => a -> Text
         tshow (-1) = "ausverkauft"
@@ -101,3 +86,19 @@ instance Show Meal where
         mstudents :: Prices -> Double
         mstudents (Prices  s _) = s
         mstudents (NoPrice _  ) = -1
+
+{- Note [pretty printing]
+   ~~~~~~~~~~~~~~~~~~~~~~
+   Given a list [a,b], this will print
+   @
+     a
+
+     b
+   @
+  instead of
+  @
+    [a
+    b]
+  @
+  as a normal 'show' would.  The author finds this much easier to read.
+-}

@@ -1,7 +1,7 @@
 {- |
    Module      : Main
    Description : Connect to the API and filter the results
-   Copyright   : (c) Tony Zorman, 2019
+   Copyright   : (c) Tony Zorman, 2019, 2020
    License     : GPL-3
    Maintainer  : tonyzorman@mailbox.org
    Stability   : experimental
@@ -13,7 +13,12 @@ module Main
     ) where
 
 -- Local imports
-import Core.Types ( Meal, Mensa(Mensa), Prices(NoPrice), notes, prices )
+import Core.Types
+    ( Meal(notes, prices)
+    , Mensa(Mensa)
+    , Prices(NoPrice)
+    , showMensa
+    )
 
 -- Text
 import           Data.Text    ( Text )
@@ -24,6 +29,7 @@ import qualified Data.Text.IO as T
 import Control.Applicative      ( liftA2 )
 import Control.Concurrent.Async ( Async, wait, withAsync )
 import Data.Aeson               ( decode )
+import Data.Foldable            ( traverse_ )
 import Data.Time                ( getCurrentTime, utctDay )
 import Network.HTTP.Conduit     ( simpleHttp )
 
@@ -39,19 +45,22 @@ main = do
      withAsync (getMeal $ siedepunkt d) $ \m2 ->
       withAsync (getMeal $ alte d)       $ \m3 ->
        withAsync (getMeal $ uboot d)      $ \m4 -> do
-           mprint "Heute im Zelt:" m1
-           mprint "Heute im Siedepunkt:" m2
            mprint "Heute in der alten Mensa:" m3
            mprint "Heute im U-Boot:" m4
+           mprint "Heute im Zelt:" m1
+           mprint "Heute im Siedepunkt:" m2
   where
     -- | Pretty print an 'Async Mensa' with some prefix string.
     mprint :: Text -> Async Mensa -> IO ()
     mprint s m = do
-        T.putStrLn ""
-        T.putStrLn separator
-        T.putStrLn s
-        T.putStrLn separator
-        print =<< wait m
+        mensa <- wait m
+        traverse_ T.putStrLn
+            [ ""
+            , separator
+            , s
+            , separator
+            , showMensa mensa
+            ]
 
     -- | Separator for visual separation of different canteens.
     separator :: Text
@@ -100,7 +109,7 @@ getVegOptions (Mensa meals) = Mensa $ filter options meals
 
 -- | Template URL for getting all meals of a certain Mensa.
 openMensaURL
-    :: Int     -- ^ Number of the Mensa
+    :: Int   -- ^ Number of the Mensa
     -> Text  -- ^ Current date
     -> Text
 openMensaURL num date =
