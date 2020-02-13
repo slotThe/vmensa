@@ -14,17 +14,8 @@ module Core.CLI
 
 -- Other imports
 import Options.Applicative
-    ( Parser
-    , ParserInfo
-    , (<**>)
-    , fullDesc
-    , header
-    , help
-    , helper
-    , info
-    , long
-    , short
-    , switch
+    ( Parser, ParserInfo, (<**>), auto, fullDesc, header, help, helper, info
+    , long, metavar, option, short, switch, value
     )
 
 
@@ -36,6 +27,7 @@ data Options = Options
     { allMeals   :: Bool
     , onlyDinner :: Bool
     , onlyLunch  :: Bool
+    , lineWrap   :: Int
     }
 
 -- | Create an info type from our options, adding help text and other nice
@@ -53,6 +45,7 @@ pOptions = Options
     <$> pAllMeals
     <*> pDinner
     <*> pLunch
+    <*> pLineWrap
 
 pAllMeals :: Parser Bool
 pAllMeals = switch
@@ -75,4 +68,15 @@ pLunch = switch
      ( long "lunch"
     <> short 'l'
     <> help "Display only the lunch options."
+     )
+
+-- | Parse the 'historyPath' option.  Basically the user may specify an
+-- alternative history file to use.
+pLineWrap :: Parser Int
+pLineWrap = option auto
+     ( long "wrap"
+    <> short 'w'
+    <> metavar "INT"
+    <> help "Wrap the \"Notes\" section at INT columns."
+    <> value 0  -- No line wrapping.
      )

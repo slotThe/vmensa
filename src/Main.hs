@@ -13,13 +13,16 @@ module Main
     ) where
 
 -- Local imports
-import Core.CLI   ( Options(Options, allMeals, onlyDinner, onlyLunch), options )
+import Core.CLI
+    ( Options(Options, allMeals, lineWrap, onlyDinner, onlyLunch)
+    , options
+    )
 import Core.Types
     ( Meal(category, notes, prices)
     , Mensa(Mensa)
     , Prices(NoPrice)
-    , showMensa
     , empty
+    , showMensa
     )
 
 -- Text
@@ -42,8 +45,9 @@ import Options.Applicative      ( execParser )
 main :: IO ()
 main = do
     -- Parse command line options.
-    opts <- execParser options
+    opts@Options{ lineWrap } <- execParser options
     let getMeal' = getMeal opts
+    let mprint'  = mprint lineWrap
 
     -- Get current date in YYYY-MM-DD format.
     d <- tshow . utctDay <$> getCurrentTime
@@ -53,14 +57,15 @@ main = do
      withAsync (getMeal' $ siedepunkt d) $ \m2 ->
       withAsync (getMeal' $ alte d)       $ \m3 ->
        withAsync (getMeal' $ uboot d)      $ \m4 -> do
-           mprint "Heute in der alten Mensa:" m3
-           mprint "Heute im U-Boot:" m4
-           mprint "Heute im Zelt:" m1
-           mprint "Heute im Siedepunkt:" m2
+           mprint' "Heute in der alten Mensa:" m3
+           mprint' "Heute im U-Boot:" m4
+           mprint' "Heute im Zelt:" m1
+           mprint' "Heute im Siedepunkt:" m2
   where
-    -- | Pretty print an 'Async Mensa' with some prefix string.
-    mprint :: Text -> Async Mensa -> IO ()
-    mprint s m = do
+    -- | Pretty print an 'Async Mensa' with some prefix string and a line
+    -- wrapping limit.
+    mprint :: Int -> Text -> Async Mensa -> IO ()
+    mprint lw s m = do
         mensa <- wait m
         if empty mensa
             then pure ()
@@ -69,7 +74,7 @@ main = do
                      , separator
                      , s
                      , separator
-                     , showMensa mensa
+                     , showMensa lw mensa
                      ]
 
     -- | Separator for visual separation of different canteens.
@@ -99,12 +104,15 @@ getMeal Options{ allMeals, onlyDinner, onlyLunch } mensa = do
     ifD = [dinner | onlyDinner  ]
     ifL = [lunch  | onlyLunch   ]
 
+    -- | Most of the time we want both.
     veggie :: Meal -> Bool
-    veggie =
-        liftA2 (||)
-               ("Menü ist vegetarisch" `elem`)
-               ("Menü ist vegan" `elem`)
-        . notes
+    veggie = liftA2 (||) vegan vegetarian
+
+    vegetarian :: Meal -> Bool
+    vegetarian = ("Menü ist vegetarisch" `elem`) . notes
+
+    vegan :: Meal -> Bool
+    vegan = ("Menü ist vegan" `elem`) . notes
 
     dinner :: Meal -> Bool
     dinner = ("Abendangebot" `T.isInfixOf`) . category
