@@ -79,8 +79,7 @@ pMealTime = pDinner <|> pLunch
         <> help "Display only the lunch options."
          )
 
--- | Parse the 'historyPath' option.  Basically the user may specify an
--- alternative history file to use.
+-- | Line wrapping for certain categories only.
 pLineWrap :: Parser Int
 pLineWrap = option auto
      ( long "wrap"
