@@ -14,7 +14,8 @@ module Main
 
 -- Local imports
 import Core.CLI
-    ( Options(Options, allMeals, lineWrap, onlyDinner, onlyLunch)
+    ( Options(Options, allMeals, lineWrap, mealTime)
+    , MealTime(Dinner, Lunch, AllDay)
     , options
     )
 import Core.Types
@@ -92,17 +93,18 @@ main = do
 -}
 
 -- | Fetch all meals of a certain canteen and process them.
--- FIXME: I'm not entirely satisfied with how this is handled.
 getMeal :: Options -> Text -> IO Mensa
-getMeal Options{ allMeals, onlyDinner, onlyLunch } mensa = do
+getMeal Options{ allMeals, mealTime } mensa = do
     men <- decode <$> simpleHttp (T.unpack mensa)
     pure $ case men of
         Nothing -> Mensa []
-        Just m  -> getOptions (ifV ++ ifD ++ ifL) m
+        Just m  -> getOptions (ifV ++ ifT) m
   where
     ifV = [veggie | not allMeals]
-    ifD = [dinner | onlyDinner  ]
-    ifL = [lunch  | onlyLunch   ]
+    ifT = case mealTime of
+        AllDay -> []
+        Dinner -> [dinner]
+        Lunch  -> [lunch]
 
     -- | Most of the time we want both.
     veggie :: Meal -> Bool

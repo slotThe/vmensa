@@ -9,13 +9,14 @@
 -}
 module Core.CLI
     ( Options(..)
+    , MealTime(..)
     , options
     ) where
 
 -- Other imports
 import Options.Applicative
-    ( Parser, ParserInfo, (<**>), auto, fullDesc, header, help, helper, info
-    , long, metavar, option, short, switch, value
+    ( Parser, ParserInfo, (<**>), (<|>), auto, flag, fullDesc, header, help
+    , helper, info, long, metavar, option, short, switch, value
     )
 
 
@@ -25,10 +26,15 @@ import Options.Applicative
 -}
 data Options = Options
     { allMeals   :: Bool
-    , onlyDinner :: Bool
-    , onlyLunch  :: Bool
     , lineWrap   :: Int
+    , mealTime   :: MealTime
     }
+
+-- | Which time of day should the meal happen at?
+data MealTime
+    = Dinner
+    | Lunch
+    | AllDay
 
 -- | Create an info type from our options, adding help text and other nice
 -- features.
@@ -43,9 +49,8 @@ options = info
 pOptions :: Parser Options
 pOptions = Options
     <$> pAllMeals
-    <*> pDinner
-    <*> pLunch
     <*> pLineWrap
+    <*> pMealTime
 
 pAllMeals :: Parser Bool
 pAllMeals = switch
@@ -54,21 +59,25 @@ pAllMeals = switch
     <> help "Display all meals (instead of only the vegetarian/vegan one)."
      )
 
--- | Whether to list every meal or only the dinner options.
-pDinner :: Parser Bool
-pDinner = switch
-     ( long "dinner"
-    <> short 'd'
-    <> help "Display only the dinner options."
-     )
+-- | Times of day where different meals are available.
+pMealTime :: Parser MealTime
+pMealTime = pDinner <|> pLunch
+  where
+    -- | Whether to list every meal or only the dinner options.
+    pDinner :: Parser MealTime
+    pDinner = flag AllDay Dinner
+         ( long "dinner"
+        <> short 'd'
+        <> help "Display only the dinner options."
+         )
 
--- | Whether to list every meal or only the dinner options.
-pLunch :: Parser Bool
-pLunch = switch
-     ( long "lunch"
-    <> short 'l'
-    <> help "Display only the lunch options."
-     )
+    -- | Whether to list every meal or only the dinner options.
+    pLunch :: Parser MealTime
+    pLunch = flag AllDay Lunch
+         ( long "lunch"
+        <> short 'l'
+        <> help "Display only the lunch options."
+         )
 
 -- | Parse the 'historyPath' option.  Basically the user may specify an
 -- alternative history file to use.

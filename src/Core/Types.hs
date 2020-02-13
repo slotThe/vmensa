@@ -72,7 +72,6 @@ instance FromJSON Prices where
 {- | Pretty print only the things I'm interested in.
    This is not a show instance because printing text is faster than printing a
    string.
-   See Note [pretty printing]
 -}
 showMensa
     :: Int    -- ^ Line wrap.
@@ -90,11 +89,10 @@ showMensa lw (Mensa m ) = T.init . T.unlines . map (showMeal lw) $ m
         -> Meal
         -> Text
     showMeal wrap Meal{ category, name, notes, prices } =
-
-           "\n" <> bold "Essen: "     <> name
-        <> "\n" <> bold "Preis: "     <> tshow (mstudents prices)
-        <> "\n" <> bold "Notes: "     <> umlauts (textWrap wrap notes)
-        <> "\n" <> bold "Kategorie: " <> category
+           "\n" <> style "Essen: "     <> name
+        <> "\n" <> style "Preis: "     <> tshow (mstudents prices)
+        <> "\n" <> style "Notes: "     <> umlauts (textWrap wrap notes)
+        <> "\n" <> style "Kategorie: " <> category
       where
         tshow :: (Eq a, Num a, Show a) => a -> Text
         tshow (-1) = "ausverkauft"
@@ -108,11 +106,13 @@ showMensa lw (Mensa m ) = T.init . T.unlines . map (showMeal lw) $ m
         umlauts :: Text -> Text
         umlauts = T.replace "&uuml;" "ü"
 
-        -- | Make something bold!
-        -- 33 looks nice as well
-        -- https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_parameters
-        bold :: Text -> Text
-        bold s = "\x1b[1m" <> s <> "\x1b[0m"
+        {- | Set the style for some keywords
+           33 looks nice
+           1 is bold
+           see https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_parameters
+        -}
+        style :: Text -> Text
+        style s = "\x1b[33m" <> s <> "\x1b[0m"
 
         -- | Very simple (and probably hilariously inefficient) function to wrap
         -- text at N columns.
@@ -130,24 +130,10 @@ showMensa lw (Mensa m ) = T.init . T.unlines . map (showMeal lw) $ m
                -> Text
             go l _ [] = l
             go line acc xs@(w:ws)
-                | aboveMaxLength = go (line <> "\n")      0            xs
-                | otherwise      = go (line <> w <> ", ") (acc + llen) ws
+                | aboveMaxLength = go (line <> "\n       ") 0 xs
+                | otherwise      = go (line <> w <> end) (acc + llen) ws
               where
                 aboveMaxLength = acc > maxAcc || acc + llen > maxAcc
                 llen = T.length w
-
-{- Note [pretty printing]
-   ~~~~~~~~~~~~~~~~~~~~~~
-   Given a list [a,b], this will print
-   @
-     a
-
-     b
-   @
-  instead of
-  @
-    [a
-    b]
-  @
-  as a normal 'show' would.  The author finds this much easier to read.
--}
+                end | null ws   = ""
+                    | otherwise = ", "
