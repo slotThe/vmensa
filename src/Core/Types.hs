@@ -89,15 +89,30 @@ showMensa lw (Mensa m ) = T.init . T.unlines . map (showMeal lw) $ m
         -> Meal
         -> Text
     showMeal wrap Meal{ category, name, notes, prices } =
-           "\n" <> style "Essen: "     <> name
+           "\n" <> style nameText      <> wrapName wrap name
         <> "\n" <> style "Preis: "     <> tshow (mstudents prices)
-        <> "\n" <> style "Notes: "     <> umlauts (textWrap wrap notes)
+        <> "\n" <> style notesText     <> umlauts (wrapNotes wrap notes)
         <> "\n" <> style "Kategorie: " <> category
       where
-        tshow :: (Eq a, Num a, Show a) => a -> Text
-        tshow (-1) = "ausverkauft"
-        tshow s    = T.pack (show s) <> "€"
+        nameText  = "Essen: "
+        notesText = "Notes: "
 
+        -- | Wrapping for the menu name.
+        wrapName :: Int -> Text -> Text
+        wrapName w n = wrapWith " " (T.length nameText) w (T.words n)
+
+        -- | Wrapping for the notes.
+        wrapNotes :: Int -> [Text] -> Text
+        wrapNotes = wrapWith ", " (T.length notesText)
+
+        -- | Pretty printing for prices.
+        tshow :: Show a => a -> Text
+        tshow s = T.pack (show s) <> "€"
+
+        {- | We're (as of now) only interested in the student prices.
+           Anything with 'NoPrice' will be filtered out later, so it's value
+           here is meaningless.
+        -}
         mstudents :: Prices -> Double
         mstudents (Prices  s _) = s
         mstudents (NoPrice _  ) = -1
@@ -114,26 +129,29 @@ showMensa lw (Mensa m ) = T.init . T.unlines . map (showMeal lw) $ m
         style :: Text -> Text
         style s = "\x1b[33m" <> s <> "\x1b[0m"
 
-        -- | Very simple (and probably hilariously inefficient) function to wrap
-        -- text at N columns.
-        textWrap
-            :: Int     -- ^ Max line length
+        -- | Simple (and probably hilariously inefficient) function to wrap text
+        -- at N columns.
+        wrapWith
+            :: Text    -- ^ How to concatenate chunks
+            -> Int     -- ^ Alignment
+            -> Int     -- ^ Max line length (wrap)
             -> [Text]  -- ^ Text as chunks that have to stay together.
             -> Text    -- ^ Text with line breaks.
-        textWrap maxAcc chunks
-            | maxAcc == 0 = mconcat $ intersperse ", " chunks
-            | otherwise   = go "" 0 chunks
+        wrapWith divText al wrapAt chunks
+            | wrapAt == 0 = mconcat $ intersperse divText chunks
+            | otherwise   = go "" al chunks
           where
             go :: Text    -- ^ Text with line breaks.
                -> Int     -- ^ Counter of the current line length.
                -> [Text]  -- ^ Text as chunks that have to stay together.
                -> Text
             go l _ [] = l
-            go line acc xs@(w:ws)
-                | aboveMaxLength = go (line <> "\n       ") 0 xs
-                | otherwise      = go (line <> w <> end) (acc + llen) ws
+            go line acc xs@(c:cs)
+                | combLen >= wrapAt = go (align line)       al     xs
+                | otherwise         = go (line <> c <> end) newLen cs
               where
-                aboveMaxLength = acc > maxAcc || acc + llen > maxAcc
-                llen = T.length w
-                end | null ws   = ""
-                    | otherwise = ", "
+                combLen = acc + T.length c
+                newLen  = combLen + T.length end
+                align   = (<> "\n" <> T.replicate al " ")
+                end | null cs   = ""
+                    | otherwise = divText

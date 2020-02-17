@@ -58,10 +58,10 @@ main = do
      withAsync (getMeal' $ siedepunkt d) $ \m2 ->
       withAsync (getMeal' $ alte d)       $ \m3 ->
        withAsync (getMeal' $ uboot d)      $ \m4 -> do
-           mprint' "Heute in der alten Mensa:" m3
-           mprint' "Heute im U-Boot:" m4
-           mprint' "Heute im Zelt:" m1
-           mprint' "Heute im Siedepunkt:" m2
+           mprint' "Heute in der alten Mensa" m3
+           mprint' "Heute im U-Boot" m4
+           mprint' "Heute im Zelt" m1
+           mprint' "Heute im Siedepunkt" m2
   where
     -- | Pretty print an 'Async Mensa' with some prefix string and a line
     -- wrapping limit.

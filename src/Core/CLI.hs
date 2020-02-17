@@ -85,6 +85,6 @@ pLineWrap = option auto
      ( long "wrap"
     <> short 'w'
     <> metavar "INT"
-    <> help "Wrap the \"Notes\" section at INT columns."
+    <> help "Wrap the \"Notes\" and \"Essen\" sections at INT columns."
     <> value 0  -- No line wrapping.
      )
