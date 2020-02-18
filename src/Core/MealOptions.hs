@@ -9,7 +9,7 @@
 -}
 module Core.MealOptions
     ( -- * The main attraction
-      getOptions
+      filterOptions
 
     -- * Different filters for meals
     , veggie
@@ -29,8 +29,8 @@ import Control.Applicative (liftA2)
 
 -- | Filter for the meal options given, exclude anything that's already sold
 -- out.
-getOptions :: [Meal -> Bool] -> Meals -> Meals
-getOptions opts = filter availableOpts
+filterOptions :: [Meal -> Bool] -> Meals -> Meals
+filterOptions opts = filter availableOpts
   where
     availableOpts :: Meal -> Bool
     availableOpts = liftA2 (&&) notSoldOut (allOpts opts)

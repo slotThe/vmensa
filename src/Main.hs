@@ -13,7 +13,7 @@ module Main
     ) where
 
 -- Local imports
-import Core.MealOptions (dinner, getOptions, lunch, veggie)
+import Core.MealOptions (dinner, filterOptions, lunch, veggie)
 import Core.CLI
     ( MealTime(AllDay, Dinner, Lunch)
     , Options(Options, allMeals, lineWrap, mealTime)
@@ -53,14 +53,14 @@ main = do
 
     -- Create new manager for handling network connections.
     manager <- newManager tlsManagerSettings
-    let getMeal' = getMeal manager opts
+    let getMensa' = getMensa manager opts
 
     -- Get current date in YYYY-MM-DD format.
     d <- tshow . utctDay <$> getCurrentTime
 
     -- Connect to the API and parse the necessary JSON.
     mensen <-
-        mapConcurrently getMeal' $ map ($ d) [alte, uboot, zelt, siedepunkt]
+        mapConcurrently getMensa' $ map ($ d) [alte, uboot, zelt, siedepunkt]
 
     -- Print out the results
     traverse_ mprint' mensen
@@ -87,8 +87,8 @@ main = do
         \==========="
 
 -- | Fetch all meals of a certain canteen and process them.
-getMeal :: Manager -> Options -> Mensa -> IO Mensa
-getMeal manager
+getMensa :: Manager -> Options -> Mensa -> IO Mensa
+getMensa manager
         Options{ allMeals, mealTime }
         mensa@Mensa{ url }
   = catch
@@ -97,7 +97,7 @@ getMeal manager
 
             pure $ case tryMeals of
                 Nothing -> mensa
-                Just ms -> mensa { meals = getOptions (ifV ++ mt) ms })
+                Just ms -> mensa { meals = filterOptions (ifV ++ mt) ms })
         $ handleErrs mensa
   where
     ifV = [veggie | not allMeals]
