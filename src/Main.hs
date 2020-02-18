@@ -13,17 +13,17 @@ module Main
     ) where
 
 -- Local imports
+import Core.MealOptions (dinner, getOptions, lunch, veggie)
 import Core.CLI
-    ( Options(Options, allMeals, lineWrap, mealTime)
-    , MealTime(Dinner, Lunch, AllDay)
+    ( MealTime(AllDay, Dinner, Lunch)
+    , Options(Options, allMeals, lineWrap, mealTime)
     , options
     )
 import Core.Types
-    ( Meal(category, notes, prices)
-    , Mensa(Mensa)
-    , Prices(NoPrice)
+    ( Mensa(Mensa, meals, name, url)
     , empty
-    , showMensa
+    , mkEmptyMensa
+    , showMeals
     )
 
 -- Text
@@ -32,14 +32,16 @@ import qualified Data.Text    as T
 import qualified Data.Text.IO as T
 
 -- Other imports
-import Control.Applicative      ( liftA2 )
-import Control.Concurrent.Async ( Async, wait, withAsync )
-import Data.Aeson               ( decode )
-import Data.Foldable            ( traverse_ )
-import Data.Monoid              ( All(All, getAll) )
-import Data.Time                ( getCurrentTime, utctDay )
-import Network.HTTP.Conduit     ( simpleHttp )
-import Options.Applicative      ( execParser )
+import Control.Concurrent.Async (mapConcurrently)
+import Control.Exception (SomeException, catch)
+import Data.Aeson (decode)
+import Data.Foldable (traverse_)
+import Data.Time (getCurrentTime, utctDay)
+import Network.HTTP.Conduit
+    ( Manager, httpLbs, newManager, parseUrlThrow, responseBody
+    , tlsManagerSettings
+    )
+import Options.Applicative (execParser)
 
 
 -- | Fetch all meals, procces, format, and print them.
@@ -47,35 +49,35 @@ main :: IO ()
 main = do
     -- Parse command line options.
     opts@Options{ lineWrap } <- execParser options
-    let getMeal' = getMeal opts
     let mprint'  = mprint lineWrap
+
+    -- Create new manager for handling network connections.
+    manager <- newManager tlsManagerSettings
+    let getMeal' = getMeal manager opts
 
     -- Get current date in YYYY-MM-DD format.
     d <- tshow . utctDay <$> getCurrentTime
 
-    -- See note [withAsync]
-    withAsync (getMeal' $ zelt d)       $ \m1 ->
-     withAsync (getMeal' $ siedepunkt d) $ \m2 ->
-      withAsync (getMeal' $ alte d)       $ \m3 ->
-       withAsync (getMeal' $ uboot d)      $ \m4 -> do
-           mprint' "Heute in der alten Mensa" m3
-           mprint' "Heute im U-Boot" m4
-           mprint' "Heute im Zelt" m1
-           mprint' "Heute im Siedepunkt" m2
+    -- Connect to the API and parse the necessary JSON.
+    mensen <-
+        mapConcurrently getMeal' $ map ($ d) [alte, uboot, zelt, siedepunkt]
+
+    -- Print out the results
+    traverse_ mprint' mensen
+
   where
     -- | Pretty print an 'Async Mensa' with some prefix string and a line
     -- wrapping limit.
-    mprint :: Int -> Text -> Async Mensa -> IO ()
-    mprint lw s m = do
-        mensa <- wait m
+    mprint :: Int -> Mensa -> IO ()
+    mprint lw mensa@Mensa{ name, meals } =
         if empty mensa
             then pure ()
             else traverse_ T.putStrLn
                      [ ""
                      , separator
-                     , s
+                     , "Heute in: " <> name
                      , separator
-                     , showMensa lw mensa
+                     , showMeals lw meals
                      ]
 
     -- | Separator for visual separation of different canteens.
@@ -84,66 +86,32 @@ main = do
         "=====================================================================\
         \==========="
 
-{- Note [withAsync]
-   ~~~~~~~~~~~~~~~~~~~~~~
-   'withAsync' is like 'async', except that the 'Async' is automatically killed
-   (using 'uninterruptibleCancel') if the enclosing 'IO' operation returns
-   before it has completed.  This essentially makes 'withAsync' exception safe.
-   It does result in slighly uglier syntax, but, alas, such is life.
--}
-
 -- | Fetch all meals of a certain canteen and process them.
-getMeal :: Options -> Text -> IO Mensa
-getMeal Options{ allMeals, mealTime } mensa = do
-    men <- decode <$> simpleHttp (T.unpack mensa)
-    pure $ case men of
-        Nothing -> Mensa []
-        Just m  -> getOptions (ifV ++ ifT) m
+getMeal :: Manager -> Options -> Mensa -> IO Mensa
+getMeal manager
+        Options{ allMeals, mealTime }
+        mensa@Mensa{ url }
+  = catch
+        (do req      <- parseUrlThrow (T.unpack url)
+            tryMeals <- decode . responseBody <$> httpLbs req manager
+
+            pure $ case tryMeals of
+                Nothing -> mensa
+                Just ms -> mensa { meals = getOptions (ifV ++ mt) ms })
+        $ handleErrs mensa
   where
     ifV = [veggie | not allMeals]
-    ifT = case mealTime of
+    mt  = case mealTime of
         AllDay -> []
         Dinner -> [dinner]
         Lunch  -> [lunch]
 
-    -- | Most of the time we want both.
-    veggie :: Meal -> Bool
-    veggie = liftA2 (||) vegan vegetarian
+    handleErrs :: Mensa -> SomeException -> IO Mensa
+    handleErrs m = const (pure m)
 
-    vegetarian :: Meal -> Bool
-    vegetarian = ("Menü ist vegetarisch" `elem`) . notes
-
-    vegan :: Meal -> Bool
-    vegan = ("Menü ist vegan" `elem`) . notes
-
-    dinner :: Meal -> Bool
-    dinner = ("Abendangebot" `T.isInfixOf`) . category
-
-    lunch :: Meal -> Bool
-    lunch = not . dinner
-
--- | Filter for the meal options I'm interested in.
-getOptions :: [Meal -> Bool] -> Mensa -> Mensa
-getOptions opts (Mensa meals) = Mensa $ filter availableOpts meals
-  where
-    availableOpts :: Meal -> Bool
-    availableOpts = liftA2 (&&) notSoldOut (foldOpts opts)
-
-    notSoldOut :: Meal -> Bool
-    notSoldOut = available . prices
-
-    -- | Every predicate should be satisfied in order for the result to be
-    -- accepted.
-    foldOpts :: [Meal -> Bool] -> Meal -> Bool
-    foldOpts os = getAll . foldMap (All .) os
-
-    available :: Prices -> Bool
-    available (NoPrice _) = False
-    available _           = True
-
--- | Template URL for getting all meals of a certain Mensa.
+-- | Template URL for getting all meals of a certain Meals.
 mensaURL
-    :: Int   -- ^ Number of the Mensa
+    :: Int   -- ^ Number of the Meals
     -> Text  -- ^ Current date
     -> Text
 mensaURL num date =
@@ -153,11 +121,11 @@ mensaURL num date =
 
 -- | Canteens I want to check out.
 -- Numbers from 'https://api.studentenwerk-dresden.de/openmensa/v2/canteens'
-alte, uboot, siedepunkt, zelt :: Text -> Text
-zelt       = mensaURL 35
-uboot      = mensaURL 29
-siedepunkt = mensaURL 9
-alte       = mensaURL 4
+alte, uboot, siedepunkt, zelt :: Text -> Mensa
+zelt       = mkEmptyMensa "Mensa Zeltschlößchen" . mensaURL 35
+uboot      = mkEmptyMensa "Bio Mensa"            . mensaURL 29
+siedepunkt = mkEmptyMensa "Mensa Siedepunkt"     . mensaURL 9
+alte       = mkEmptyMensa "Alte Mensa"           . mensaURL 4
 
 -- | Helper function for showing things.
 tshow :: Show a => a -> Text

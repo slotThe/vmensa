@@ -1,4 +1,5 @@
-{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE InstanceSigs          #-}
+{-# LANGUAGE DuplicateRecordFields #-}
 
 {- |
    Module      : Core.Types
@@ -10,36 +11,47 @@
    Portability : non-portable
 -}
 module Core.Types
-    ( -- * Types for a 'Mensa' and its meals.
+    ( -- * Types for 'Mensa' and its meals.
       Mensa(..)
+    , Meals
     , Meal(..)
     , Prices(..)
 
     -- * Utility functions.
-    , showMensa
+    , showMeals
     , empty
-    )
-where
+    , mkEmptyMensa
+    ) where
 
 -- Text
 import           Data.Text ( Text )
 import qualified Data.Text as T
 
 -- Other imports
-import Control.Applicative ( (<|>) )
-import Data.Aeson          ( FromJSON(parseJSON), Value(Object), (.:) )
-import Data.List           ( intersperse )
-import GHC.Generics        ( Generic )
+import Control.Applicative ((<|>))
+import Data.Aeson (FromJSON(parseJSON), Value(Object), (.:))
+import Data.List (intersperse)
+import GHC.Generics (Generic)
 
 
--- | Mensa type for a canteen.
-newtype Mensa = Mensa [Meal]
-    deriving (Generic, FromJSON)
+-- | Mensa type
+data Mensa = Mensa
+    { name  :: Text
+    , url   :: Text
+    , meals :: Meals
+    }
 
 -- | A 'Mensa' is empty if it doensn't have any food to serve.
 empty :: Mensa -> Bool
-empty (Mensa []) = True
-empty _          = False
+empty (Mensa _ _ []) = True
+empty _              = False
+
+-- | Helper function for creating an empty 'Mensa'
+mkEmptyMensa :: Text -> Text -> Mensa
+mkEmptyMensa n u = Mensa n u []
+
+-- | A canteen serves food!
+type Meals = [Meal]
 
 -- | Type for a meal.
 -- PONDER: It might be better to parse this as a generic JSON and then just
@@ -60,9 +72,10 @@ data Prices
              , employees :: Double
              }
     -- Who at the Studentenwerk thought that this was a good idea?
+    -- This will always be an empty list.
     | NoPrice [Double]
 
--- | Manually derive `FromJSON` instance due to dumb field names.
+-- | Manually derive 'FromJSON' instance due to dumb field names.
 instance FromJSON Prices where
     parseJSON (Object v) = Prices
         <$> (v .: "Studierende" <|> v .: "Preis 1")
@@ -70,27 +83,23 @@ instance FromJSON Prices where
     parseJSON _ = pure $ NoPrice []
 
 {- | Pretty print only the things I'm interested in.
-   This is not a show instance because printing text is faster than printing a
-   string.
+   Yay, using 'Text' instead of 'String' \o/
 -}
-showMensa
+showMeals
     :: Int    -- ^ Line wrap.
-    -> Mensa
+    -> Meals
     -> Text
-showMensa _  (Mensa []) = ""  -- Init is not safe on an empty list.
-showMensa lw (Mensa m ) = T.init . T.unlines . map (showMeal lw) $ m
+showMeals _  [] = ""  -- Init is not safe on an empty list.
+showMeals lw ms = T.init . T.unlines . map (showMeal lw) $ ms
   where
-    {- | Pretty print only the things I'm interested in.
-       This is not a show instance because printing text is faster than printing a
-       string.
-    -}
+    -- | Pretty printing for a single 'Meal'.
     showMeal
         :: Int   -- ^ Line wrap.
         -> Meal
         -> Text
     showMeal wrap Meal{ category, name, notes, prices } =
            "\n" <> style nameText      <> wrapName wrap name
-        <> "\n" <> style "Preis: "     <> tshow (mstudents prices)
+        <> "\n" <> style "Preis: "     <> tshowEUR (mstudents prices)
         <> "\n" <> style notesText     <> umlauts (wrapNotes wrap notes)
         <> "\n" <> style "Kategorie: " <> category
       where
@@ -106,8 +115,8 @@ showMensa lw (Mensa m ) = T.init . T.unlines . map (showMeal lw) $ m
         wrapNotes = wrapWith ", " (T.length notesText)
 
         -- | Pretty printing for prices.
-        tshow :: Show a => a -> Text
-        tshow s = T.pack (show s) <> "€"
+        tshowEUR :: Show a => a -> Text
+        tshowEUR s = T.pack (show s) <> "€"
 
         {- | We're (as of now) only interested in the student prices.
            Anything with 'NoPrice' will be filtered out later, so it's value
@@ -129,29 +138,29 @@ showMensa lw (Mensa m ) = T.init . T.unlines . map (showMeal lw) $ m
         style :: Text -> Text
         style s = "\x1b[33m" <> s <> "\x1b[0m"
 
-        -- | Simple (and probably hilariously inefficient) function to wrap text
-        -- at N columns.
-        wrapWith
-            :: Text    -- ^ How to concatenate chunks
-            -> Int     -- ^ Alignment
-            -> Int     -- ^ Max line length (wrap)
-            -> [Text]  -- ^ Text as chunks that have to stay together.
-            -> Text    -- ^ Text with line breaks.
-        wrapWith divText al wrapAt chunks
-            | wrapAt == 0 = mconcat $ intersperse divText chunks
-            | otherwise   = go "" al chunks
-          where
-            go :: Text    -- ^ Text with line breaks.
-               -> Int     -- ^ Counter of the current line length.
-               -> [Text]  -- ^ Text as chunks that have to stay together.
-               -> Text
-            go l _ [] = l
-            go line acc xs@(c:cs)
-                | combLen >= wrapAt = go (align line)       al     xs
-                | otherwise         = go (line <> c <> end) newLen cs
-              where
-                combLen = acc + T.length c
-                newLen  = combLen + T.length end
-                align   = (<> "\n" <> T.replicate al " ")
-                end | null cs   = ""
-                    | otherwise = divText
+-- | Simple (and probably hilariously inefficient) function to wrap text
+-- at N columns.
+wrapWith
+    :: Text    -- ^ How to concatenate chunks
+    -> Int     -- ^ Alignment
+    -> Int     -- ^ Max line length (wrap)
+    -> [Text]  -- ^ Text as chunks that have to stay together.
+    -> Text    -- ^ Text with line breaks.
+wrapWith divText al wrapAt chunks
+    | wrapAt == 0 = mconcat $ intersperse divText chunks
+    | otherwise   = go "" al chunks
+  where
+    go :: Text    -- ^ Text with line breaks.
+       -> Int     -- ^ Counter of the current line length.
+       -> [Text]  -- ^ Text as chunks that have to stay together.
+       -> Text
+    go l _ [] = l
+    go line acc xs@(c:cs)
+        | combLen >= wrapAt = go (align line)       al     xs
+        | otherwise         = go (line <> c <> end) newLen cs
+      where
+        combLen = acc + T.length c
+        newLen  = combLen + T.length end
+        align   = (<> "\n" <> T.replicate al " ")
+        end | null cs   = ""
+            | otherwise = divText
