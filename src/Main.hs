@@ -142,11 +142,11 @@ getOptions opts (Mensa meals) = Mensa $ filter availableOpts meals
     available _           = True
 
 -- | Template URL for getting all meals of a certain Mensa.
-openMensaURL
+mensaURL
     :: Int   -- ^ Number of the Mensa
     -> Text  -- ^ Current date
     -> Text
-openMensaURL num date =
+mensaURL num date =
     "https://api.studentenwerk-dresden.de/openmensa/v2/canteens/"
         <> tshow num <> "/days/"
         <> date      <> "/meals"
@@ -154,10 +154,10 @@ openMensaURL num date =
 -- | Canteens I want to check out.
 -- Numbers from 'https://api.studentenwerk-dresden.de/openmensa/v2/canteens'
 alte, uboot, siedepunkt, zelt :: Text -> Text
-zelt       = openMensaURL 35
-uboot      = openMensaURL 29
-siedepunkt = openMensaURL 9
-alte       = openMensaURL 4
+zelt       = mensaURL 35
+uboot      = mensaURL 29
+siedepunkt = mensaURL 9
+alte       = mensaURL 4
 
 -- | Helper function for showing things.
 tshow :: Show a => a -> Text
