@@ -49,7 +49,7 @@ main :: IO ()
 main = do
     -- Parse command line options.
     opts@Options{ lineWrap } <- execParser options
-    let mprint'  = mprint lineWrap
+    let mprint' = mprint lineWrap
 
     -- Create new manager for handling network connections.
     manager <- newManager tlsManagerSettings
@@ -66,8 +66,7 @@ main = do
     traverse_ mprint' mensen
 
   where
-    -- | Pretty print an 'Async Mensa' with some prefix string and a line
-    -- wrapping limit.
+    -- | Pretty print a 'Mensa', given some number when to wrap the text.
     mprint :: Int -> Mensa -> IO ()
     mprint lw mensa@Mensa{ name, meals } =
         if empty mensa
@@ -89,8 +88,8 @@ main = do
 -- | Fetch all meals of a certain canteen and process them.
 getMensa :: Manager -> Options -> Mensa -> IO Mensa
 getMensa manager
-        Options{ allMeals, mealTime }
-        mensa@Mensa{ url }
+         Options{ allMeals, mealTime }
+         mensa@Mensa{ url }
   = catch
         (do req      <- parseUrlThrow (T.unpack url)
             tryMeals <- decode . responseBody <$> httpLbs req manager
@@ -106,26 +105,30 @@ getMensa manager
         Dinner -> [dinner]
         Lunch  -> [lunch]
 
+    -- | If any error occurs, just return the input 'Mensa' (which will be
+    -- empty).
     handleErrs :: Mensa -> SomeException -> IO Mensa
     handleErrs m = const (pure m)
 
--- | Template URL for getting all meals of a certain Meals.
-mensaURL
-    :: Int   -- ^ Number of the Meals
-    -> Text  -- ^ Current date
-    -> Text
-mensaURL num date =
-    "https://api.studentenwerk-dresden.de/openmensa/v2/canteens/"
-        <> tshow num <> "/days/"
-        <> date      <> "/meals"
-
--- | Canteens I want to check out.
--- Numbers from 'https://api.studentenwerk-dresden.de/openmensa/v2/canteens'
+{- | Canteens I want to check out.
+   Numbers from:
+       'https:\/\/api.studentenwerk-dresden.de\/openmensa\/v2\/canteens'
+-}
 alte, uboot, siedepunkt, zelt :: Text -> Mensa
 zelt       = mkEmptyMensa "Mensa Zeltschlößchen" . mensaURL 35
 uboot      = mkEmptyMensa "Bio Mensa"            . mensaURL 29
 siedepunkt = mkEmptyMensa "Mensa Siedepunkt"     . mensaURL 9
 alte       = mkEmptyMensa "Alte Mensa"           . mensaURL 4
+
+-- | Template URL for getting all meals of a certain Meals.
+mensaURL
+    :: Int   -- ^ Number of the Mensa in the API
+    -> Text  -- ^ Date at which we would like to see the food.
+    -> Text
+mensaURL num date =
+    "https://api.studentenwerk-dresden.de/openmensa/v2/canteens/"
+        <> tshow num <> "/days/"
+        <> date      <> "/meals"
 
 -- | Helper function for showing things.
 tshow :: Show a => a -> Text

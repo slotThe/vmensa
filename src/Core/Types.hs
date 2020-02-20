@@ -34,7 +34,7 @@ import Data.List (intersperse)
 import GHC.Generics (Generic)
 
 
--- | Mensa type
+-- | 'Mensa' type
 data Mensa = Mensa
     { name  :: Text
     , url   :: Text
@@ -71,9 +71,9 @@ data Prices
     = Prices { students  :: Double
              , employees :: Double
              }
-    -- Who at the Studentenwerk thought that this was a good idea?
-    -- This will always be an empty list.
     | NoPrice [Double]
+    -- ^ Who at the Studentenwerk thought that this was a good idea?
+    -- This will always be an empty list.
 
 -- | Manually derive 'FromJSON' instance due to dumb field names.
 instance FromJSON Prices where
@@ -82,9 +82,8 @@ instance FromJSON Prices where
         <*> (v .: "Bedienstete" <|> v .: "Preis 2")
     parseJSON _ = pure $ NoPrice []
 
-{- | Pretty print only the things I'm interested in.
-   Yay, using 'Text' instead of 'String' \o/
--}
+-- | Pretty print only the things I'm interested in.
+-- Yay, using 'Text' instead of 'String' \o/
 showMeals
     :: Int    -- ^ Line wrap.
     -> Meals

@@ -8,7 +8,7 @@
    Portability : non-portable
 -}
 module Core.MealOptions
-    ( -- * The main attraction
+    ( -- * Filter for the given options
       filterOptions
 
     -- * Different filters for meals
