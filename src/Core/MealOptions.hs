@@ -39,25 +39,32 @@ filterOptions opts = filter availableOpts
     -- accepted.
     allOpts :: [Meal -> Bool] -> Meal -> Bool
     allOpts os meal = all ($ meal) os
+{-# INLINE filterOptions #-}
 
 -- | Most of the time we want both.
 veggie :: Meal -> Bool
 veggie = liftA2 (||) vegan vegetarian
+{-# INLINE veggie #-}
 
 vegetarian :: Meal -> Bool
 vegetarian = ("Menü ist vegetarisch" `elem`) . notes
+{-# INLINE vegetarian #-}
 
 vegan :: Meal -> Bool
 vegan = ("Menü ist vegan" `elem`) . notes
+{-# INLINE vegan #-}
 
 dinner :: Meal -> Bool
 dinner = ("Abendangebot" `T.isInfixOf`) . category
+{-# INLINE dinner #-}
 
 lunch :: Meal -> Bool
 lunch = not . dinner
+{-# INLINE lunch #-}
 
 notSoldOut :: Meal -> Bool
 notSoldOut = available . prices
+{-# INLINE notSoldOut #-}
 
 available :: Prices -> Bool
 available (NoPrice _) = False

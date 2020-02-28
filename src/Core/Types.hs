@@ -58,17 +58,17 @@ type Meals = [Meal]
 -- slurp out the fields that are interesting to us.
 data Meal = Meal
     { id       :: Int
-    , name     :: Text
-    , notes    :: [Text]
-    , prices   :: Prices
-    , category :: Text
-    , image    :: Text  -- ^ Sadly not an image of the actual food :(
+    , name     :: !Text
+    , notes    :: ![Text]
+    , prices   :: !Prices
+    , category :: !Text
+    , image    :: Text   -- ^ Sadly not an image of the actual food :(
     , url      :: Text
     } deriving (Generic, FromJSON)
 
 -- | All the different price types.
 data Prices
-    = Prices { students  :: Double
+    = Prices { students  :: {-# UNPACK #-} !Double
              , employees :: Double
              }
     | NoPrice [Double]
@@ -102,6 +102,7 @@ showMeals lw ms = T.init . T.unlines . map (showMeal lw) $ ms
         <> "\n" <> style notesText     <> umlauts (wrapNotes wrap notes)
         <> "\n" <> style "Kategorie: " <> category
       where
+        nameText, notesText :: Text
         nameText  = "Essen: "
         notesText = "Notes: "
 
@@ -136,6 +137,7 @@ showMeals lw ms = T.init . T.unlines . map (showMeal lw) $ ms
         -}
         style :: Text -> Text
         style s = "\x1b[33m" <> s <> "\x1b[0m"
+{-# INLINE showMeals #-}
 
 -- | Simple (and probably hilariously inefficient) function to wrap text
 -- at N columns.
@@ -163,3 +165,4 @@ wrapWith divText al wrapAt chunks
         align   = (<> "\n" <> T.replicate al " ")
         end | null cs   = ""
             | otherwise = divText
+{-# INLINE wrapWith #-}

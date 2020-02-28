@@ -1,3 +1,4 @@
+{-# LANGUAGE StrictData  #-}
 {- |
    Module      : Core.CLI
    Description : Small command line interface for the application.

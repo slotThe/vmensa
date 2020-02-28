@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 {- |
    Module      : Main
    Description : Connect to the API and filter the results
@@ -60,7 +61,7 @@ main = do
 
     -- Connect to the API and parse the necessary JSON.
     mensen <-
-        mapConcurrently getMensa' $ map ($ d) [alte, uboot, zelt, siedepunkt]
+        mapConcurrently getMensa' $! map ($! d) [alte, uboot, zelt, siedepunkt]
 
     -- Print out the results
     traverse_ mprint' mensen
@@ -94,9 +95,9 @@ getMensa manager
         (do req      <- parseUrlThrow (T.unpack url)
             tryMeals <- decode . responseBody <$> httpLbs req manager
 
-            pure $ case tryMeals of
-                Nothing -> mensa
-                Just ms -> mensa { meals = filterOptions (ifV ++ mt) ms })
+            pure $! case tryMeals of
+                Nothing  -> mensa
+                Just !ms -> mensa { meals = filterOptions (ifV ++ mt) ms })
         $ handleErrs mensa
   where
     ifV = [veggie | not allMeals]
