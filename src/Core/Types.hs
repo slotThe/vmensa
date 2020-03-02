@@ -99,7 +99,7 @@ showMeals lw ms = T.init . T.unlines . map (showMeal lw) $ ms
     showMeal wrap Meal{ category, name, notes, prices } =
            "\n" <> style nameText      <> wrapName wrap name
         <> "\n" <> style "Preis: "     <> tshowEUR (mstudents prices)
-        <> "\n" <> style notesText     <> umlauts (wrapNotes wrap notes)
+        <> "\n" <> style notesText     <> decodeSymbols (wrapNotes wrap notes)
         <> "\n" <> style "Kategorie: " <> category
       where
         nameText, notesText :: Text
@@ -127,8 +127,11 @@ showMeals lw ms = T.init . T.unlines . map (showMeal lw) $ ms
         mstudents (NoPrice _  ) = -1
 
         -- | For some reason this is only needed on notes.
-        umlauts :: Text -> Text
-        umlauts = T.replace "&uuml;" "ü"
+        decodeSymbols :: Text -> Text
+        decodeSymbols = T.replace "&uuml;" "ü"
+                      . T.replace "&lpar;" "("
+                      . T.replace "&rpar;" ")"
+
 
         {- | Set the style for some keywords
            33 looks nice
