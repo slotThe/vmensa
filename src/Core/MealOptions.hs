@@ -7,6 +7,7 @@
    Stability   : experimental
    Portability : non-portable
 -}
+
 module Core.MealOptions
     ( -- * Filter for the given options
       filterOptions
@@ -21,6 +22,7 @@ module Core.MealOptions
 import Core.Types (Meal(category, notes, prices), Meals, Prices(NoPrice))
 
 -- Text
+import           Data.Text (Text)
 import qualified Data.Text as T
 
 -- Other imports
@@ -47,11 +49,11 @@ veggie = liftA2 (||) vegan vegetarian
 {-# INLINE veggie #-}
 
 vegetarian :: Meal -> Bool
-vegetarian = ("Menü ist vegetarisch" `elem`) . notes
+vegetarian = elemNotes "Menü ist vegetarisch"
 {-# INLINE vegetarian #-}
 
 vegan :: Meal -> Bool
-vegan = ("Menü ist vegan" `elem`) . notes
+vegan = elemNotes "Menü ist vegan"
 {-# INLINE vegan #-}
 
 dinner :: Meal -> Bool
@@ -65,6 +67,10 @@ lunch = not . dinner
 notSoldOut :: Meal -> Bool
 notSoldOut = available . prices
 {-# INLINE notSoldOut #-}
+
+elemNotes :: Text -> Meal -> Bool
+elemNotes s = (s `elem`) . notes
+{-# INLINE elemNotes #-}
 
 available :: Prices -> Bool
 available (NoPrice _) = False

@@ -1,4 +1,3 @@
-{-# LANGUAGE LambdaCase #-}
 {- |
    Module      : Time
    Description : How vmensa knows *when* to query the cafeterias.
@@ -8,6 +7,7 @@
    Stability   : experimental
    Portability : non-portable
 -}
+
 module Core.Time
     ( getDate
     ) where

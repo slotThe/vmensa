@@ -4,11 +4,11 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e5e4e38412a5b4e1e500cc20935d5b6578fc44a071cebc441c14d40e4d3af61f
+-- hash: e7d455c24f8be3437edc989f9a42ca08c53ef22f957a80ad7831fc14ee1dc552
 
 name:           vmensa
 version:        0.1.0
-synopsis:       Use the openmensa API to fetch all meals from selected canteens in Dresden and process them according to some dietary requirements.
+synopsis:       Query the Stundentenwerk API from inside your terminal!
 author:         Tony Zorman
 maintainer:     tonyzorman@mailbox.org
 license:        GPL-3
@@ -26,7 +26,7 @@ executable vmensa
       Paths_vmensa
   hs-source-dirs:
       src
-  default-extensions: OverloadedStrings TypeApplications NamedFieldPuns DeriveAnyClass DeriveGeneric
+  default-extensions: OverloadedStrings TypeApplications NamedFieldPuns DeriveAnyClass DeriveGeneric InstanceSigs LambdaCase BangPatterns
   ghc-options: -O2 -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
   build-depends:
       aeson

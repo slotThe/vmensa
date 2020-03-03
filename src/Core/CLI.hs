@@ -1,4 +1,3 @@
-{-# LANGUAGE StrictData  #-}
 {- |
    Module      : Core.CLI
    Description : Small command line interface for the application.
@@ -8,6 +7,8 @@
    Stability   : experimental
    Portability : non-portable
 -}
+{-# LANGUAGE StrictData  #-}
+
 module Core.CLI
     ( Options(..)
     , MealTime(..)
@@ -103,8 +104,8 @@ data Date
     = Today
     | Tomorrow
     | Next DayOfWeek  -- ^ This will *always* show the next 'DayOfWeek'
-                      -- (e.g. calling 'Next Monday' on a monday will result in
-                      -- getting the menu for the following monday).
+                      --   (e.g. calling 'Next Monday' on a monday will result
+                      --   in getting the menu for the following monday).
     | Date Text       -- ^ Manual date entry in the format YYYY-MM-DD
     deriving (Show)
 
@@ -131,12 +132,12 @@ pAttoDate = A.choice
 -- | Parse a 'DayOfWeek' using both german and english names.
 pDay :: A.Parser DayOfWeek
 pDay = A.choice
-    [ Monday    <$ aliases [      "mo"]
+    [ Monday    <$ A.asciiCI "mo"
     , Tuesday   <$ aliases ["tu", "di"]
     , Wednesday <$ aliases ["w" , "mi"]
     , Thursday  <$ aliases ["th", "do"]
-    , Friday    <$ aliases [      "f" ]
-    , Saturday  <$ aliases [      "sa"]
+    , Friday    <$ A.asciiCI "f"
+    , Saturday  <$ A.asciiCI "sa"
     , Sunday    <$ aliases ["su", "so"]
     ]
 

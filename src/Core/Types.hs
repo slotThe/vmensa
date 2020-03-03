@@ -1,6 +1,3 @@
-{-# LANGUAGE InstanceSigs          #-}
-{-# LANGUAGE DuplicateRecordFields #-}
-
 {- |
    Module      : Core.Types
    Description : All types needed for JSON parsing the openmensa API
@@ -10,6 +7,8 @@
    Stability   : experimental
    Portability : non-portable
 -}
+{-# LANGUAGE DuplicateRecordFields #-}
+
 module Core.Types
     ( -- * Types for 'Mensa' and its meals.
       Mensa(..)

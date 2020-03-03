@@ -1,4 +1,3 @@
-{-# LANGUAGE BangPatterns #-}
 {- |
    Module      : Main
    Description : Connect to the API and filter the results
@@ -8,6 +7,7 @@
    Stability   : experimental
    Portability : non-portable
 -}
+
 module Main
     ( -- * Entry-point
       main

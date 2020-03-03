@@ -1,6 +1,6 @@
 name:                vmensa
 version:             0.1.0
-synopsis:            Use the openmensa API to fetch all meals from selected canteens in Dresden and process them according to some dietary requirements.
+synopsis:            Query the Stundentenwerk API from inside your terminal!
 license:             GPL-3
 author:              Tony Zorman
 maintainer:          tonyzorman@mailbox.org
@@ -11,6 +11,9 @@ default-extensions:
   - NamedFieldPuns
   - DeriveAnyClass
   - DeriveGeneric
+  - InstanceSigs
+  - LambdaCase
+  - BangPatterns
 
 ghc-options:
   -O2
