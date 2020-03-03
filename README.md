@@ -4,5 +4,10 @@ api](https://www.studentenwerk-dresden.de/mensen/speiseplan-api.html), fetch a
 couple of different canteens, filter the results according to the authors
 dietary requirements, and print out the relevant meals to stdout.
 
+For all command line options, see `vmensa --help`
+
 # Building
 Build with `stack build`, then copy the executable to a convenient location.
+Alternatively, you may use `stack install`, which will copy the executable to
+`local-bin-path` (probably `$HOME/.local/bin`, see output of `stack path
+--local-bin` for certainty).
