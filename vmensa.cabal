@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 44759fe37bf5f9f62d4429b44e792cf27bfcc22bccdfee621cd8c353d607a1ce
+-- hash: e5e4e38412a5b4e1e500cc20935d5b6578fc44a071cebc441c14d40e4d3af61f
 
 name:           vmensa
 version:        0.1.0
@@ -20,7 +20,9 @@ executable vmensa
   other-modules:
       Core.CLI
       Core.MealOptions
+      Core.Time
       Core.Types
+      Core.Util
       Paths_vmensa
   hs-source-dirs:
       src
@@ -29,9 +31,10 @@ executable vmensa
   build-depends:
       aeson
     , async
+    , attoparsec
     , base
     , http-conduit
     , optparse-applicative
     , text
-    , time
+    , time >=1.9
   default-language: Haskell2010

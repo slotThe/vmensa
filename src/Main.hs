@@ -14,18 +14,18 @@ module Main
     ) where
 
 -- Local imports
-import Core.MealOptions (dinner, filterOptions, lunch, veggie)
-import Core.CLI
+import Core.CLI as CLI
     ( MealTime(AllDay, Dinner, Lunch)
-    , Options(Options, allMeals, lineWrap, mealTime)
+    , Options(Options, allMeals, date, lineWrap, mealTime)
     , options
     )
+import Core.MealOptions (dinner, filterOptions, lunch, veggie)
+import Core.Time (getDate)
 import Core.Types
     ( Mensa(Mensa, meals, name, url)
-    , empty
-    , mkEmptyMensa
-    , showMeals
+    , empty, mkEmptyMensa, showMeals
     )
+import Core.Util (tshow)
 
 -- Text
 import           Data.Text    ( Text )
@@ -37,7 +37,6 @@ import Control.Concurrent.Async (mapConcurrently)
 import Control.Exception (SomeException, catch)
 import Data.Aeson (decode)
 import Data.Foldable (traverse_)
-import Data.Time (getCurrentTime, utctDay)
 import Network.HTTP.Conduit
     ( Manager, httpLbs, newManager, parseUrlThrow, responseBody
     , tlsManagerSettings
@@ -49,15 +48,15 @@ import Options.Applicative (execParser)
 main :: IO ()
 main = do
     -- Parse command line options.
-    opts@Options{ lineWrap } <- execParser options
+    opts@Options{ lineWrap, date } <- execParser options
     let mprint' = mprint lineWrap
 
     -- Create new manager for handling network connections.
     manager <- newManager tlsManagerSettings
     let getMensa' = getMensa manager opts
 
-    -- Get current date in YYYY-MM-DD format.
-    d <- tshow . utctDay <$> getCurrentTime
+    -- Get specified date in YYYY-MM-DD format.
+    d <- getDate date
 
     -- Connect to the API and parse the necessary JSON.
     mensen <-
@@ -130,7 +129,3 @@ mensaURL num date =
     "https://api.studentenwerk-dresden.de/openmensa/v2/canteens/"
         <> tshow num <> "/days/"
         <> date      <> "/meals"
-
--- | Helper function for showing things.
-tshow :: Show a => a -> Text
-tshow = T.pack . show

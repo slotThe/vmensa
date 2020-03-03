@@ -26,8 +26,9 @@ dependencies:
   - async
   - http-conduit
   - text
-  - time
+  - time >= 1.9
   - optparse-applicative
+  - attoparsec
 
 executables:
   vmensa:
