@@ -49,7 +49,7 @@ main :: IO ()
 main = do
     -- Parse command line options.
     opts@Options{ lineWrap, date } <- execParser options
-    let mprint' = mprint lineWrap
+    let mprint' = mprint lineWrap (tshow date)
 
     -- Create new manager for handling network connections.
     manager <- newManager tlsManagerSettings
@@ -58,23 +58,28 @@ main = do
     -- Get specified date in YYYY-MM-DD format.
     d <- getDate date
 
+    -- Build all canteens, decide in which order they will be printed.
+    let canteens = map ($! d) [alte, uboot, zelt, siedepunkt]
     -- Connect to the API and parse the necessary JSON.
-    mensen <-
-        mapConcurrently getMensa' $! map ($! d) [alte, uboot, zelt, siedepunkt]
+    mensen <- mapConcurrently getMensa' canteens
 
     -- Print out the results
     traverse_ mprint' mensen
 
   where
-    -- | Pretty print a 'Mensa', given some number when to wrap the text.
-    mprint :: Int -> Mensa -> IO ()
-    mprint lw mensa@Mensa{ name, meals } =
+    -- | Pretty print a 'Mensa'.
+    mprint
+        :: Int    -- ^ Line Wrap
+        -> Text   -- ^ The date when the meals are offered
+        -> Mensa
+        -> IO ()
+    mprint lw d mensa@Mensa{ name, meals } =
         if empty mensa
             then pure ()
             else traverse_ T.putStrLn
                      [ ""
                      , separator
-                     , "Heute in: " <> name
+                     , d <> " in: " <> name
                      , separator
                      , showMeals lw meals
                      ]

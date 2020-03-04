@@ -73,7 +73,7 @@ data MealTime
 pMealTime :: Parser MealTime
 pMealTime = pDinner <|> pLunch
   where
-    -- | Whether to list every meal or only the dinner options.
+    -- | List only the dinner options
     pDinner :: Parser MealTime
     pDinner = flag AllDay Dinner
          ( long "dinner"
@@ -81,7 +81,7 @@ pMealTime = pDinner <|> pLunch
         <> help "Display only the dinner options."
          )
 
-    -- | Whether to list every meal or only the dinner options.
+    -- | List only the lunch options
     pLunch :: Parser MealTime
     pLunch = flag AllDay Lunch
          ( long "lunch"
