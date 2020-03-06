@@ -27,8 +27,8 @@ import           Data.Time.Calendar
           Wednesday)
     )
 import           Options.Applicative
-    ( Parser, ParserInfo, (<|>), argument, auto, flag, fullDesc, header, help
-    , helper, info, long, metavar, option, short, str, strOption, switch, value
+    ( Parser, ParserInfo, argument, auto, fullDesc, header, help, helper, info
+    , long, metavar, option, short, str, strOption, value
     )
 
 
@@ -64,18 +64,23 @@ data MealType
     | Vegan
 
 pMealType :: Parser MealType
-pMealType = pAll <|> pVegan
+pMealType = pToMealType <$> strOption
+     ( long "diet"
+    <> short 'm'
+    <> help "Which kinds of meals do display.  Defaults to vegetarian."
+    <> value "vegetarian"
+     )
   where
-    pAll = flag Vegetarian AllMeals
-         ( long "allmeals"
-        <> short 'a'
-        <> help "Display all meals (instead of only the vegetarian/vegan ones)."
-         )
-    pVegan = flag Vegetarian Vegan
-         ( long "vegan"
-        <> short 'v'
-        <> help "Display only the vegan meals."
-         )
+    -- | Parse user input into a proper 'MealTime'.
+    pDiet = A.choice
+        [ AllMeals   <$ A.asciiCI "a"
+        , Vegetarian <$ aliases ["vege", "vegg"]
+        , Vegan      <$ A.asciiCI "v"
+        ]
+
+    -- | Actually run the parser, with a default in case of a parse failure.
+    pToMealType :: Text -> MealType
+    pToMealType = parseWithDefault pDiet Vegetarian
 
 -- | Which time of day should the meal happen at?
 data MealTime
@@ -85,23 +90,23 @@ data MealTime
 
 -- | Times of day where different meals are available.
 pMealTime :: Parser MealTime
-pMealTime = pDinner <|> pLunch
+pMealTime = pToMealTime <$> strOption
+     ( long "time"
+    <> short 't'
+    <> help "Which menu options (lunch/dinner) to display."
+    <> value "allDay"
+     )
   where
-    -- | List only the dinner options
-    pDinner :: Parser MealTime
-    pDinner = flag AllDay Dinner
-         ( long "dinner"
-        <> short 'd'
-        <> help "Display only the dinner options."
-         )
+    -- | Parse user input into a proper 'MealTime'.
+    pTime = A.choice
+        [ Dinner <$ A.asciiCI "d"
+        , Lunch  <$ A.asciiCI "l"
+        , AllDay <$ A.asciiCI "a"
+        ]
 
-    -- | List only the lunch options
-    pLunch :: Parser MealTime
-    pLunch = flag AllDay Lunch
-         ( long "lunch"
-        <> short 'l'
-        <> help "Display only the lunch options."
-         )
+    -- | Actually run the parser, with a default in case of a parse failure.
+    pToMealTime :: Text -> MealTime
+    pToMealTime = parseWithDefault pTime AllDay
 
 -- | Line wrapping for certain categories only.
 pLineWrap :: Parser Int
@@ -126,34 +131,40 @@ data Date
 -- | Dates are (optional) arguments.
 pDate :: Parser Date
 pDate = pToDate <$> argument str (metavar "DAY" <> value "today")
+  where
+    -- | Parse our entire 'Date' type.
+    pAttoDate :: A.Parser Date
+    pAttoDate = A.choice
+        [ Today <$ A.asciiCI "today"
+        , Next <$> pDay
+        , Tomorrow <$ A.asciiCI "t"
+        , Date <$> A.takeWhile (/= ' ')
+        ]
 
--- | Parse user input into a proper 'Date'.
-pToDate :: Text -> Date
-pToDate input = case A.parseOnly pAttoDate input of
-  -- If the parsing fails for some reason, just return today's menu.
-  Left  _ -> Today
-  Right d -> d
+    -- | Parse a 'DayOfWeek' using both german and english names.
+    pDay :: A.Parser DayOfWeek
+    pDay = A.choice
+        [ Monday    <$ A.asciiCI "mo"
+        , Tuesday   <$ aliases ["tu", "di"]
+        , Wednesday <$ aliases ["w" , "mi"]
+        , Thursday  <$ aliases ["th", "do"]
+        , Friday    <$ A.asciiCI "f"
+        , Saturday  <$ A.asciiCI "sa"
+        , Sunday    <$ aliases ["su", "so"]
+        ]
 
--- | Parse our entire 'Date' type.
-pAttoDate :: A.Parser Date
-pAttoDate = A.choice
-    [ Today <$ A.asciiCI "today"
-    , Next <$> pDay
-    , Tomorrow <$ A.asciiCI "t"
-    , Date <$> A.takeWhile (/= ' ')
-    ]
+    -- | Actually run the parser, with a default in case of a parse failure.
+    pToDate :: Text -> Date
+    pToDate = parseWithDefault pAttoDate Today
 
--- | Parse a 'DayOfWeek' using both german and english names.
-pDay :: A.Parser DayOfWeek
-pDay = A.choice
-    [ Monday    <$ A.asciiCI "mo"
-    , Tuesday   <$ aliases ["tu", "di"]
-    , Wednesday <$ aliases ["w" , "mi"]
-    , Thursday  <$ aliases ["th", "do"]
-    , Friday    <$ A.asciiCI "f"
-    , Saturday  <$ A.asciiCI "sa"
-    , Sunday    <$ aliases ["su", "so"]
-    ]
+
+-- | Apply a parser to a given input, if the parsing fails return a default
+-- value.
+parseWithDefault :: A.Parser p -> p -> Text -> p
+parseWithDefault parser def input =
+    case A.parseOnly parser input of
+        Left  _ -> def
+        Right t -> t
 
 -- | Match on a list of text case-insensitively.
 aliases :: [Text] -> A.Parser Text
