@@ -12,6 +12,7 @@
 module Core.CLI
     ( Options(..)
     , MealTime(..)
+    , MealType(..)
     , Date(..)
     , options
     ) where
@@ -27,13 +28,13 @@ import           Data.Time.Calendar
     )
 import           Options.Applicative
     ( Parser, ParserInfo, (<|>), argument, auto, flag, fullDesc, header, help
-    , helper, info, long, metavar, option, short, str, switch, value
+    , helper, info, long, metavar, option, short, str, strOption, switch, value
     )
 
 
 -- | Options the user may specify on the command line.
 data Options = Options
-    { allMeals  :: Bool
+    { mealType  :: MealType
     , lineWrap  :: Int
     , mealTime  :: MealTime
     , date      :: Date
@@ -51,17 +52,30 @@ options = info
 -- | Parse all command line options.
 pOptions :: Parser Options
 pOptions = Options
-    <$> pAllMeals
+    <$> pMealType
     <*> pLineWrap
     <*> pMealTime
     <*> pDate
 
-pAllMeals :: Parser Bool
-pAllMeals = switch
-     ( long "allmeals"
-    <> short 'a'
-    <> help "Display all meals (instead of only the vegetarian/vegan one)."
-     )
+-- | What type of meal are we looking for?
+data MealType
+    = AllMeals
+    | Vegetarian
+    | Vegan
+
+pMealType :: Parser MealType
+pMealType = pAll <|> pVegan
+  where
+    pAll = flag Vegetarian AllMeals
+         ( long "allmeals"
+        <> short 'a'
+        <> help "Display all meals (instead of only the vegetarian/vegan ones)."
+         )
+    pVegan = flag Vegetarian Vegan
+         ( long "vegan"
+        <> short 'v'
+        <> help "Display only the vegan meals."
+         )
 
 -- | Which time of day should the meal happen at?
 data MealTime

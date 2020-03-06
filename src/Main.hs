@@ -16,10 +16,11 @@ module Main
 -- Local imports
 import Core.CLI as CLI
     ( MealTime(AllDay, Dinner, Lunch)
-    , Options(Options, allMeals, date, lineWrap, mealTime)
+    , MealType(AllMeals, Vegan, Vegetarian)
+    , Options(Options, date, lineWrap, mealTime, mealType)
     , options
     )
-import Core.MealOptions (dinner, filterOptions, lunch, veggie)
+import Core.MealOptions (dinner, filterOptions, lunch, vegan, veggie)
 import Core.Time (getDate)
 import Core.Types
     ( Mensa(Mensa, meals, name, url)
@@ -93,7 +94,7 @@ main = do
 -- | Fetch all meals of a certain canteen and process them.
 getMensa :: Manager -> Options -> Mensa -> IO Mensa
 getMensa manager
-         Options{ allMeals, mealTime }
+         Options{ mealType, mealTime }
          mensa@Mensa{ url }
   = catch
         (do req      <- parseUrlThrow (T.unpack url)
@@ -101,14 +102,17 @@ getMensa manager
 
             pure $! case tryMeals of
                 Nothing  -> mensa
-                Just !ms -> mensa { meals = filterOptions (ifV ++ mt) ms })
+                Just !ms -> mensa { meals = filterOptions [mtype, mtime] ms })
         $ handleErrs mensa
   where
-    ifV = [veggie | not allMeals]
-    mt  = case mealTime of
-        AllDay -> []
-        Dinner -> [dinner]
-        Lunch  -> [lunch]
+    mtype = case mealType of
+        Vegetarian -> veggie
+        Vegan      -> vegan
+        AllMeals   -> const True
+    mtime = case mealTime of
+        AllDay -> const True
+        Dinner -> dinner
+        Lunch  -> lunch
 
     -- | If any error occurs, just return the input 'Mensa' (which will be
     -- empty).

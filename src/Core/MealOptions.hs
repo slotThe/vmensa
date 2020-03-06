@@ -14,6 +14,7 @@ module Core.MealOptions
 
     -- * Different filters for meals
     , veggie
+    , vegan
     , dinner
     , lunch
     ) where
