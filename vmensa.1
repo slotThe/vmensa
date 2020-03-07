@@ -1,0 +1,142 @@
+.hy
+.TH "vmensa" "1" "07 March 2020" "vmensa 0.1"
+
+
+
+.SH NAME
+.PP
+vmensa \- Query the Stundentenwerk API from inside your terminal!
+
+
+
+.SH SYNOPSIS
+.B vmensa
+[
+.I options
+] [
+.I day
+]
+
+
+
+.SH DESCRIPTION
+.PP
+NOTE AT THE VERY START: Basically all of this is still very much liable to
+change.
+
+Through the power of a lonely and unwanted API,
+kindly provided by the Studentenwerk Dresden,
+.I vmensa
+brings today's canteen menu directly to your terminal (or tomorrow's, or next
+Monday's... see the
+.I POSITIONAL ARGUMENTS
+for that)!
+
+Note that the "v" in
+.I vmensa
+stands for "vegetarian" and thusly only those meal options (plus the vegan ones)
+will be displayed by default.  To make the program fit your specific diet, see
+.I OPTIONS.
+
+
+
+.SH OPTIONS
+.BI \-m " diet\fR,\fP " \-\-diet= "diet"
+.RS
+Diet to display.  The argument
+.I diet
+may have the following values (letters in square brackets may be omitted):
+.TS
+l l l .
+	a[ll]	Display all meals.
+	v[egan]	Display only the vegan meals.
+	vege[tarian], [vegg]ie	Display vegetarian and vegan meals.
+.TE
+
+.I diet
+defaults to "vegetarian".
+.RE
+
+
+.BI \-w " n\fR,\fP " \-\-wrap= "n"
+.RS
+Wrap sections at
+.I n
+columns.
+.RE
+
+
+.BI \-t " time\fR,\fP " \-\-time= "time"
+.RS
+Canteens may server lunch or dinner, this flag decides which options
+.I vmensa
+displays.  The argument
+.I time
+may have the following values (letters in square brackets may be omitted):
+.TS
+l l l .
+	a[ll-day]	Display all meals.
+	l[unch]	Display only the lunch options.
+	d[inner]	Display only the dinner options.
+.TE
+
+.I time
+defaults to "all-day".
+.RE
+
+
+.BR \-h ", " \-\-help
+.RS
+Print help information.
+.RE
+
+
+
+.SH POSITIONAL ARGUMENTS
+Pick the day (or date) when
+.I vmensa
+should query the API.  The argument may have the following values (letters in
+square brackets may be omitted):
+.TS
+l l .
+	today
+	mo[nday]
+	tu[esday], di[enstag]
+	w[ednesday], mi[ttwoch]
+	th[ursday], do[nnerstag]
+	f[riday]
+	sa[turday]
+	su[nday], so[nntag]
+	t[omorrow]
+	YYYY-MM-DD
+.TE
+
+Note that specifying the week day will always jump forwards in time, i.e. an
+input of "monday" on a monday will result in getting the menu for the following
+monday.
+
+This defaults to "today".
+
+
+
+.SH EXAMPLES
+Query tomorrows lunch menu, wrapping the text at 80 characters:
+.RS
+.I vmensa --time lunch --wrap 80 tomorrow
+.RE
+
+Query next Wednesday's vegan dinner menu, wrapping the text at 60 characters:
+.RS
+.I vmensa -m v -t d -w 60 w
+.RE
+
+
+
+.SH BUGS
+For a list of bugs, see <\fIhttps://gitlab.com/tozor/vmensa/issues\fR>.
+
+
+
+.SH AUTHOR
+\fBvmensa\fR was written by Tony Zorman.  To contribute, or file an issue please
+visit <\fIhttps://gitlab.com/tozor/vmensa/\fR>

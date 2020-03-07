@@ -4,7 +4,8 @@ api](https://www.studentenwerk-dresden.de/mensen/speiseplan-api.html), fetch a
 couple of different canteens, filter the results according to the authors
 dietary requirements, and print out the relevant meals to stdout.
 
-For all command line options, see `vmensa --help`
+For all command line options, see `vmensa --help`.  For more information, please
+see the man page.
 
 # Building
 Build with `stack build`, then copy the executable to a convenient location.
