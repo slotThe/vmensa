@@ -67,6 +67,7 @@ pMealType :: Parser MealType
 pMealType = pToMealType <$> strOption
      ( long "diet"
     <> short 'm'
+    <> metavar "D"
     <> help "Which kinds of meals do display.  Defaults to vegetarian."
     <> value "vegetarian"
      )
@@ -93,8 +94,9 @@ pMealTime :: Parser MealTime
 pMealTime = pToMealTime <$> strOption
      ( long "time"
     <> short 't'
+    <> metavar "T"
     <> help "Which menu options (lunch/dinner) to display."
-    <> value "allDay"
+    <> value "all-day"
      )
   where
     -- | Parse user input into a proper 'MealTime'.
