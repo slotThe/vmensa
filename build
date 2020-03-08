@@ -1,0 +1,19 @@
+#!/bin/sh
+#
+# Building vmensa
+#
+
+# The name of the executable produced by stack.
+EXE_NAME=vmensa
+
+# Do the build.
+stack build "$EXE_NAME"
+
+# Install manpage
+sudo cp ./vmensa.1 /usr/local/share/man/man1
+if type mandb > /dev/null 2>&1; then
+  sudo mandb
+fi
+
+# Create a hard link at the requested destination, replacing any existing one.
+ln -f -T $(stack exec -- which "$EXE_NAME") "$1/$EXE_NAME"

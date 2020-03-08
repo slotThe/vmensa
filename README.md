@@ -12,3 +12,6 @@ Build with `stack build`, then copy the executable to a convenient location.
 Alternatively, you may use `stack install`, which will copy the executable to
 `local-bin-path` (probably `$HOME/.local/bin`, see output of `stack path
 --local-bin` for certainty).
+
+There's also a small build script available (which takes case of installing the
+man page as well), use at your own risk.
