@@ -11,15 +11,14 @@
 module Core.MealOptions
     ( -- * Filter for the given options
       filterOptions
-
-    -- * Different filters for meals
-    , veggie
-    , vegan
-    , dinner
-    , lunch
     ) where
 
 -- Local imports
+import Core.CLI as CLI
+    ( MealTime(AllDay, Dinner, Lunch)
+    , MealType(AllMeals, Vegan, Vegetarian)
+    , Options(Options, iKat, iNotes, mealTime, mealType)
+    )
 import Core.Types (Meal(category, notes, prices), Meals, Prices(NoPrice))
 
 -- Text
@@ -30,48 +29,62 @@ import qualified Data.Text as T
 import Control.Applicative (liftA2)
 
 
--- | Filter for the meal options given, exclude anything that's already sold
--- out.
-filterOptions :: [Meal -> Bool] -> Meals -> Meals
+-- | Filter for the meal options given, ignore anything that's already sold out.
+filterOptions :: Options -> Meals -> Meals
 filterOptions opts = filter availableOpts
   where
     availableOpts :: Meal -> Bool
-    availableOpts = liftA2 (&&) notSoldOut (allOpts opts)
+    availableOpts = allTrue $ getAllOpts opts
 
     -- | Every predicate should be satisfied in order for the result to be
     -- accepted.
-    allOpts :: [Meal -> Bool] -> Meal -> Bool
-    allOpts os meal = all ($ meal) os
+    allTrue :: [Meal -> Bool] -> Meal -> Bool
+    allTrue os meal = all ($ meal) os
+
+    -- | All of the options a user picked.
+    getAllOpts :: Options -> [Meal -> Bool]
+    getAllOpts Options{ mealType, mealTime, iKat, iNotes } =
+           [notSoldOut, mtype, mtime]
+        ++ map notCategory    iKat
+        ++ map notPartOfNotes iNotes
+      where
+        mtype = case mealType of
+            Vegetarian -> veggie
+            Vegan      -> vegan
+            AllMeals   -> const True
+        mtime = case mealTime of
+            AllDay -> const True
+            Dinner -> dinner
+            Lunch  -> lunch
 {-# INLINE filterOptions #-}
 
 -- | Most of the time we want both.
 veggie :: Meal -> Bool
 veggie = liftA2 (||) vegan vegetarian
-{-# INLINE veggie #-}
 
 vegetarian :: Meal -> Bool
 vegetarian = elemNotes "Menü ist vegetarisch"
-{-# INLINE vegetarian #-}
 
 vegan :: Meal -> Bool
 vegan = elemNotes "Menü ist vegan"
-{-# INLINE vegan #-}
 
 dinner :: Meal -> Bool
 dinner = ("Abendangebot" `T.isInfixOf`) . category
-{-# INLINE dinner #-}
 
 lunch :: Meal -> Bool
 lunch = not . dinner
-{-# INLINE lunch #-}
 
 notSoldOut :: Meal -> Bool
 notSoldOut = available . prices
-{-# INLINE notSoldOut #-}
 
 elemNotes :: Text -> Meal -> Bool
 elemNotes s = (s `elem`) . notes
-{-# INLINE elemNotes #-}
+
+notPartOfNotes :: Text -> Meal -> Bool
+notPartOfNotes s = not . any (s `T.isInfixOf`) . notes
+
+notCategory :: Text -> Meal -> Bool
+notCategory s = (s /=) . category
 
 available :: Prices -> Bool
 available (NoPrice _) = False

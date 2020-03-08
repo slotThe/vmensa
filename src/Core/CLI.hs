@@ -1,6 +1,6 @@
 {- |
    Module      : Core.CLI
-   Description : Small command line interface for the application.
+   Description : Command line interface for the application.
    Copyright   : (c) Tony Zorman, 2020
    License     : GPL-3
    Maintainer  : tonyzorman@mailbox.org
@@ -18,7 +18,7 @@ module Core.CLI
     ) where
 
 -- Text
-import           Data.Text ( Text )
+import Data.Text (Text)
 
 -- Other imports
 import qualified Data.Attoparsec.Text as A
@@ -34,10 +34,12 @@ import           Options.Applicative
 
 -- | Options the user may specify on the command line.
 data Options = Options
-    { mealType  :: MealType
-    , lineWrap  :: Int
-    , mealTime  :: MealTime
-    , date      :: Date
+    { mealType :: MealType
+    , lineWrap :: Int
+    , mealTime :: MealTime
+    , iKat     :: [Text]
+    , iNotes   :: [Text]
+    , date     :: Date
     }
 
 -- | Create an info type from our options, adding help text and other nice
@@ -55,6 +57,8 @@ pOptions = Options
     <$> pMealType
     <*> pLineWrap
     <*> pMealTime
+    <*> pIKat
+    <*> pINotes
     <*> pDate
 
 -- | What type of meal are we looking for?
@@ -95,7 +99,8 @@ pMealTime = pToMealTime <$> strOption
      ( long "time"
     <> short 't'
     <> metavar "T"
-    <> help "Which menu options (lunch/dinner) to display."
+    <> help "Which menu options (lunch/dinner/all-day) to display.  \
+            \Defaults to all-day."
     <> value "all-day"
      )
   where
@@ -159,6 +164,52 @@ pDate = pToDate <$> argument str (metavar "DAY" <> value "today")
     pToDate :: Text -> Date
     pToDate = parseWithDefault pAttoDate Today
 
+-- | Ignore a certain category of meals.
+pIKat :: Parser [Text]
+pIKat = parseWithDefault pSplitter [] <$> strOption
+     ( long "ikat"
+    <> metavar "STR"
+    <> help ("Ignore anything you want from the \"Kategorie\" section.  \
+            \Note that you need to wrap STR in quotes if you want to ignore \
+            \more than one thing.  Options are separated by any of the \
+            \following characters:" ++ showSepChars)
+    <> value ""
+     )
+
+-- | Filter out meals due to certain ingredients etc.
+pINotes :: Parser [Text]
+pINotes = parseWithDefault pSplitter [] <$> strOption
+     ( long "inotes"
+    <> metavar "STR"
+    <> help ("Ignore anything you want from the \"Notes\" section.  \
+            \Note that you need to wrap STR in quotes if you want to ignore \
+            \more than one thing.  Options are separated by any of the \
+            \following characters:" ++ showSepChars)
+    <> value ""
+     )
+
+-- | Split a string.
+pSplitter :: A.Parser [Text]
+pSplitter = A.choice
+    [ [] <$ A.endOfInput
+    , A.takeWhile (noneOf sepChars)
+      `A.sepBy`
+      (A.skipSpace *> anyOf sepChars <* A.skipSpace)
+    ]
+  where
+    noneOf :: Eq a => [a] -> a -> Bool
+    {-# SPECIALIZE noneOf :: String -> Char -> Bool #-}
+    noneOf ws w = all (($ w) . flip (/=)) ws
+
+    anyOf :: String -> A.Parser Char
+    anyOf = foldMap A.char
+
+-- | Our separator chars.
+sepChars :: String
+sepChars = [',', ';', ':', '.']
+-- | A small pretty printing function for the separator chars.
+showSepChars :: String
+showSepChars = concatMap ((" " ++) . show) sepChars
 
 -- | Apply a parser to a given input, if the parsing fails return a default
 -- value.

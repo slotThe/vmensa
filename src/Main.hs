@@ -14,13 +14,8 @@ module Main
     ) where
 
 -- Local imports
-import Core.CLI as CLI
-    ( MealTime(AllDay, Dinner, Lunch)
-    , MealType(AllMeals, Vegan, Vegetarian)
-    , Options(Options, date, lineWrap, mealTime, mealType)
-    , options
-    )
-import Core.MealOptions (dinner, filterOptions, lunch, vegan, veggie)
+import Core.CLI (Options(Options, date, lineWrap), options)
+import Core.MealOptions (filterOptions)
 import Core.Time (getDate)
 import Core.Types
     ( Mensa(Mensa, meals, name, url)
@@ -29,14 +24,14 @@ import Core.Types
 import Core.Util (tshow)
 
 -- Text
-import           Data.Text    ( Text )
+import           Data.Text    (Text)
 import qualified Data.Text    as T
 import qualified Data.Text.IO as T
 
 -- Other imports
 import Control.Concurrent.Async (mapConcurrently)
 import Control.Exception (SomeException, catch)
-import Data.Aeson (decode)
+import Data.Aeson (decode')
 import Data.Foldable (traverse_)
 import Network.HTTP.Conduit
     ( Manager, httpLbs, newManager, parseUrlThrow, responseBody
@@ -50,28 +45,25 @@ main :: IO ()
 main = do
     -- Parse command line options.
     opts@Options{ lineWrap, date } <- execParser options
-    let mprint' = mprint lineWrap (tshow date)
 
-    -- Create new manager for handling network connections.
-    manager <- newManager tlsManagerSettings
-    let getMensa' = getMensa manager opts
-
-    -- Get specified date in YYYY-MM-DD format.
+    -- Get specified date in YYYY-MM-DD format, then build all canteens and
+    -- decide in which order they will be printed.
     d <- getDate date
-
-    -- Build all canteens, decide in which order they will be printed.
     let canteens = map ($! d) [alte, uboot, zelt, siedepunkt]
-    -- Connect to the API and parse the necessary JSON.
-    mensen <- mapConcurrently getMensa' canteens
 
-    -- Print out the results
-    traverse_ mprint' mensen
+    -- Create new manager for handling network connections, then connect to the
+    -- API and parse the necessary JSON.
+    manager <- newManager tlsManagerSettings
+    mensen  <- mapConcurrently (getMensa manager opts) canteens
+
+    -- Print out the results.
+    traverse_ (mprint lineWrap (tshow date)) mensen
 
   where
     -- | Pretty print a 'Mensa'.
     mprint
-        :: Int    -- ^ Line Wrap
-        -> Text   -- ^ The date when the meals are offered
+        :: Int    -- ^ Line wrap
+        -> Text   -- ^ Day when the meals are offered
         -> Mensa
         -> IO ()
     mprint lw d mensa@Mensa{ name, meals } =
@@ -94,25 +86,18 @@ main = do
 -- | Fetch all meals of a certain canteen and process them.
 getMensa :: Manager -> Options -> Mensa -> IO Mensa
 getMensa manager
-         Options{ mealType, mealTime }
+         opts
          mensa@Mensa{ url }
   = catch
         (do req      <- parseUrlThrow (T.unpack url)
-            tryMeals <- decode . responseBody <$> httpLbs req manager
+            -- Strict decoding as we eventually check every field (via filters).
+            tryMeals <- decode' . responseBody <$> httpLbs req manager
 
             pure $! case tryMeals of
                 Nothing  -> mensa
-                Just !ms -> mensa { meals = filterOptions [mtype, mtime] ms })
+                Just !ms -> mensa { meals = filterOptions opts ms })
         $ handleErrs mensa
   where
-    mtype = case mealType of
-        Vegetarian -> veggie
-        Vegan      -> vegan
-        AllMeals   -> const True
-    mtime = case mealTime of
-        AllDay -> const True
-        Dinner -> dinner
-        Lunch  -> lunch
 
     -- | If any error occurs, just return the input 'Mensa' (which will be
     -- empty).
