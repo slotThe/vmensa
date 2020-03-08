@@ -91,6 +91,31 @@ Print help information.
 .RE
 
 
+.BI \-\-ikat= "str"
+.RS
+Ignore anything you want from the "Kategorie" section.  Note that you need to
+wrap
+.I str
+in quotes if you want to ignore more than one thing.  Options are separated by
+any of the following characters: ',' ';' ':' '.'.  Categories have to be written
+out in full, i.e. to ignore the category "Pasta", one would have to write
+.I vmensa --ikat Pasta
+.RE
+
+
+.BI \-\-inotes= "str"
+.RS
+Ignore anything you want from the "Notes" section.  Note that you need to wrap
+.I str
+in quotes if you want to ignore more than one thing.  Options are separated by
+any of the following characters: ',' ';' ':' '.'.  Notes check for partial
+matches, i.e to ignore everything containing "Soja (F)", one may use
+.I vmensa --inotes (F)
+or, alternatively
+.I vmensa --inotes Soja
+.RE
+
+
 
 .SH POSITIONAL ARGUMENTS
 Pick the day (or date) when
@@ -128,6 +153,12 @@ Query tomorrows lunch menu, wrapping the text at 80 characters:
 Query next Wednesday's vegan dinner menu, wrapping the text at 60 characters:
 .RS
 .I vmensa -m v -t d -w 60 w
+.RE
+
+Query today's vegetarian menu, ignoring pasta, as well as anything containing
+eggs and soy:
+.RS
+.I vmensa --inotes "Eier, Soja" --ikat Pasta
 .RE
 
 
