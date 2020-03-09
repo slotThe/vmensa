@@ -139,7 +139,6 @@ showMeals lw ms = T.init . T.unlines . map (showMeal lw) $ ms
         -}
         style :: Text -> Text
         style s = "\x1b[33m" <> s <> "\x1b[0m"
-{-# INLINE showMeals #-}
 
 -- | Simple (and probably hilariously inefficient) function to wrap text
 -- at N columns.
@@ -162,9 +161,9 @@ wrapWith divText al wrapAt chunks
         | combLen >= wrapAt = go (align line)       al     xs
         | otherwise         = go (line <> c <> end) newLen cs
       where
-        combLen = acc + T.length c
-        newLen  = combLen + T.length end
-        align   = (<> "\n" <> T.replicate al " ")
+        !combLen = acc + T.length c
+        !newLen  = combLen + T.length end
+        align = (<> "\n" <> T.replicate al " ")
         end | null cs   = ""
             | otherwise = divText
 {-# INLINE wrapWith #-}

@@ -14,4 +14,7 @@ Alternatively, you may use `stack install`, which will copy the executable to
 --local-bin` for certainty).
 
 There's also a small build script available (which takes case of installing the
-man page as well), use at your own risk.
+man page as well), use at your own risk.  You may use it as follows:
+```
+./build /path/where/executable/should/be/moved/to
+```
