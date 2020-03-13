@@ -17,18 +17,24 @@ module Core.CLI
     , options
     ) where
 
+-- Local imports
+import Paths_vmensa (version)
+
 -- Text
 import Data.Text (Text)
 
--- Other imports
+-- Other qualified imports
 import qualified Data.Attoparsec.Text as A
-import           Data.Time.Calendar
+
+-- Other imports
+import Data.Time.Calendar
     ( DayOfWeek(Friday, Monday, Saturday, Sunday, Thursday, Tuesday,
           Wednesday)
     )
-import           Options.Applicative
+import Data.Version (showVersion)
+import Options.Applicative
     ( Parser, ParserInfo, argument, auto, fullDesc, header, help, helper, info
-    , long, metavar, option, short, str, strOption, value
+    , infoOption, long, metavar, option, short, str, strOption, value
     )
 
 
@@ -46,10 +52,18 @@ data Options = Options
 -- features.
 options :: ParserInfo Options
 options = info
-    (helper <*> pOptions)  -- create "--help"
+    (helper <*> versionOpt <*> pOptions)
     (  header "vmensa: Query the Stundentenwerk API from inside your terminal!"
     <> fullDesc
     )
+  where
+    versionOpt :: Parser (a -> a)
+    versionOpt = infoOption (showVersion version)
+         ( long "version"
+        <> short 'V'
+        <> help "Show version"
+         )
+
 
 -- | Parse all command line options.
 pOptions :: Parser Options
