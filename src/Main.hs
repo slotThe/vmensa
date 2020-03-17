@@ -90,7 +90,7 @@ getMensa manager
          mensa@Mensa{ url }
   = catch
         (do req      <- parseUrlThrow (T.unpack url)
-            -- Strict decoding as we eventually check every field (via filters).
+            -- Strict decoding as we eventually check most fields (via filters).
             tryMeals <- decode' . responseBody <$> httpLbs req manager
 
             pure $! case tryMeals of
@@ -109,10 +109,10 @@ getMensa manager
        'https:\/\/api.studentenwerk-dresden.de\/openmensa\/v2\/canteens'
 -}
 alte, uboot, siedepunkt, zelt :: Text -> Mensa
-zelt       = mkEmptyMensa "Mensa Zeltschlößchen" . mensaURL 35
-uboot      = mkEmptyMensa "Bio Mensa"            . mensaURL 29
-siedepunkt = mkEmptyMensa "Mensa Siedepunkt"     . mensaURL 9
-alte       = mkEmptyMensa "Alte Mensa"           . mensaURL 4
+zelt       = mkEmptyMensa "Mensa Zeltschlösschen" . mensaURL 35
+uboot      = mkEmptyMensa "Bio Mensa"             . mensaURL 29
+siedepunkt = mkEmptyMensa "Mensa Siedepunkt"      . mensaURL 9
+alte       = mkEmptyMensa "Alte Mensa"            . mensaURL 4
 
 -- | Template URL for getting all meals of a certain Meals.
 mensaURL
