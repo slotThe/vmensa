@@ -67,7 +67,7 @@ data Meal = Meal
 
 -- | All the different price types.
 data Prices
-    = Prices { students  :: {-# UNPACK #-} !Double
+    = Prices { students  :: !Double
              , employees :: Double
              }
     | NoPrice [Double]
