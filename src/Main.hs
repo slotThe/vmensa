@@ -70,8 +70,7 @@ main = do
         if empty mensa
             then pure ()
             else traverse_ T.putStrLn
-                     [ ""
-                     , separator
+                     [ separator
                      , d <> " in: " <> name
                      , separator
                      , showMeals lw meals

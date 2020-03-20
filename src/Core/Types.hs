@@ -87,20 +87,23 @@ showMeals
     :: Int    -- ^ Line wrap.
     -> Meals
     -> Text
-showMeals _  [] = ""  -- Init is not safe on an empty list.
-showMeals lw ms = T.init . T.unlines . map (showMeal lw) $ ms
+showMeals lw = T.unlines . map (showMeal lw)
   where
     -- | Pretty printing for a single 'Meal'.
     showMeal
         :: Int   -- ^ Line wrap.
         -> Meal
         -> Text
-    showMeal wrap Meal{ category, name, notes, prices } =
-           "\n" <> style nameText      <> wrapName wrap name
-        <> "\n" <> style "Preis: "     <> tshowEUR (mstudents prices)
-        <> "\n" <> style notesText     <> decodeSymbols (wrapNotes wrap notes)
-        <> "\n" <> style "Kategorie: " <> category
+    showMeal wrap Meal{ category, name, notes, prices } = withLn
+        [ style nameText      <> wrapName wrap name
+        , style "Preis: "     <> tshowEUR (mstudents prices)
+        , style notesText     <> decodeSymbols (wrapNotes wrap notes)
+        , style "Kategorie: " <> category
+        ]
       where
+        withLn :: [Text] -> Text
+        withLn xs = '\n' `T.cons` mconcat (intersperse "\n" xs)
+
         nameText, notesText :: Text
         nameText  = "Essen: "
         notesText = "Notes: "
