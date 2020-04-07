@@ -44,9 +44,11 @@ filterOptions opts = filter availableOpts
     -- | All of the options a user picked.
     getAllOpts :: Options -> [Meal -> Bool]
     getAllOpts Options{ mealType, mealTime, iKat, iNotes } =
-           [notSoldOut, mtype, mtime]
-        ++ map notCategory    iKat
-        ++ map notPartOfNotes iNotes
+        concat
+            [ [notSoldOut, mtype, mtime]
+            , map notCategory    iKat
+            , map notPartOfNotes iNotes
+            ]
       where
         mtype = case mealType of
             Vegetarian -> veggie

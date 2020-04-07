@@ -118,7 +118,8 @@ mensaURL
     :: Int   -- ^ Number of the Mensa in the API
     -> Text  -- ^ Date at which we would like to see the food.
     -> Text
-mensaURL num date =
-    "https://api.studentenwerk-dresden.de/openmensa/v2/canteens/"
-        <> tshow num <> "/days/"
-        <> date      <> "/meals"
+mensaURL num date = mconcat
+    [ "https://api.studentenwerk-dresden.de/openmensa/v2/canteens/"
+    , tshow num, "/days/"
+    , date     , "/meals"
+    ]
