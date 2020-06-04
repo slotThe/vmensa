@@ -12,8 +12,6 @@ module Core.Util
     ( tshow
     ) where
 
--- Text
-import           Data.Text ( Text )
 import qualified Data.Text as T
 
 

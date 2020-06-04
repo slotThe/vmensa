@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.2.
+-- This file has been generated from package.yaml by hpack version 0.33.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e7d455c24f8be3437edc989f9a42ca08c53ef22f957a80ad7831fc14ee1dc552
+-- hash: d8654145e73a468505f5b9f6149560af0713ef3ad4662118379abee97716e8cd
 
 name:           vmensa
 version:        0.1.0
@@ -23,6 +23,7 @@ executable vmensa
       Core.Time
       Core.Types
       Core.Util
+      Prelude
       Paths_vmensa
   hs-source-dirs:
       src
@@ -32,7 +33,8 @@ executable vmensa
       aeson
     , async
     , attoparsec
-    , base
+    , base-noprelude
+    , base-prelude
     , http-conduit
     , optparse-applicative
     , text

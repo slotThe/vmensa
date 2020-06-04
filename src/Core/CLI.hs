@@ -7,7 +7,7 @@
    Stability   : experimental
    Portability : non-portable
 -}
-{-# LANGUAGE StrictData  #-}
+{-# LANGUAGE StrictData #-}
 
 module Core.CLI
     ( Options(..)
@@ -20,9 +20,6 @@ module Core.CLI
 -- Local imports
 import Paths_vmensa (version)
 
--- Text
-import Data.Text (Text)
-
 -- Other qualified imports
 import qualified Data.Attoparsec.Text as A
 
@@ -31,7 +28,6 @@ import Data.Time.Calendar
     ( DayOfWeek(Friday, Monday, Saturday, Sunday, Thursday, Tuesday,
           Wednesday)
     )
-import Data.Version (showVersion)
 import Options.Applicative
     ( Parser, ParserInfo, argument, auto, fullDesc, header, help, helper, info
     , infoOption, long, metavar, option, short, str, strOption, value
@@ -64,16 +60,15 @@ options = info
         <> help "Show version"
          )
 
-
 -- | Parse all command line options.
 pOptions :: Parser Options
-pOptions = Options
-    <$> pMealType
-    <*> pLineWrap
-    <*> pMealTime
-    <*> pIKat
-    <*> pINotes
-    <*> pDate
+pOptions =  Options
+        <$> pMealType
+        <*> pLineWrap
+        <*> pMealTime
+        <*> pIKat
+        <*> pINotes
+        <*> pDate
 
 -- | What type of meal are we looking for?
 data MealType
@@ -212,8 +207,8 @@ pSplitter = A.choice
     ]
   where
     noneOf :: Eq a => [a] -> a -> Bool
-    {-# SPECIALIZE noneOf :: String -> Char -> Bool #-}
     noneOf ws w = all (($ w) . flip (/=)) ws
+    {-# SPECIALIZE noneOf :: String -> Char -> Bool #-}
 
     anyOf :: String -> A.Parser Char
     anyOf = foldMap A.char
@@ -221,6 +216,7 @@ pSplitter = A.choice
 -- | Our separator chars.
 sepChars :: String
 sepChars = [',', ';', ':', '.']
+
 -- | A small pretty printing function for the separator chars.
 showSepChars :: String
 showSepChars = concatMap ((" " ++) . show) sepChars

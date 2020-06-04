@@ -13,7 +13,6 @@ module Main
       main
     ) where
 
--- Local imports
 import Core.CLI (Options(Options, date, lineWrap), options)
 import Core.MealOptions (filterOptions)
 import Core.Time (getDate)
@@ -23,16 +22,11 @@ import Core.Types
     )
 import Core.Util (tshow)
 
--- Text
-import           Data.Text    (Text)
 import qualified Data.Text    as T
 import qualified Data.Text.IO as T
 
--- Other imports
 import Control.Concurrent.Async (mapConcurrently)
-import Control.Exception (SomeException, catch)
 import Data.Aeson (decode')
-import Data.Foldable (traverse_)
 import Network.HTTP.Conduit
     ( Manager, httpLbs, newManager, parseUrlThrow, responseBody
     , tlsManagerSettings
@@ -84,22 +78,16 @@ main = do
 
 -- | Fetch all meals of a certain canteen and process them.
 getMensa :: Manager -> Options -> Mensa -> IO Mensa
-getMensa manager
-         opts
-         mensa@Mensa{ url }
-  = catch
-        (do req      <- parseUrlThrow (T.unpack url)
-            -- Strict decoding as we eventually check most fields (via filters).
-            tryMeals <- decode' . responseBody <$> httpLbs req manager
+getMensa manager opts mensa@Mensa{ url } = catch
+    (do req      <- parseUrlThrow (T.unpack url)
+        tryMeals <- decode' . responseBody <$> httpLbs req manager
+        -- Strict decoding as we eventually check most fields.
 
-            pure $! case tryMeals of
-                Nothing  -> mensa
-                Just !ms -> mensa { meals = filterOptions opts ms })
-        $ handleErrs mensa
+        pure $!
+            maybe mensa (\ms -> mensa {meals = filterOptions opts ms}) tryMeals)
+    $ handleErrs mensa
   where
-
-    -- | If any error occurs, just return the input 'Mensa' (which will be
-    -- empty).
+    -- | If any error occurs, just return the (empty) input 'Mensa'.
     handleErrs :: Mensa -> SomeException -> IO Mensa
     handleErrs m = const (pure m)
 

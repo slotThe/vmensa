@@ -21,12 +21,7 @@ import Core.CLI as CLI
     )
 import Core.Types (Meal(category, notes, prices), Meals, Prices(NoPrice))
 
--- Text
-import           Data.Text (Text)
 import qualified Data.Text as T
-
--- Other imports
-import Control.Applicative (liftA2)
 
 
 -- | Filter for the meal options given, ignore anything that's already sold out.

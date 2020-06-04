@@ -24,7 +24,8 @@ ghc-options:
   -Wredundant-constraints
 
 dependencies:
-  - base
+  - base-noprelude
+  - base-prelude
   - aeson
   - async
   - http-conduit

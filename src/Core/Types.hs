@@ -22,15 +22,12 @@ module Core.Types
     , mkEmptyMensa
     ) where
 
--- Text
-import           Data.Text ( Text )
+import Core.Util (tshow)
+
 import qualified Data.Text as T
 
--- Other imports
-import Control.Applicative ((<|>))
 import Data.Aeson (FromJSON(parseJSON), Value(Object), (.:))
-import Data.List (intersperse)
-import GHC.Generics (Generic)
+import Data.Kind (Type)
 
 
 -- | 'Mensa' type
@@ -70,7 +67,7 @@ data Prices
     = Prices { students  :: !Double
              , employees :: Double
              }
-    | NoPrice [Double]
+    | NoPrice [Type]
     -- ^ Who at the Studentenwerk thought that this was a good idea?
     -- This will always be an empty list.
 
@@ -102,7 +99,7 @@ showMeals lw = T.unlines . map (showMeal lw)
         ]
       where
         withLn :: [Text] -> Text
-        withLn xs = '\n' `T.cons` mconcat (intersperse "\n" xs)
+        withLn xs = "\n" <> mconcat (intersperse "\n" xs)
 
         nameText, notesText :: Text
         nameText  = "Essen: "
@@ -110,7 +107,7 @@ showMeals lw = T.unlines . map (showMeal lw)
 
         -- | Wrapping for the menu name.
         wrapName :: Int -> Text -> Text
-        wrapName w n = wrapWith " " (T.length nameText) w (T.words n)
+        wrapName w = wrapWith " " (T.length nameText) w . T.words
 
         -- | Wrapping for the notes.
         wrapNotes :: Int -> [Text] -> Text
@@ -118,7 +115,7 @@ showMeals lw = T.unlines . map (showMeal lw)
 
         -- | Pretty printing for prices.
         tshowEUR :: Show a => a -> Text
-        tshowEUR s = T.pack (show s) <> "€"
+        tshowEUR = (<> "€") . tshow
 
         {- | We're (as of now) only interested in the student prices.
            Anything with 'NoPrice' will be filtered out later, so it's value
@@ -133,7 +130,6 @@ showMeals lw = T.unlines . map (showMeal lw)
         decodeSymbols = T.replace "&uuml;" "ü"
                       . T.replace "&lpar;" "("
                       . T.replace "&rpar;" ")"
-
 
         {- | Set the style for some keywords
            33 looks nice
@@ -160,13 +156,12 @@ wrapWith divText al wrapAt chunks
        -> [Text]  -- ^ Text as chunks that have to stay together.
        -> Text
     go l _ [] = l
-    go line acc xs@(c:cs)
+    go line !acc xs@(c:cs)
         | combLen >= wrapAt = go (align line)       al     xs
         | otherwise         = go (line <> c <> end) newLen cs
       where
         !combLen = acc + T.length c
-        !newLen  = combLen + T.length end
+        newLen   = combLen + T.length end
         align = (<> "\n" <> T.replicate al " ")
-        end | null cs   = ""
-            | otherwise = divText
+        end = if null cs then "" else divText
 {-# INLINE wrapWith #-}
