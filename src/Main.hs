@@ -45,8 +45,11 @@ main = do
     d <- getDate date
     let canteens = map ($! d) [alte, uboot, zelt, siedepunkt]
 
-    -- Create new manager for handling network connections, then connect to the
-    -- API and parse the necessary JSON.
+    {- Create new manager for handling network connections, then connect to the API
+       and parse the necessary JSON.  Note that 'mapConcurrently' creates a
+       thread for every item of 'canteens', though since that list is small this
+       is not an issue for us.
+    -}
     manager <- newManager tlsManagerSettings
     mensen  <- mapConcurrently (getMensa manager opts) canteens
 
