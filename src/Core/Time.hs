@@ -9,7 +9,7 @@
 -}
 
 module Core.Time
-    ( getDate
+    ( getDate  -- :: Date -> IO Text
     ) where
 
 import Core.CLI (Date(Date, Next, Today, Tomorrow))
@@ -31,7 +31,7 @@ getDate = \case
     Next wday -> do
         t <- getCurrentTime
         let diffToDay = diffBetween wday (dayOfWeek $ utctDay t)
-        pure $! showDay (addDays diffToDay t)
+        pure $ showDay (addDays diffToDay t)
 
 -- | Add a specified number of days to a 'UTCTime'.
 addDays :: NominalDiffTime -> UTCTime -> UTCTime

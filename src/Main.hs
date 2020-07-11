@@ -43,7 +43,7 @@ main = do
     -- Get specified date in YYYY-MM-DD format, then build all canteens and
     -- decide in which order they will be printed.
     d <- getDate date
-    let canteens = map ($ d) [alte, uboot, zelt, siedepunkt]
+    let canteens = map ($! d) [alte, uboot, zelt, siedepunkt]
 
     {- Create new manager for handling network connections, then asynchronously
        connect to the API and parse the necessary JSON.  Note that
@@ -52,19 +52,18 @@ main = do
     -}
     manager <- newManager tlsManagerSettings
     let prettyMensa :: Mensa -> IO Text
-        prettyMensa m = mprint lineWrap (tshow date) <$> getMensa manager opts m
+        prettyMensa m = mshow lineWrap (tshow date) <$> getMensa manager opts m
     mensen <- mapConcurrently prettyMensa canteens
 
     -- Print out the results synchronously.
     traverse_ T.putStr mensen
   where
-    -- | Pretty print a 'Mensa'.
-    mprint
-        :: Int    -- ^ Line wrap
-        -> Text   -- ^ Day when the meals are offered
-        -> Mensa
-        -> Text
-    mprint lw d mensa@Mensa{ name, meals }
+    -- | Text-based 'show' function for a 'Mensa'.
+    mshow :: Int    -- ^ Line wrap
+          -> Text   -- ^ Day when the meals are offered
+          -> Mensa
+          -> Text
+    mshow lw d mensa@Mensa{ name, meals }
         | empty mensa = ""
         | otherwise   = T.unlines
             [ separator

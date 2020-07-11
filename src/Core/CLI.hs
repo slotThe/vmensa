@@ -1,3 +1,5 @@
+{-# LANGUAGE StrictData #-}
+
 {- |
    Module      : Core.CLI
    Description : Command line interface for the application.
@@ -7,14 +9,12 @@
    Stability   : experimental
    Portability : non-portable
 -}
-{-# LANGUAGE StrictData #-}
-
 module Core.CLI
     ( Options(..)
     , MealTime(..)
     , MealType(..)
-    , Date(..)
-    , options
+    , Date(..)      -- instances: Show
+    , options       -- :: ParserInfo Options
     ) where
 
 -- Local imports

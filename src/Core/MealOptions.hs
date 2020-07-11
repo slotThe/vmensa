@@ -10,10 +10,9 @@
 
 module Core.MealOptions
     ( -- * Filter for the given options
-      filterOptions
+      filterOptions  -- :: Options -> Meals -> Meals
     ) where
 
--- Local imports
 import Core.CLI as CLI
     ( MealTime(AllDay, Dinner, Lunch)
     , MealType(AllMeals, Vegan, Vegetarian)
@@ -53,11 +52,10 @@ filterOptions opts = filter availableOpts
             AllDay -> const True
             Dinner -> dinner
             Lunch  -> lunch
-{-# INLINE filterOptions #-}
 
 -- | Most of the time we want both.
 veggie :: Meal -> Bool
-veggie = liftA2 (||) vegan vegetarian
+veggie = (||) <$> vegan <*> vegetarian
 
 vegetarian :: Meal -> Bool
 vegetarian = elemNotes "Menü ist vegetarisch"
@@ -84,5 +82,6 @@ notCategory :: Text -> Meal -> Bool
 notCategory s = (s /=) . category
 
 available :: Prices -> Bool
-available (NoPrice _) = False
-available _           = True
+available = \case
+    NoPrice -> False
+    _       -> True

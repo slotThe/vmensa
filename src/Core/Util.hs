@@ -9,7 +9,7 @@
 -}
 
 module Core.Util
-    ( tshow
+    ( tshow  -- Show a => a -> Text
     ) where
 
 import qualified Data.Text as T
