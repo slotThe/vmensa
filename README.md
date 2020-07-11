@@ -18,10 +18,3 @@ man page as well), use at your own risk.  You may use it as follows:
 ```shell
 ./build /path/of/executable
 ```
-
-Note that if you want to query the different canteens concurrently you will have
-to explicitly tell GHC to use a threaded runtime.  You can do this by executing
-`vmensa +RTS -N -RTS [OPTIONS]` or, alternatively, `vmensa [OPTIONS] +RTS -N`.
-This way the runtime will set the number of threads itself.  You may also
-specify how many threads to use by explicitly telling the `-N` option,
-i.e. `-N2` (usually this should be the number of cores you have).

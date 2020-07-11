@@ -14,6 +14,7 @@ default-extensions:
   - InstanceSigs
   - LambdaCase
   - BangPatterns
+  - DuplicateRecordFields
 
 ghc-options:
   -O2
@@ -22,7 +23,6 @@ ghc-options:
   -Wincomplete-record-updates
   -Wincomplete-uni-patterns
   -Wredundant-constraints
-  -threaded
 
 dependencies:
   - base-noprelude
@@ -31,7 +31,7 @@ dependencies:
   - async
   - http-conduit
   - text
-  - time >= 1.9
+  - time                  >= 1.9
   - optparse-applicative
   - attoparsec
 
@@ -39,3 +39,6 @@ executables:
   vmensa:
     source-dirs: src
     main: Main.hs
+    ghc-options:
+     -threaded
+     -with-rtsopts=-N
