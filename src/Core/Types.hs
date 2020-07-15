@@ -25,9 +25,10 @@ import Core.Util (tshow)
 import qualified Data.Text as T
 
 import Data.Aeson (FromJSON(parseJSON), Value(Object), (.:))
+import Data.Aeson.Types (Parser)
 
 
--- | 'Mensa' type
+-- | 'Mensa' type, all fields are needed and hence all fields are strict.
 data Mensa = Mensa
     { name  :: !Text
     , url   :: !Text
@@ -47,32 +48,27 @@ mkEmptyMensa n u = Mensa n u []
 -- | A canteen serves food!
 type Meals = [Meal]
 
--- | Type for a meal.
--- PONDER: It might be better to parse this as a generic JSON and then just
---         slurp out the fields that are interesting to us.
+-- | Type for a single meal.  Note that we are only specifying the contents of
+-- the JSON that we will actually use.
 data Meal = Meal
-    { id       :: Int
-    , name     :: !Text
+    { name     :: !Text
     , notes    :: ![Text]
     , prices   :: !Prices
     , category :: !Text
-    , image    :: Text   -- ^ Sadly not an image of the actual food :(
-    , url      :: Text
     } deriving (Generic, FromJSON)
 
--- | All the different price types.
+-- | All the different price types.  Note again that we are only specifying the
+-- contents of the JSON that we will actually use.
 data Prices
-    = Prices { students  :: !Double
-             , employees :: Double
-             }
+    = Prices { student :: !Double }
     | NoPrice
 
 -- | Manually derive 'FromJSON' instance due to dumb field names.
 instance FromJSON Prices where
-    parseJSON (Object v) =
-        Prices <$> (v .: "Studierende" <|> v .: "Preis 1")
-               <*> (v .: "Bedienstete" <|> v .: "Preis 2")
-    parseJSON _ = pure NoPrice
+    parseJSON :: Value -> Parser Prices
+    parseJSON = \case
+        Object v -> Prices <$> (v .: "Studierende" <|> v .: "Preis 1")
+        _        -> pure NoPrice
 
 -- | Pretty print only the things I'm interested in.
 showMeals
@@ -83,16 +79,13 @@ showMeals lw = T.unlines . map (showMeal lw)
   where
     -- | Pretty printing for a single 'Meal'.
     showMeal :: Int -> Meal -> Text
-    showMeal wrap Meal{ category, name, notes, prices } = withLn
+    showMeal wrap Meal{ category, name, notes, prices } = T.unlines
         [ style nameText      <> wrapName wrap name
         , style "Preis: "     <> tshowEUR (mstudents prices)
         , style notesText     <> decodeSymbols (wrapNotes wrap notes)
         , style "Kategorie: " <> category
         ]
       where
-        withLn :: [Text] -> Text
-        withLn xs = "\n" <> mconcat (intersperse "\n" xs)
-
         nameText, notesText :: Text
         nameText  = "Essen: "
         notesText = "Notes: "
@@ -112,8 +105,8 @@ showMeals lw = T.unlines . map (showMeal lw)
         -}
         mstudents :: Prices -> Double
         mstudents = \case
-            Prices s _ -> s
-            NoPrice    -> -1
+            Prices s -> s
+            NoPrice  -> -1
 
         -- | For some reason this is only needed on notes.
         decodeSymbols :: Text -> Text
