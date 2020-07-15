@@ -69,8 +69,7 @@ main = do
             [ separator
             , d <> " in: " <> name
             , separator
-            , showMeals lw meals
-            ]
+            ] <> showMeals lw meals
 
     -- | Separator for visual separation of different canteens.
     separator :: Text
@@ -83,7 +82,7 @@ getMensa :: Manager -> Options -> Mensa -> IO Mensa
 getMensa manager opts mensa@Mensa{ url } = catch
     (do req      <- parseUrlThrow (T.unpack url)
         tryMeals <- decode' . responseBody <$> httpLbs req manager
-        -- Strict decoding as we eventually check most fields.
+        -- Strict decoding as we eventually check all fields.
 
         pure $!
             maybe mensa (\ms -> mensa {meals = filterOptions opts ms}) tryMeals)
