@@ -1,6 +1,6 @@
 {- |
    Module      : Core.Types
-   Description : All types needed for JSON parsing the openmensa API
+   Description : Basic types a canteen might need
    Copyright   : (c) Tony Zorman, 2019, 2020
    License     : GPL-3
    Maintainer  : tonyzorman@mailbox.org
@@ -13,6 +13,8 @@ module Core.Types
     , Meals         -- types alias: [Meal]
     , Meal(..)      -- instances: Generic, FromJSON
     , Prices(..)    -- intsances: FromJSON
+    , MealType(..)
+    , MealTime(..)
 
     -- * Utility functions.
     , showMeals     -- :: Int -> Meals -> Text
@@ -25,6 +27,18 @@ import qualified Data.Text as T
 import Data.Aeson (FromJSON(parseJSON), Value(Object), (.:))
 import Data.Aeson.Types (Parser)
 
+
+-- | What type of meal are we looking for?
+data MealType
+    = AllMeals
+    | Vegetarian
+    | Vegan
+
+-- | Which time of day should the meal happen at?
+data MealTime
+    = Dinner
+    | Lunch
+    | AllDay
 
 -- | 'Mensa' type, all fields are needed and hence all fields are strict.
 data Mensa = Mensa

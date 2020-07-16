@@ -13,12 +13,14 @@ module Core.MealOptions
       filterOptions  -- :: Options -> Meals -> Meals
     ) where
 
-import Core.CLI as CLI
-    ( MealTime(AllDay, Dinner, Lunch)
+import Core.CLI (Options(Options, iKat, iNotes, mealTime, mealType))
+import Core.Types
+    ( Meal(category, notes, prices)
+    , MealTime(AllDay, Dinner, Lunch)
     , MealType(AllMeals, Vegan, Vegetarian)
-    , Options(Options, iKat, iNotes, mealTime, mealType)
+    , Meals
+    , Prices(NoPrice)
     )
-import Core.Types (Meal(category, notes, prices), Meals, Prices(NoPrice))
 
 import qualified Data.Text as T
 

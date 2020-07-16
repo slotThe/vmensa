@@ -13,9 +13,9 @@ module Main
       main
     ) where
 
-import Core.CLI (Month, Options(Options, date, lineWrap), options, Date(..))
+import Core.CLI (Options(Options, date, lineWrap), options)
 import Core.MealOptions (filterOptions)
-import Core.Time (getDate)
+import Core.Time (getDate, prettyDate)
 import Core.Types
     ( Mensa(Mensa, meals, name, url)
     , empty, mkEmptyMensa, showMeals

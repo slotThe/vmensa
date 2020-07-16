@@ -9,16 +9,18 @@
 -}
 module Core.CLI
     ( Options(..)
-    , MealTime(..)
-    , MealType(..)
-    , Date(..)      -- instances: Show
-    , options       -- :: ParserInfo Options
+    , Date(..)     -- instances: Show
+    , options      -- :: ParserInfo Options
     ) where
 
 import Core.Time
     ( Date(AD, ExactDate, Next, Today, Tomorrow)
     , Month(April, August, December, February, January, July, June,
       March, May, November, October, September)
+    )
+import Core.Types
+    ( MealTime(AllDay, Dinner, Lunch)
+    , MealType(AllMeals, Vegan, Vegetarian)
     )
 import Paths_vmensa (version)
 
@@ -72,12 +74,6 @@ pOptions =  Options
         <*> pINotes
         <*> pDate
 
--- | What type of meal are we looking for?
-data MealType
-    = AllMeals
-    | Vegetarian
-    | Vegan
-
 pMealType :: Parser MealType
 pMealType = option pDiet
      ( long "diet"
@@ -94,12 +90,6 @@ pMealType = option pDiet
         , Vegetarian <$ aliases ["vege", "vegg"]
         , Vegan      <$ A.asciiCI "v"
         ]
-
--- | Which time of day should the meal happen at?
-data MealTime
-    = Dinner
-    | Lunch
-    | AllDay
 
 -- | Times of day where different meals are available.
 pMealTime :: Parser MealTime
