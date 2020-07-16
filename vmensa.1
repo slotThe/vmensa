@@ -131,11 +131,15 @@ l l .
 	su[nday], so[nntag]
 	t[omorrow]
 	YYYY-MM-DD
+	DD MONTH-BY-NAME [YYYY]
 .TE
 
-Note that specifying the week day will always jump forwards in time, i.e. an
-input of "monday" on a monday will result in getting the menu for the following
-monday.
+Here,
+.I MONTH-BY-NAME
+is literally something like "august".  If the year is omitted, the current year
+is assumed.  Note that specifying the week day will always jump forwards in
+time, i.e. an input of "monday" on a monday will result in getting the menu for
+the following monday.
 
 This defaults to "today".
 
@@ -156,6 +160,11 @@ Query today's vegetarian menu, ignoring pasta, as well as anything containing
 eggs and soy:
 .RS
 .I vmensa --inotes 'Eier, Soja' --ikat Pasta
+.RE
+
+Query the menu for the 17th of july.
+.RS
+.I vmensa '17 jul'
 .RE
 
 
