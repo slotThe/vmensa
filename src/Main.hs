@@ -76,15 +76,6 @@ main = do
         "=====================================================================\
         \==========="
 
-    -- | Pretty print the selected date.
-    prettyDate :: Date -> Text
-    prettyDate = \case
-        ExactDate d    -> "On " <> tshow d
-        AD (mbY, m, d) -> mconcat
-                        . (["On ", tshow d, " ", tshow (toEnum @Month m)] ++)
-                        $ maybe [] ((:[]) . tshow) mbY
-        otherDate      -> tshow otherDate
-
 -- | Fetch all meals of a certain canteen and process them.
 getMensa :: Manager -> Options -> Mensa -> IO Mensa
 getMensa manager opts mensa@Mensa{ url } = catch

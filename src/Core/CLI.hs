@@ -11,11 +11,15 @@ module Core.CLI
     ( Options(..)
     , MealTime(..)
     , MealType(..)
-    , Month         -- abstract
     , Date(..)      -- instances: Show
     , options       -- :: ParserInfo Options
     ) where
 
+import Core.Time
+    ( Date(AD, ExactDate, Next, Today, Tomorrow)
+    , Month(April, August, December, February, January, July, June,
+      March, May, November, October, September)
+    )
 import Paths_vmensa (version)
 
 import qualified Data.Attoparsec.Text as A
@@ -126,20 +130,6 @@ pLineWrap = option auto
     <> value 0  -- No line wrapping.
      )
 
--- | Type for specifying exactly which day one wants to see the menu for.
-data Date
-    = Today
-    | Tomorrow
-    | Next DayOfWeek  -- ^ This will *always* show the next 'DayOfWeek'
-                      --   (e.g. calling 'Next Monday' on a monday will result
-                      --   in getting the menu for the following monday)
-    | ExactDate Day   -- ^ Manual date entry in the format YYYY-MM-DD
-    | AD ApproxDate   -- ^ Manual date entry in the format DD MM [YYYY]
-    deriving (Show)
-
--- | Date insert along the lines of /14 jul/.
-type ApproxDate = (Maybe Integer, Int, Int)
-
 -- | Dates are (optional) arguments.
 pDate :: Parser Date
 pDate = argument pDate' (metavar "DAY" <> value Today)
@@ -192,55 +182,6 @@ pDate = argument pDate' (metavar "DAY" <> value Today)
             ]
         y <- optional $ A.space *> A.decimal
         pure (y, m, d)
-
--- | Arbitrary month.
-data Month
-    = January
-    | February
-    | March
-    | April
-    | May
-    | June
-    | July
-    | August
-    | September
-    | October
-    | November
-    | December
-    deriving (Show)
-
--- | Custom 'Enum' instance that start at 1.
-instance Enum Month where
-  fromEnum :: Month -> Int
-  fromEnum = \case
-    January   -> 1
-    February  -> 2
-    March     -> 3
-    April     -> 4
-    May       -> 5
-    June      -> 6
-    July      -> 7
-    August    -> 8
-    September -> 9
-    October   -> 10
-    November  -> 11
-    December  -> 12
-
-  toEnum :: Int -> Month
-  toEnum = \case
-    1  -> January
-    2  -> February
-    3  -> March
-    4  -> April
-    5  -> May
-    6  -> June
-    7  -> July
-    8  -> August
-    9  -> September
-    10 -> October
-    11 -> November
-    12 -> December
-    _  -> error "Bad argument to month enum"
 
 -- | Ignore a certain category of meals.
 pIKat :: Parser [Text]

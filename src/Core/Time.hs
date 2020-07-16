@@ -9,15 +9,40 @@
 -}
 
 module Core.Time
-    ( getDate  -- :: Date -> IO Text
+    ( Date(..)    -- instances: Show
+    , Month(..)   -- instances: Show, Enum
+    , getDate     -- :: Date -> IO Text
+    , prettyDate  -- :: Date -> Text
     ) where
 
-import Core.CLI (Date(AD, ExactDate, Next, Today, Tomorrow))
-
 import Data.Time
-    ( DayOfWeek, NominalDiffTime, UTCTime(utctDay), addUTCTime, dayOfWeek
+    ( Day, DayOfWeek, NominalDiffTime, UTCTime(utctDay), addUTCTime, dayOfWeek
     , fromGregorian, getCurrentTime, nominalDay, toGregorian
     )
+
+
+-- | Type for specifying exactly which day one wants to see the menu for.
+data Date
+    = Today
+    | Tomorrow
+    | Next DayOfWeek  -- ^ This will *always* show the next 'DayOfWeek'
+                      --   (e.g. calling 'Next Monday' on a monday will result
+                      --   in getting the menu for the following monday)
+    | ExactDate Day   -- ^ Manual date entry in the format YYYY-MM-DD
+    | AD ApproxDate   -- ^ Manual date entry in the format DD MM [YYYY]
+    deriving (Show)
+
+-- | Date insert along the lines of /14 jul/.
+type ApproxDate = (Maybe Integer, Int, Int)
+
+-- | Pretty print a 'Date'.
+prettyDate :: Date -> Text
+prettyDate = \case
+    ExactDate d    -> "On " <> tshow d
+    AD (mbY, m, d) -> mconcat
+                    . (["On ", tshow d, " ", tshow (toEnum @Month m)] ++)
+                    $ maybe [] ((:[]) . tshow) mbY
+    otherDate      -> tshow otherDate
 
 
 -- | Based on a certain weekday, calculate the day.
@@ -48,3 +73,52 @@ getDate = \case
     diffBetween d d'
         | d == d'   = 7
         | otherwise = fromIntegral . abs $ (fromEnum d - fromEnum d') `mod` 7
+
+-- | Arbitrary month.
+data Month
+    = January
+    | February
+    | March
+    | April
+    | May
+    | June
+    | July
+    | August
+    | September
+    | October
+    | November
+    | December
+    deriving (Show)
+
+-- | Custom 'Enum' instance that start at 1.
+instance Enum Month where
+  fromEnum :: Month -> Int
+  fromEnum = \case
+    January   -> 1
+    February  -> 2
+    March     -> 3
+    April     -> 4
+    May       -> 5
+    June      -> 6
+    July      -> 7
+    August    -> 8
+    September -> 9
+    October   -> 10
+    November  -> 11
+    December  -> 12
+
+  toEnum :: Int -> Month
+  toEnum = \case
+    1  -> January
+    2  -> February
+    3  -> March
+    4  -> April
+    5  -> May
+    6  -> June
+    7  -> July
+    8  -> August
+    9  -> September
+    10 -> October
+    11 -> November
+    12 -> December
+    _  -> error "Bad argument to month enum"
