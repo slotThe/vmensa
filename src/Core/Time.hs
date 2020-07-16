@@ -12,11 +12,11 @@ module Core.Time
     ( getDate  -- :: Date -> IO Text
     ) where
 
-import Core.CLI (Date(Date, Next, Today, Tomorrow))
+import Core.CLI (Date(AD, ExactDate, Next, Today, Tomorrow))
 
 import Data.Time
     ( DayOfWeek, NominalDiffTime, UTCTime(utctDay), addUTCTime, dayOfWeek
-    , getCurrentTime, nominalDay
+    , fromGregorian, getCurrentTime, nominalDay, toGregorian
     )
 
 
@@ -26,11 +26,14 @@ getDate :: Date -> IO Text
 getDate = \case
     Today     -> showDay             <$> getCurrentTime
     Tomorrow  -> showDay . addDays 1 <$> getCurrentTime
-    Date d    -> pure d
     Next wday -> do
         t <- getCurrentTime
         let diffToDay = diffBetween wday (dayOfWeek $ utctDay t)
         pure $ showDay (addDays diffToDay t)
+    ExactDate d -> pure . tshow $ d
+    AD (mbY, m, d) -> do
+        y <- maybe (fst3 . toGregorian . utctDay <$> getCurrentTime) pure mbY
+        pure . tshow $ fromGregorian y m d
   where
     -- | Add a specified number of days to a 'UTCTime'.
     addDays :: NominalDiffTime -> UTCTime -> UTCTime

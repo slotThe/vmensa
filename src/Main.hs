@@ -13,7 +13,7 @@ module Main
       main
     ) where
 
-import Core.CLI (Options(Options, date, lineWrap), options)
+import Core.CLI (Month, Options(Options, date, lineWrap), options, Date(..))
 import Core.MealOptions (filterOptions)
 import Core.Time (getDate)
 import Core.Types
@@ -51,7 +51,7 @@ main = do
     -}
     manager <- newManager tlsManagerSettings
     let prettyMensa :: Mensa -> IO Text
-        prettyMensa m = mshow lineWrap (tshow date) <$> getMensa manager opts m
+        prettyMensa m = mshow lineWrap (prettyDate date) <$> getMensa manager opts m
     mensen <- mapConcurrently prettyMensa canteens
 
     -- Print out the results synchronously.
@@ -75,6 +75,15 @@ main = do
     separator =
         "=====================================================================\
         \==========="
+
+    -- | Pretty print the selected date.
+    prettyDate :: Date -> Text
+    prettyDate = \case
+        ExactDate d    -> "On " <> tshow d
+        AD (mbY, m, d) -> mconcat
+                        . (["On ", tshow d, " ", tshow (toEnum @Month m)] ++)
+                        $ maybe [] ((:[]) . tshow) mbY
+        otherDate      -> tshow otherDate
 
 -- | Fetch all meals of a certain canteen and process them.
 getMensa :: Manager -> Options -> Mensa -> IO Mensa
