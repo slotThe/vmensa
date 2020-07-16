@@ -1,5 +1,3 @@
-{-# LANGUAGE StrictData #-}
-
 {- |
    Module      : Core.CLI
    Description : Command line interface for the application.
@@ -17,31 +15,28 @@ module Core.CLI
     , options       -- :: ParserInfo Options
     ) where
 
--- Local imports
 import Paths_vmensa (version)
 
--- Other qualified imports
 import qualified Data.Attoparsec.Text as A
 
--- Other imports
 import Data.Time.Calendar
     ( DayOfWeek(Friday, Monday, Saturday, Sunday, Thursday, Tuesday,
           Wednesday)
     )
 import Options.Applicative
-    ( Parser, ParserInfo, argument, auto, fullDesc, header, help, helper, info
-    , infoOption, long, metavar, option, short, str, strOption, value
+    ( Parser, ParserInfo, ReadM, argument, auto, eitherReader, fullDesc, header
+    , help, helper, info, infoOption, long, metavar, option, short, value
     )
 
 
 -- | Options the user may specify on the command line.
 data Options = Options
-    { mealType :: MealType
-    , lineWrap :: Int
-    , mealTime :: MealTime
-    , iKat     :: [Text]
-    , iNotes   :: [Text]
-    , date     :: Date
+    { mealType :: !MealType
+    , lineWrap :: !Int
+    , mealTime :: !MealTime
+    , iKat     :: ![Text]
+    , iNotes   :: ![Text]
+    , date     :: !Date
     }
 
 -- | Create an info type from our options, adding help text and other nice
@@ -77,24 +72,21 @@ data MealType
     | Vegan
 
 pMealType :: Parser MealType
-pMealType = pToMealType <$> strOption
+pMealType = option pDiet
      ( long "diet"
     <> short 'm'
     <> metavar "D"
     <> help "Which kinds of meals do display.  Defaults to vegetarian."
-    <> value "vegetarian"
+    <> value Vegetarian
      )
   where
     -- | Parse user input into a proper 'MealTime'.
-    pDiet = A.choice
+    pDiet :: ReadM MealType
+    pDiet = attoReadM $ A.choice
         [ AllMeals   <$ A.asciiCI "a"
         , Vegetarian <$ aliases ["vege", "vegg"]
         , Vegan      <$ A.asciiCI "v"
         ]
-
-    -- | Actually run the parser, with a default in case of a parse failure.
-    pToMealType :: Text -> MealType
-    pToMealType = parseWithDefault pDiet Vegetarian
 
 -- | Which time of day should the meal happen at?
 data MealTime
@@ -104,25 +96,22 @@ data MealTime
 
 -- | Times of day where different meals are available.
 pMealTime :: Parser MealTime
-pMealTime = pToMealTime <$> strOption
+pMealTime = option pTime
      ( long "time"
     <> short 't'
     <> metavar "T"
     <> help "Which menu options (lunch/dinner/all-day) to display.  \
             \Defaults to all-day."
-    <> value "all-day"
+    <> value AllDay
      )
   where
     -- | Parse user input into a proper 'MealTime'.
-    pTime = A.choice
+    pTime :: ReadM MealTime
+    pTime = attoReadM $ A.choice
         [ Dinner <$ A.asciiCI "d"
         , Lunch  <$ A.asciiCI "l"
         , AllDay <$ A.asciiCI "a"
         ]
-
-    -- | Actually run the parser, with a default in case of a parse failure.
-    pToMealTime :: Text -> MealTime
-    pToMealTime = parseWithDefault pTime AllDay
 
 -- | Line wrapping for certain categories only.
 pLineWrap :: Parser Int
@@ -141,16 +130,17 @@ data Date
     | Next DayOfWeek  -- ^ This will *always* show the next 'DayOfWeek'
                       --   (e.g. calling 'Next Monday' on a monday will result
                       --   in getting the menu for the following monday).
-    | Date Text       -- ^ Manual date entry in the format YYYY-MM-DD
+    | Date Text       -- ^ Manual date entry in the format YYYY-MM-DD, the
+                      --   format is not checked.
     deriving (Show)
 
 -- | Dates are (optional) arguments.
 pDate :: Parser Date
-pDate = pToDate <$> argument str (metavar "DAY" <> value "today")
+pDate = argument pDate' (metavar "DAY" <> value Today)
   where
     -- | Parse our entire 'Date' type.
-    pAttoDate :: A.Parser Date
-    pAttoDate = A.choice
+    pDate' :: ReadM Date
+    pDate' = attoReadM $ A.choice
         [ Today <$ A.asciiCI "today"
         , Next <$> pDay
         , Tomorrow <$ A.asciiCI "t"
@@ -169,46 +159,41 @@ pDate = pToDate <$> argument str (metavar "DAY" <> value "today")
         , Sunday    <$ aliases ["su", "so"]
         ]
 
-    -- | Actually run the parser, with a default in case of a parse failure.
-    pToDate :: Text -> Date
-    pToDate = parseWithDefault pAttoDate Today
-
 -- | Ignore a certain category of meals.
 pIKat :: Parser [Text]
-pIKat = parseWithDefault pSplitter [] <$> strOption
+pIKat = option pSplitter
      ( long "ikat"
     <> metavar "STR"
     <> help ("Ignore anything you want from the \"Kategorie\" section.  \
             \Note that you need to wrap STR in quotes if you want to ignore \
             \more than one thing.  Options are separated by any of the \
             \following characters:" ++ showSepChars)
-    <> value ""
+    <> value []
      )
 
 -- | Filter out meals due to certain ingredients etc.
 pINotes :: Parser [Text]
-pINotes = parseWithDefault pSplitter [] <$> strOption
+pINotes = option pSplitter
      ( long "inotes"
     <> metavar "STR"
     <> help ("Ignore anything you want from the \"Notes\" section.  \
             \Note that you need to wrap STR in quotes if you want to ignore \
             \more than one thing.  Options are separated by any of the \
             \following characters:" ++ showSepChars)
-    <> value ""
+    <> value []
      )
 
 -- | Split a string.
-pSplitter :: A.Parser [Text]
-pSplitter = A.choice
+pSplitter :: ReadM [Text]
+pSplitter = attoReadM $ A.choice
     [ [] <$ A.endOfInput
     , A.takeWhile (noneOf sepChars)
-      `A.sepBy`
+        `A.sepBy`
       (A.skipSpace *> anyOf sepChars <* A.skipSpace)
     ]
   where
     noneOf :: Eq a => [a] -> a -> Bool
     noneOf ws w = all (($ w) . flip (/=)) ws
-    {-# SPECIALIZE noneOf :: String -> Char -> Bool #-}
 
     anyOf :: String -> A.Parser Char
     anyOf = foldMap A.char
@@ -221,14 +206,10 @@ sepChars = [',', ';', ':', '.']
 showSepChars :: String
 showSepChars = concatMap ((" " ++) . show) sepChars
 
--- | Apply a parser to a given input, if the parsing fails return a default
--- value.
-parseWithDefault :: A.Parser p -> p -> Text -> p
-parseWithDefault parser def input =
-    case A.parseOnly parser input of
-        Left  _ -> def
-        Right t -> t
-
 -- | Match on a list of text case-insensitively.
 aliases :: [Text] -> A.Parser Text
 aliases = foldMap A.asciiCI
+
+-- | Attoparsec <--> optparse-applicative interface.
+attoReadM :: A.Parser a -> ReadM a
+attoReadM p = eitherReader (A.parseOnly p . fromString)

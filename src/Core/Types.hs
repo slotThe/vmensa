@@ -20,8 +20,6 @@ module Core.Types
     , mkEmptyMensa  -- :: Text -> Text -> Mensa
     ) where
 
-import Core.Util (tshow)
-
 import qualified Data.Text as T
 
 import Data.Aeson (FromJSON(parseJSON), Value(Object), (.:))
@@ -75,14 +73,14 @@ showMeals
     :: Int    -- ^ Line wrap.
     -> Meals
     -> Text
-showMeals lw = T.unlines . map (showMeal lw)
+showMeals lw = T.unlines . map showMeal
   where
     -- | Pretty printing for a single 'Meal'.
-    showMeal :: Int -> Meal -> Text
-    showMeal wrap Meal{ category, name, notes, prices } = T.unlines
-        [ style nameText      <> wrapName wrap name
-        , style "Preis: "     <> tshowEUR (mstudents prices)
-        , style notesText     <> decodeSymbols (wrapNotes wrap notes)
+    showMeal :: Meal -> Text
+    showMeal Meal{ category, name, notes, prices } = T.unlines
+        [ style nameText      <> wrapName
+        , style "Preis: "     <> showEUR studentPrice
+        , style notesText     <> decodeSymbols wrapNotes
         , style "Kategorie: " <> category
         ]
       where
@@ -90,21 +88,21 @@ showMeals lw = T.unlines . map (showMeal lw)
         nameText  = "Essen: "
         notesText = "Notes: "
 
-        wrapName :: Int -> Text -> Text
-        wrapName w = wrapWith " " (T.length nameText) w . T.words
+        wrapName :: Text
+        wrapName = wrapWith " " (T.length nameText) lw (T.words name)
 
-        wrapNotes :: Int -> [Text] -> Text
-        wrapNotes = wrapWith ", " (T.length notesText)
+        wrapNotes :: Text
+        wrapNotes = wrapWith ", " (T.length notesText) lw notes
 
-        tshowEUR :: Show a => a -> Text
-        tshowEUR = (<> "€") . tshow
+        showEUR :: Show a => a -> Text
+        showEUR = (<> "€") . tshow
 
         {- | We're (as of now) only interested in the student prices.
            Anything with 'NoPrice' will be filtered out later, so it's value
            here is meaningless.
         -}
-        mstudents :: Prices -> Double
-        mstudents = \case
+        studentPrice :: Double
+        studentPrice = case prices of
             Prices s -> s
             NoPrice  -> -1
 

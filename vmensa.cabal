@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9c20de37daea8463ba6b2d9697644663e4784620cbf2754bbd1b182e27933962
+-- hash: f94521e6d227bc21fb35fbcd4b99e6194fe6d6317be5fa6dcc4e17b61c56b17a
 
 name:           vmensa
 version:        0.1.0
@@ -22,7 +22,6 @@ executable vmensa
       Core.MealOptions
       Core.Time
       Core.Types
-      Core.Util
       Prelude
       Paths_vmensa
   hs-source-dirs:

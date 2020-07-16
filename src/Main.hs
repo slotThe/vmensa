@@ -20,7 +20,6 @@ import Core.Types
     ( Mensa(Mensa, meals, name, url)
     , empty, mkEmptyMensa, showMeals
     )
-import Core.Util (tshow)
 
 import qualified Data.Text    as T
 import qualified Data.Text.IO as T

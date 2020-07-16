@@ -44,10 +44,13 @@ filterOptions opts = filter availableOpts
             , map notPartOfNotes iNotes
             ]
       where
+        mtype :: Meal -> Bool
         mtype = case mealType of
             Vegetarian -> veggie
             Vegan      -> vegan
             AllMeals   -> const True
+
+        mtime :: Meal -> Bool
         mtime = case mealTime of
             AllDay -> const True
             Dinner -> dinner
