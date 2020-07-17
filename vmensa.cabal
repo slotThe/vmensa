@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f94521e6d227bc21fb35fbcd4b99e6194fe6d6317be5fa6dcc4e17b61c56b17a
+-- hash: b0117f6bac3af7e04a4b9f6e7303d941258892b4e3e5f00c4a72aa2ef024a7ea
 
 name:           vmensa
 version:        0.1.0
@@ -26,7 +26,7 @@ executable vmensa
       Paths_vmensa
   hs-source-dirs:
       src
-  default-extensions: OverloadedStrings TypeApplications NamedFieldPuns DeriveAnyClass DeriveGeneric InstanceSigs LambdaCase BangPatterns DuplicateRecordFields
+  default-extensions: OverloadedStrings TypeApplications NamedFieldPuns DeriveAnyClass DeriveGeneric InstanceSigs LambdaCase BangPatterns DuplicateRecordFields BlockArguments ScopedTypeVariables
   ghc-options: -O2 -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -threaded -with-rtsopts=-N
   build-depends:
       aeson

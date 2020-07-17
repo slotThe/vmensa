@@ -16,9 +16,10 @@ module Core.Types
     , MealType(..)
     , MealTime(..)
 
-    -- * Utility functions.
-    , showMeals     -- :: Int -> Meals -> Text
-    , empty         -- :: Mensa -> Bool
+    -- * Pretty printing
+    , prettyMensa   -- :: Int -> Text -> Mensa -> Text
+
+    -- * Constructing canteens
     , mkEmptyMensa  -- :: Text -> Text -> Mensa
     ) where
 
@@ -46,12 +47,6 @@ data Mensa = Mensa
     , url   :: !Text
     , meals :: !Meals
     }
-
--- | A 'Mensa' is empty if it doensn't have any food to serve.
-empty :: Mensa -> Bool
-empty = \case
-    Mensa _ _ [] -> True
-    _            -> False
 
 -- | Helper function for creating an empty 'Mensa'
 mkEmptyMensa :: Text -> Text -> Mensa
@@ -82,11 +77,34 @@ instance FromJSON Prices where
         Object v -> Prices <$> (v .: "Studierende" <|> v .: "Preis 1")
         _        -> pure NoPrice
 
--- | Pretty print only the things I'm interested in.
-showMeals
-    :: Int    -- ^ Line wrap.
-    -> Meals
+-- | Pretty print a 'Mensa'.
+prettyMensa
+    :: Int    -- ^ Line wrap
+    -> Text   -- ^ Day when the meals are offered
+    -> Mensa
     -> Text
+prettyMensa lw d mensa@Mensa{ name, meals }
+    | empty mensa = ""
+    | otherwise   = T.unlines
+        [ separator
+        , d <> " in: " <> name
+        , separator
+        ] <> showMeals lw meals
+  where
+    -- | A 'Mensa' is empty if it doensn't have any food to serve.
+    empty :: Mensa -> Bool
+    empty = \case
+        Mensa _ _ [] -> True
+        _            -> False
+
+    -- | Separator for visual separation of different canteens.
+    separator :: Text
+    separator =
+        "=====================================================================\
+        \==========="
+
+-- | Pretty print only the things I'm interested in.
+showMeals :: Int -> Meals -> Text
 showMeals lw = T.unlines . map showMeal
   where
     -- | Pretty printing for a single 'Meal'.
@@ -150,8 +168,8 @@ wrapWith divText al wrapAt chunks
        -> Int     -- ^ Counter of the current line length.
        -> [Text]  -- ^ Text as chunks that have to stay together.
        -> Text
-    go !l    _    []        = l
-    go !line !acc xs@(c:cs)
+    go !l    _   []        = l
+    go !line acc xs@(c:cs)
         | combLen >= wrapAt = go (align line)       al     xs
         | otherwise         = go (line <> c <> end) newLen cs
       where

@@ -10,16 +10,13 @@
 
 module Main
     ( -- * Entry-point
-      main
+      main  -- :: IO ()
     ) where
 
 import Core.CLI (Options(Options, date, lineWrap), options)
 import Core.MealOptions (filterOptions)
 import Core.Time (getDate, prettyDate)
-import Core.Types
-    ( Mensa(Mensa, meals, name, url)
-    , empty, mkEmptyMensa, showMeals
-    )
+import Core.Types (Mensa(Mensa, meals, url), mkEmptyMensa, prettyMensa)
 
 import qualified Data.Text    as T
 import qualified Data.Text.IO as T
@@ -50,46 +47,26 @@ main = do
        since that list is small this is not an issue for us.
     -}
     manager <- newManager tlsManagerSettings
-    let prettyMensa :: Mensa -> IO Text
-        prettyMensa m = mshow lineWrap (prettyDate date) <$> getMensa manager opts m
-    mensen <- mapConcurrently prettyMensa canteens
+    let mshow :: Mensa -> IO Text
+        mshow m = prettyMensa lineWrap (prettyDate date) <$> getMensa manager opts m
+    mensen <- mapConcurrently mshow canteens
 
     -- Print out the results synchronously.
     traverse_ T.putStr mensen
   where
-    -- | Text-based 'show' function for a 'Mensa'.
-    mshow :: Int    -- ^ Line wrap
-          -> Text   -- ^ Day when the meals are offered
-          -> Mensa
-          -> Text
-    mshow lw d mensa@Mensa{ name, meals }
-        | empty mensa = ""
-        | otherwise   = T.unlines
-            [ separator
-            , d <> " in: " <> name
-            , separator
-            ] <> showMeals lw meals
-
-    -- | Separator for visual separation of different canteens.
-    separator :: Text
-    separator =
-        "=====================================================================\
-        \==========="
 
 -- | Fetch all meals of a certain canteen and process them.
 getMensa :: Manager -> Options -> Mensa -> IO Mensa
 getMensa manager opts mensa@Mensa{ url } = catch
-    (do req      <- parseUrlThrow (T.unpack url)
-        tryMeals <- decode' . responseBody <$> httpLbs req manager
-        -- Strict decoding as we eventually check all fields.
+    do req      <- parseUrlThrow (T.unpack url)
+       tryMeals <- decode' . responseBody <$> httpLbs req manager
+       -- Strict decoding as we eventually check all fields.
 
-        pure $!
-            maybe mensa (\ms -> mensa {meals = filterOptions opts ms}) tryMeals)
-    $ handleErrs mensa
-  where
-    -- | If any error occurs, just return the (empty) input 'Mensa'.
-    handleErrs :: Mensa -> SomeException -> IO Mensa
-    handleErrs m = const (pure m)
+       pure $!
+           maybe mensa (\ms -> mensa {meals = filterOptions opts ms}) tryMeals
+
+    -- If any error occurs, just return the (empty) input 'Mensa'.
+    \(e :: SomeException) -> const (pure mensa) e
 
 {- | Canteens I want to check out.
    Numbers from:
