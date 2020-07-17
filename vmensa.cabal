@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 481710ad5a5987f5ec64d52c35863a3f51b278c289c5a2f6281ab5daa41921ec
+-- hash: 8c8a2e676359640f2faa35f83c8c2d9bfccddc9fe9b78ea1cb8ec1c9d49ffdc9
 
 name:           vmensa
 version:        0.1.0
@@ -15,17 +15,37 @@ license:        GPL-3
 license-file:   LICENSE
 build-type:     Simple
 
-executable vmensa
-  main-is: Main.hs
-  other-modules:
+library
+  exposed-modules:
       Core.CLI
       Core.MealOptions
       Core.Time
       Core.Types
       Prelude
+  other-modules:
       Paths_vmensa
   hs-source-dirs:
-      src
+      lib
+  default-extensions: OverloadedStrings DeriveAnyClass DeriveGeneric InstanceSigs TypeApplications ScopedTypeVariables BangPatterns NamedFieldPuns DuplicateRecordFields BlockArguments LambdaCase
+  ghc-options: -O2 -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
+  build-depends:
+      aeson
+    , async
+    , attoparsec
+    , base-noprelude
+    , base-prelude
+    , http-conduit
+    , optparse-applicative
+    , text
+    , time >=1.9
+  default-language: Haskell2010
+
+executable vmensa
+  main-is: Main.hs
+  other-modules:
+      Paths_vmensa
+  hs-source-dirs:
+      app
   default-extensions: OverloadedStrings DeriveAnyClass DeriveGeneric InstanceSigs TypeApplications ScopedTypeVariables BangPatterns NamedFieldPuns DuplicateRecordFields BlockArguments LambdaCase
   ghc-options: -O2 -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -threaded -with-rtsopts=-N
   build-depends:
@@ -38,4 +58,5 @@ executable vmensa
     , optparse-applicative
     , text
     , time >=1.9
+    , vmensa
   default-language: Haskell2010

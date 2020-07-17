@@ -127,9 +127,9 @@ pDate = argument pDate' (metavar "DAY" <> value Today)
     -- | Parse our entire 'Date' type.
     pDate' :: ReadM Date
     pDate' = attoReadM $ A.choice
-        [ Today      <$ A.asciiCI "today"
+        [ Today      <$  A.asciiCI "today"
         , Next       <$> pDay
-        , Tomorrow   <$ A.asciiCI "t"
+        , Tomorrow   <$  A.asciiCI "t"
         , ExactDate  <$> pExactDate
         , ApproxDate <$> pApproxDate
         ]
@@ -204,7 +204,7 @@ pSplitter = attoReadM $ A.choice
     ]
   where
     noneOf :: Eq a => [a] -> a -> Bool
-    noneOf ws w = all (($ w) . flip (/=)) ws
+    noneOf ws w = all (w /=) ws
 
     anyOf :: String -> A.Parser Char
     anyOf = foldMap A.char

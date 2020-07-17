@@ -26,6 +26,9 @@ ghc-options:
   -Wincomplete-uni-patterns
   -Wredundant-constraints
 
+library:
+  source-dirs: lib
+
 dependencies:
   - base-noprelude
   - base-prelude
@@ -39,8 +42,9 @@ dependencies:
 
 executables:
   vmensa:
-    source-dirs: src
+    source-dirs: app
     main: Main.hs
+    dependencies: vmensa
     ghc-options:
-     -threaded
-     -with-rtsopts=-N
+      -threaded
+      -with-rtsopts=-N

@@ -10,8 +10,8 @@
 module Prelude
     ( module BasePrelude
     , Text
-    , tshow
-    , fst3
+    , tshow  -- :: Show a => a -> Text
+    , fst3   -- :: (a, b, c) -> a
     ) where
 
 import BasePrelude hiding (empty, option)
@@ -24,5 +24,6 @@ import qualified Data.Text as T
 tshow :: Show a => a -> Text
 tshow = T.pack . show
 
+-- | Get the first element out of a 3-tuple.
 fst3 :: (a, b, c) -> a
 fst3 (a, _, _) = a
