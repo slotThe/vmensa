@@ -7,16 +7,16 @@ maintainer:          tonyzorman@mailbox.org
 
 default-extensions:
   - OverloadedStrings
-  - TypeApplications
-  - NamedFieldPuns
   - DeriveAnyClass
   - DeriveGeneric
   - InstanceSigs
-  - LambdaCase
+  - TypeApplications
+  - ScopedTypeVariables
   - BangPatterns
+  - NamedFieldPuns
   - DuplicateRecordFields
   - BlockArguments
-  - ScopedTypeVariables
+  - LambdaCase
 
 ghc-options:
   -O2
@@ -33,7 +33,7 @@ dependencies:
   - async
   - http-conduit
   - text
-  - time                  >= 1.9
+  - time                 >= 1.9
   - optparse-applicative
   - attoparsec
 
