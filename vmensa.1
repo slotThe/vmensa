@@ -47,7 +47,7 @@ may have the following values (letters in square brackets may be omitted):
 l l l .
 	a[ll]	Display all meals.
 	v[egan]	Display only the vegan meals.
-	vege[tarian], [vegg]ie	Display vegetarian and vegan meals.
+	vege[tarian], vegg[ie]	Display vegetarian and vegan meals.
 .TE
 
 .I diet
@@ -117,8 +117,8 @@ or, alternatively
 .SH POSITIONAL ARGUMENTS
 Pick the day (or date) when
 .I vmensa
-should query the API.  The argument may have the following values (letters in
-square brackets may be omitted):
+should query the API.  Defaults to "today".  The argument may have the following
+values (letters in square brackets may be omitted):
 .TS
 l l .
 	today
@@ -136,33 +136,57 @@ l l .
 
 Here,
 .I MONTH-BY-NAME
-is literally something like "august".  If the year is omitted, the current year
+is literally something like "august".  In general, the input can be as short as
+the shortest non-ambiguous sequence of characters for a specific month.  This
+means "m" would not be allowed (as it may either refer to "march" or "may"),
+while "o" (for "october") would be completely fine.  In particular, the
+following input is valid:
+.TS
+l l .
+	ja[nuary]
+	f[ebruary]
+	mar[ch]
+	ap[ril]
+	may
+	jun[e]
+	jul[y]
+	au[gust]
+	s[eptember]
+	o[ctober]
+	n[ovember]
+	d[ecember]
+.TE
+
+If the year is omitted, the
+.I current year
 is assumed.  Note that specifying the week day will always jump forwards in
 time, i.e. an input of "monday" on a monday will result in getting the menu for
 the following monday.
-
-This defaults to "today".
 
 
 
 .SH EXAMPLES
 Query tomorrows lunch menu, wrapping the text at 80 characters:
+
 .RS
 .I vmensa --time lunch --wrap 80 tomorrow
 .RE
 
 Query next Wednesday's vegan dinner menu, wrapping the text at 60 characters:
+
 .RS
 .I vmensa -m v -t d -w 60 w
 .RE
 
 Query today's vegetarian menu, ignoring pasta, as well as anything containing
 eggs and soy:
+
 .RS
 .I vmensa --inotes 'Eier, Soja' --ikat Pasta
 .RE
 
 Query the menu for the 17th of july.
+
 .RS
 .I vmensa '17 jul'
 .RE
