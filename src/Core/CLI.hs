@@ -14,7 +14,7 @@ module Core.CLI
     ) where
 
 import Core.Time
-    ( Date(AD, ExactDate, Next, Today, Tomorrow)
+    ( Date(ApproxDate, ExactDate, Next, Today, Tomorrow)
     , Month(April, August, December, February, January, July, June,
       March, May, November, October, September)
     )
@@ -127,11 +127,11 @@ pDate = argument pDate' (metavar "DAY" <> value Today)
     -- | Parse our entire 'Date' type.
     pDate' :: ReadM Date
     pDate' = attoReadM $ A.choice
-        [ Today <$ A.asciiCI "today"
-        , Next <$> pDay
-        , Tomorrow <$ A.asciiCI "t"
-        , ExactDate <$> pExactDate
-        , AD <$> pApproxDate
+        [ Today      <$ A.asciiCI "today"
+        , Next       <$> pDay
+        , Tomorrow   <$ A.asciiCI "t"
+        , ExactDate  <$> pExactDate
+        , ApproxDate <$> pApproxDate
         ]
 
     -- | Parse a 'DayOfWeek' using both german and english names.
@@ -147,11 +147,8 @@ pDate = argument pDate' (metavar "DAY" <> value Today)
         ]
 
     pExactDate :: A.Parser Day
-    pExactDate = do
-        y <- A.decimal <* "-"
-        m <- A.decimal <* "-"
-        d <- A.decimal
-        pure $ fromGregorian y m d
+    pExactDate =
+        fromGregorian <$> A.decimal <* "-" <*> A.decimal <* "-" <*> A.decimal
 
     pApproxDate :: A.Parser (Maybe Integer, Int, Int)
     pApproxDate = do
@@ -218,7 +215,7 @@ sepChars = [',', ';', ':', '.']
 
 -- | A small pretty printing function for the separator chars.
 showSepChars :: String
-showSepChars = concatMap ((" " ++) . show) sepChars
+showSepChars = concatMap ((' ' :) . (: [])) sepChars
 
 -- | Match on a list of text case-insensitively.
 aliases :: [Text] -> A.Parser Text

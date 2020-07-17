@@ -68,10 +68,8 @@ getMensa manager opts mensa@Mensa{ url } = catch
     -- If any error occurs, just return the (empty) input 'Mensa'.
     \(e :: SomeException) -> const (pure mensa) e
 
-{- | Canteens I want to check out.
-   Numbers from:
-       'https:\/\/api.studentenwerk-dresden.de\/openmensa\/v2\/canteens'
--}
+-- | Canteens I want to check out.
+-- Numbers from: https:\/\/api.studentenwerk-dresden.de\/openmensa\/v2\/canteens
 alte, uboot, siedepunkt, zelt :: Text -> Mensa
 zelt       = mkEmptyMensa "Mensa Zeltschlösschen" . mensaURL 35
 uboot      = mkEmptyMensa "Bio Mensa"             . mensaURL 29
