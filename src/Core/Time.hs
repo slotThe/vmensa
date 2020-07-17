@@ -25,12 +25,12 @@ import Data.Time
 data Date
     = Today
     | Tomorrow
-    | Next DayOfWeek  -- ^ This will *always* show the next 'DayOfWeek'
-                      --   (e.g. calling 'Next Monday' on a monday will result
-                      --   in getting the menu for the following monday)
-    | ExactDate Day   -- ^ Manual date entry in the format YYYY-MM-DD
-    | ApproxDate (Maybe Integer, Int, Int)  -- ^ Manual date entry in the format
-                                            -- DD MM [YYYY]
+    | Next !DayOfWeek  -- ^ This will *always* show the next 'DayOfWeek'
+                       --   (e.g. calling 'Next Monday' on a monday will result
+                       --   in getting the menu for the following monday)
+    | ExactDate !Day   -- ^ Manual date entry in the format YYYY-MM-DD
+    | ApproxDate !(Maybe Integer, Int, Int)  -- ^ Manual date entry in the
+                                             -- format DD MM [YYYY]
     deriving (Show)
 
 -- | Pretty print a 'Date'.
