@@ -17,7 +17,7 @@ module Core.Types
     , MealTime(..)
 
     -- * Pretty printing
-    , prettyMensa   -- :: Int -> Text -> Mensa -> Text
+    , ppMensa       -- :: Int -> Text -> Mensa -> Text
 
     -- * Constructing canteens
     , mkEmptyMensa  -- :: Text -> Text -> Mensa
@@ -68,40 +68,33 @@ data Meal = Meal
 -- contents of the JSON that we will actually use.
 data Prices
     = Prices { student :: !Double }
-    | NoPrice
+    | SoldOut
 
 -- | Manually derive 'FromJSON' instance due to dumb field names.
 instance FromJSON Prices where
     parseJSON :: Value -> Parser Prices
     parseJSON = \case
         Object v -> Prices <$> (v .: "Studierende" <|> v .: "Preis 1")
-        _        -> pure NoPrice
+        _        -> pure SoldOut
 
 -- | Pretty print a 'Mensa'.
-prettyMensa
+ppMensa
     :: Int    -- ^ Line wrap
     -> Text   -- ^ Day when the meals are offered
     -> Mensa
     -> Text
-prettyMensa lw d mensa@Mensa{ name, meals }
+ppMensa lw d mensa@Mensa{ name, meals }
     | empty mensa = ""
-    | otherwise   = T.unlines
-        [ separator
-        , d <> " in: " <> name
-        , separator
-        ] <> showMeals lw meals
+    | otherwise   = T.unlines [separator, d <> " in: " <> name, separator]
+                 <> showMeals lw meals
   where
     -- | A 'Mensa' is empty if it doensn't have any food to serve.
     empty :: Mensa -> Bool
-    empty = \case
-        Mensa _ _ [] -> True
-        _            -> False
+    empty (Mensa _ _ xs) = null xs
 
     -- | Separator for visual separation of different canteens.
     separator :: Text
-    separator =
-        "=====================================================================\
-        \==========="
+    separator = T.pack $ replicate (if lw <= 0 then 80 else lw) '='
 
 -- | Pretty print only the things I'm interested in.
 showMeals :: Int -> Meals -> Text
@@ -130,19 +123,22 @@ showMeals lw = T.unlines . map showMeal
         showEUR = (<> "€") . tshow
 
         {- | We're (as of now) only interested in the student prices.
-           Anything with 'NoPrice' will be filtered out later, so it's value
+           Anything with 'SoldOut' will be filtered out later, so it's value
            here is meaningless.
         -}
         studentPrice :: Double
         studentPrice = case prices of
             Prices s -> s
-            NoPrice  -> -1
+            SoldOut  -> -1
 
-        -- | For some reason this is only needed on notes.
+        -- | For some reason only the notes are not escaped properly.
         decodeSymbols :: Text -> Text
-        decodeSymbols = T.replace "&uuml;" "ü"
-                      . T.replace "&lpar;" "("
-                      . T.replace "&rpar;" ")"
+        decodeSymbols
+            = T.replace "&uuml;" "ü"
+            . T.replace "&auml;" "ä"
+            . T.replace "&ouml;" "ö"
+            . T.replace "&lpar;" "("
+            . T.replace "&rpar;" ")"
 
         {- | Set the style for some keywords
            33 looks nice
@@ -155,30 +151,31 @@ showMeals lw = T.unlines . map showMeal
 -- | Simple (and probably hilariously inefficient) function to wrap text
 -- at N columns.
 wrapWith
-    :: Text    -- ^ How to concatenate chunks
+    :: Text    -- ^ How to concatenate chunks, i.e. the separator
     -> Int     -- ^ Alignment
     -> Int     -- ^ Max line length (wrap)
-    -> [Text]  -- ^ Text as chunks that have to stay together.
-    -> Text    -- ^ Text with line breaks.
-wrapWith divText al wrapAt chunks
-    | wrapAt == 0 = mconcat $ intersperse divText chunks
+    -> [Text]  -- ^ Text as chunks that have to stay together
+    -> Text    -- ^ Text with line breaks
+wrapWith sep al wrapAt chunks
+    | wrapAt == 0 = mconcat $ intersperse sep chunks
     | otherwise   = go "" al chunks
   where
-    go :: Text    -- ^ Text with line breaks.
-       -> Int     -- ^ Counter of the current line length.
-       -> [Text]  -- ^ Text as chunks that have to stay together.
+    go :: Text    -- ^ Already processed part of the text
+       -> Int     -- ^ Counter of the current line length
+       -> [Text]  -- ^ Text as chunks that have to stay together
        -> Text
-    go !l    _   []        = l
+    go !done    _   []     = done
     go !line acc xs@(c:cs)
         | combLen >= wrapAt = go (align line)       al     xs
         | otherwise         = go (line <> c <> end) newLen cs
       where
         combLen, newLen :: Int
-        combLen = acc + T.length c
-        newLen  = combLen + T.length end
+        combLen = acc + T.length c        -- Length including the next word
+        newLen  = combLen + T.length end  -- Take separator length into account
 
+        -- | Nicely align the text after a line-break.  We like pretty things.
         align :: Text -> Text
         align = (<> "\n" <> T.replicate al " ")
 
         end :: Text
-        end = if null cs then "" else divText
+        end = if null cs then "" else sep

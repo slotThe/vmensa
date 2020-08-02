@@ -9,14 +9,13 @@
 -}
 
 module Main
-    ( -- * Entry-point
-      main  -- :: IO ()
+    ( main  -- :: IO ()
     ) where
 
 import Core.CLI (Options(Options, date, lineWrap), options)
 import Core.MealOptions (filterOptions)
-import Core.Time (getDate, prettyDate)
-import Core.Types (Mensa(Mensa, meals, url), mkEmptyMensa, prettyMensa)
+import Core.Time (getDate, ppDate)
+import Core.Types (Mensa(Mensa, meals, url), mkEmptyMensa, ppMensa)
 
 import qualified Data.Text    as T
 import qualified Data.Text.IO as T
@@ -43,17 +42,16 @@ main = do
 
     {- Create new manager for handling network connections, then asynchronously
        connect to the API and parse the necessary JSON.  Note that
-       'mapConcurrently' creates a thread for every item of 'canteens', though
-       since that list is small this is not an issue for us.
+       'mapConcurrently' creates a thread for every canteen, though since that
+       list is small this is not an issue for us.
     -}
     manager <- newManager tlsManagerSettings
-    let mshow :: Mensa -> IO Text
-        mshow m = prettyMensa lineWrap (prettyDate date) <$> getMensa manager opts m
-    mensen <- mapConcurrently mshow canteens
+    let ppCanteen :: Mensa -> IO Text
+        ppCanteen m = ppMensa lineWrap (ppDate date) <$> getMensa manager opts m
+    mensen <- mapConcurrently ppCanteen canteens
 
     -- Print out the results synchronously.
     traverse_ T.putStr mensen
-  where
 
 -- | Fetch all meals of a certain canteen and process them.
 getMensa :: Manager -> Options -> Mensa -> IO Mensa

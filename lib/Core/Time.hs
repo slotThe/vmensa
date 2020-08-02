@@ -12,7 +12,7 @@ module Core.Time
     ( Date(..)    -- instances: Show
     , Month(..)   -- instances: Show, Enum
     , getDate     -- :: Date -> IO Text
-    , prettyDate  -- :: Date -> Text
+    , ppDate      -- :: Date -> Text
     ) where
 
 import Data.Time
@@ -34,8 +34,8 @@ data Date
     deriving (Show)
 
 -- | Pretty print a 'Date'.
-prettyDate :: Date -> Text
-prettyDate = \case
+ppDate :: Date -> Text
+ppDate = \case
     ExactDate  d           -> "On " <> tshow d
     ApproxDate (mbY, m, d) ->
         mconcat

@@ -9,7 +9,6 @@
 -}
 module Core.CLI
     ( Options(..)
-    , Date(..)     -- instances: Show
     , options      -- :: ParserInfo Options
     ) where
 

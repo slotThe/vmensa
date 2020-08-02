@@ -19,7 +19,7 @@ import Core.Types
     , MealTime(AllDay, Dinner, Lunch)
     , MealType(AllMeals, Vegan, Vegetarian)
     , Meals
-    , Prices(NoPrice)
+    , Prices(SoldOut)
     )
 
 import qualified Data.Text as T
@@ -88,5 +88,5 @@ notCategory s = (s /=) . category
 
 available :: Prices -> Bool
 available = \case
-    NoPrice -> False
+    SoldOut -> False
     _       -> True
