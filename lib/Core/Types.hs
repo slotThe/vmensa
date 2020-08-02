@@ -164,7 +164,7 @@ wrapWith sep al wrapAt chunks
        -> Int     -- ^ Counter of the current line length
        -> [Text]  -- ^ Text as chunks that have to stay together
        -> Text
-    go !done    _   []     = done
+    go !done _   []         = done
     go !line acc xs@(c:cs)
         | combLen >= wrapAt = go (align line)       al     xs
         | otherwise         = go (line <> c <> end) newLen cs

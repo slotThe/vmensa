@@ -13,7 +13,7 @@ module Core.CLI
     ) where
 
 import Core.Time
-    ( Date(ApproxDate, ExactDate, Next, Today, Tomorrow)
+    ( Date(DMYDate, ISODate, Next, Today, Tomorrow)
     , Month(April, August, December, February, January, July, June,
       March, May, November, October, September)
     )
@@ -126,11 +126,11 @@ pDate = argument pDate' (metavar "DAY" <> value Today)
     -- | Parse our entire 'Date' type.
     pDate' :: ReadM Date
     pDate' = attoReadM $ A.choice
-        [ Today      <$  A.asciiCI "today"
-        , Next       <$> pDay
-        , Tomorrow   <$  A.asciiCI "t"
-        , ExactDate  <$> pExactDate
-        , ApproxDate <$> pApproxDate
+        [ Today    <$  A.asciiCI "today"
+        , Next     <$> pDay
+        , Tomorrow <$  A.asciiCI "t"
+        , ISODate  <$> pISODate
+        , DMYDate  <$> pDMYDate
         ]
 
     -- | Parse a 'DayOfWeek' using both german and english names.
@@ -145,12 +145,12 @@ pDate = argument pDate' (metavar "DAY" <> value Today)
         , Sunday    <$ aliases ["su", "so"]
         ]
 
-    pExactDate :: A.Parser Day
-    pExactDate =
+    pISODate :: A.Parser Day
+    pISODate =
         fromGregorian <$> A.decimal <* "-" <*> A.decimal <* "-" <*> A.decimal
 
-    pApproxDate :: A.Parser (Maybe Integer, Int, Int)
-    pApproxDate = do
+    pDMYDate :: A.Parser (Maybe Integer, Int, Int)
+    pDMYDate = do
         d <- A.decimal <* A.space
         m <- fromEnum <$> A.choice
             [ January   <$ A.asciiCI "ja"

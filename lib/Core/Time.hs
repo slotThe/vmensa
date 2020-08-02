@@ -25,27 +25,28 @@ import Data.Time
 data Date
     = Today
     | Tomorrow
-    | Next !DayOfWeek  -- ^ This will *always* show the next 'DayOfWeek'
-                       --   (e.g. calling 'Next Monday' on a monday will result
-                       --   in getting the menu for the following monday)
-    | ExactDate !Day   -- ^ Manual date entry in the format YYYY-MM-DD
-    | ApproxDate !(Maybe Integer, Int, Int)  -- ^ Manual date entry in the
-                                             -- format DD MM [YYYY]
+    | Next !DayOfWeek
+      -- ^ This will *always* show the next 'DayOfWeek' (e.g. calling 'Next
+      -- Monday' on a Monday will result in getting the menu for the following
+      -- Monday)
+    | ISODate !Day
+      -- ^ Manual date entry in the format YYYY-MM-DD
+    | DMYDate !(Maybe Integer, Int, Int)
+      -- ^ Manual date entry in the format DD MM [YYYY]
     deriving (Show)
 
 -- | Pretty print a 'Date'.
 ppDate :: Date -> Text
 ppDate = \case
-    ExactDate  d           -> "On " <> tshow d
-    ApproxDate (mbY, m, d) ->
+    ISODate  d          -> "On " <> tshow d
+    DMYDate (mbY, m, d) ->
         mconcat
             . (["On ", tshow d, " ", tshow (toEnum @Month m)] ++)
             $ maybe [] ((:[]) . tshow) mbY
     otherDate              -> tshow otherDate
 
-
 -- | Based on a certain weekday, calculate the day.
--- Consistency assumption: We always want to walk forwards in time.
+-- Consistency assumption: We always want to walk forward in time.
 getDate :: Date -> IO Text
 getDate = \case
     Today     -> showDay             <$> getCurrentTime
@@ -54,8 +55,8 @@ getDate = \case
         t <- getCurrentTime
         let diffToDay = diffBetween wday (dayOfWeek $ utctDay t)
         pure $ showDay (addDays diffToDay t)
-    ExactDate d            -> pure $ tshow d
-    ApproxDate (mbY, m, d) -> do
+    ISODate d           -> pure $ tshow d
+    DMYDate (mbY, m, d) -> do
         y <- maybe (fst3 . toGregorian . utctDay <$> getCurrentTime) pure mbY
         pure . tshow $ fromGregorian y m d
   where
