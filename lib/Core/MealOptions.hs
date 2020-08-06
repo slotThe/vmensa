@@ -15,7 +15,7 @@ module Core.MealOptions
 
 import Core.CLI (Options(Options, iKat, iNotes, mealTime, mealType))
 import Core.Types
-    ( Meal(category, notes, prices)
+    ( Meal(category, name, notes, prices)
     , MealTime(AllDay, Dinner, Lunch)
     , MealType(AllMeals, Vegan, Vegetarian)
     , Meals
@@ -29,64 +29,57 @@ import qualified Data.Text as T
 filterOptions :: Options -> Meals -> Meals
 filterOptions opts = filter availableOpts
   where
-    availableOpts :: Meal -> Bool
-    availableOpts = allTrue $ getAllOpts opts
-
     -- | Every predicate should be satisfied in order for the result to be
     -- accepted.
-    allTrue :: [Meal -> Bool] -> Meal -> Bool
-    allTrue os meal = all ($ meal) os
+    availableOpts :: Meal -> Bool
+    availableOpts meal = all ($ meal) (getAllOpts opts)
 
-    -- | All of the options a user picked.
-    getAllOpts :: Options -> [Meal -> Bool]
-    getAllOpts Options{ mealType, mealTime, iKat, iNotes } =
-        concat
-            [ [notSoldOut, mtype, mtime]
-            , map notCategory    iKat
-            , map notPartOfNotes iNotes
-            ]
-      where
-        mtype :: Meal -> Bool
-        mtype = case mealType of
-            Vegetarian -> veggie
-            Vegan      -> vegan
-            AllMeals   -> const True
+-- | All of the options a user picked.
+getAllOpts :: Options -> [Meal -> Bool]
+getAllOpts Options{ mealType, mealTime, iKat, iNotes } =
+    concat
+        [ [notSoldOut, mtype, mtime]
+        , map notCategory    iKat
+        , map notPartOfNotes iNotes
+        ]
+  where
+    mtype :: Meal -> Bool
+    mtype = case mealType of
+        Vegetarian -> eitherOf vegan vegetarian
+        Vegan      -> vegan
+        AllMeals   -> const True
 
-        mtime :: Meal -> Bool
-        mtime = case mealTime of
-            AllDay -> const True
-            Dinner -> dinner
-            Lunch  -> lunch
+    mtime :: Meal -> Bool
+    mtime = case mealTime of
+        AllDay -> const True
+        Dinner -> dinner
+        Lunch  -> not . dinner
 
--- | Most of the time we want both.
-veggie :: Meal -> Bool
-veggie = (||) <$> vegan <*> vegetarian
+    notCategory :: Text -> Meal -> Bool
+    notCategory s = (s /=) . category
 
-vegetarian :: Meal -> Bool
-vegetarian = elemNotes "Menü ist vegetarisch"
+    notPartOfNotes :: Text -> Meal -> Bool
+    notPartOfNotes s = not . any (s `T.isInfixOf`) . notes
 
-vegan :: Meal -> Bool
-vegan = elemNotes "Menü ist vegan"
+    -- | See if meal is vegetarian or there's some sort of vegetarian variant
+    -- available.
+    vegetarian :: Meal -> Bool
+    vegetarian = eitherOf (inNotes "Menü ist vegetarisch") (inName "vegetarisch")
 
-dinner :: Meal -> Bool
-dinner = ("Abendangebot" `T.isInfixOf`) . category
+    -- | See if meal is vegan or there's some sort of vegetarian variant available.
+    vegan :: Meal -> Bool
+    vegan = eitherOf (inNotes "Menü ist vegan") (inName "vegan")
 
-lunch :: Meal -> Bool
-lunch = not . dinner
+    dinner :: Meal -> Bool
+    dinner = ("Abendangebot" `T.isInfixOf`) . category
 
-notSoldOut :: Meal -> Bool
-notSoldOut = available . prices
+    notSoldOut :: Meal -> Bool
+    notSoldOut = prices >>> \case
+        SoldOut -> False
+        _       -> True
 
-elemNotes :: Text -> Meal -> Bool
-elemNotes s = (s `elem`) . notes
+    inNotes :: Text -> Meal -> Bool
+    inNotes s = (s `elem`) . notes
 
-notPartOfNotes :: Text -> Meal -> Bool
-notPartOfNotes s = not . any (s `T.isInfixOf`) . notes
-
-notCategory :: Text -> Meal -> Bool
-notCategory s = (s /=) . category
-
-available :: Prices -> Bool
-available = \case
-    SoldOut -> False
-    _       -> True
+    inName :: Text -> Meal -> Bool
+    inName s = (s `T.isInfixOf`) . name

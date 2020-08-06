@@ -203,7 +203,7 @@ pSplitter = attoReadM $ A.choice
     ]
   where
     noneOf :: Eq a => [a] -> a -> Bool
-    noneOf ws w = all (w /=) ws
+    noneOf = flip notElem
 
     anyOf :: String -> A.Parser Char
     anyOf = foldMap A.char
