@@ -90,23 +90,26 @@ Print help information.
 
 .BI \-\-ikat= "str"
 .RS
-Ignore anything you want from the "Kategorie" section.  Note that you need to
-wrap
+Ignore anything you want from the "Kategorie" section.  Note that you either
+need to wrap
 .I str
-in quotes if you want to ignore more than one thing.  Options are separated by
-any of the following characters: ',' ';' ':' '.'.  Categories have to be written
-out in full, i.e. to ignore the category "Pasta", one would have to write
+in quotes if you want to ignore more than one thing or not use any spaces for
+separating different items.  Options are separated by any of the following any
+of the following characters: ',' ';' ':' '.'.  Categories have to be written out
+in full, i.e. to ignore the category "Pasta", one would have to write
 .I vmensa --ikat Pasta
 .RE
 
 
 .BI \-\-inotes= "str"
 .RS
-Ignore anything you want from the "Notes" section.  Note that you need to wrap
+Ignore anything you want from the "Notes" section.  Note that you either need to
+wrap
 .I str
-in quotes if you want to ignore more than one thing.  Options are separated by
-any of the following characters: ',' ';' ':' '.'.  Notes check for partial
-matches, i.e to ignore everything containing "Soja (F)", one may use
+in quotes if you want to ignore more than one thing or not use any spaces for
+separating different items.  Options are separated by any of the following
+characters: ',' ';' ':' '.'.  Notes check for partial matches, i.e to ignore
+everything containing "Soja (F)", one may use
 .I vmensa --inotes (F)
 or, alternatively
 .I vmensa --inotes Soja
@@ -184,11 +187,14 @@ eggs and soy:
 .RS
 .I vmensa --inotes 'Eier, Soja' --ikat Pasta
 .RE
+.RS
+.I vmensa --inotes Eier,Soja --ikat Pasta
+.RE
 
 Query the menu for the 17th of july.
 
 .RS
-.I vmensa '17 jul'
+.I vmensa 17 jul
 .RE
 
 
