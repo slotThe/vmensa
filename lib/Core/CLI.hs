@@ -33,7 +33,7 @@ import Data.Time.Calendar
     )
 import Options.Applicative
     ( Parser, ParserInfo, ReadM, argument, auto, eitherReader, fullDesc, header
-    , help, helper, info, infoOption, long, metavar, option, short, value
+    , help, helper, info, infoOption, long, metavar, option, short, str, value
     )
 
 
@@ -121,11 +121,15 @@ pLineWrap = option auto
 
 -- | Dates are (optional) arguments.
 pDate :: Parser Date
-pDate = argument pDate' (metavar "DAY" <> value Today)
+pDate = toDate . fromMaybe [] <$> optional (some $ argument str (metavar "DAY"))
   where
+    -- | Convert all the rest to a date with a default value.
+    toDate :: [String] -> Date
+    toDate = fromRight Today . A.parseOnly pDate' . fromString . unwords
+
     -- | Parse our entire 'Date' type.
-    pDate' :: ReadM Date
-    pDate' = attoReadM $ A.choice
+    pDate' :: A.Parser Date
+    pDate' = A.choice
         [ Today    <$  A.asciiCI "today"
         , Next     <$> pDay
         , Tomorrow <$  A.asciiCI "t"
@@ -175,9 +179,9 @@ pIKat = option pSplitter
      ( long "ikat"
     <> metavar "STR"
     <> help ("Ignore anything you want from the \"Kategorie\" section.  \
-            \Note that you need to wrap STR in quotes if you want to ignore \
-            \more than one thing.  Options are separated by any of the \
-            \following characters:" ++ showSepChars)
+            \Note that you need to either wrap STR in quotes, or refrain from \
+            \using spaces, if you want to ignore more than one thing.  Options \
+            \are separated by any of the following characters:" ++ showSepChars)
     <> value []
      )
 
@@ -187,9 +191,9 @@ pINotes = option pSplitter
      ( long "inotes"
     <> metavar "STR"
     <> help ("Ignore anything you want from the \"Notes\" section.  \
-            \Note that you need to wrap STR in quotes if you want to ignore \
-            \more than one thing.  Options are separated by any of the \
-            \following characters:" ++ showSepChars)
+            \Note that you need to either wrap STR in quotes, or refrain from \
+            \using spaces, if you want to ignore more than one thing.  Options \
+            \are separated by any of the following characters:" ++ showSepChars)
     <> value []
      )
 

@@ -66,7 +66,7 @@ getAllOpts Options{ mealType, mealTime, iKat, iNotes } =
     vegetarian :: Meal -> Bool
     vegetarian = eitherOf (inNotes "Menü ist vegetarisch") (inName "vegetarisch")
 
-    -- | See if meal is vegan or there's some sort of vegetarian variant available.
+    -- | See if meal is vegan or there's some vegetarian variant available.
     vegan :: Meal -> Bool
     vegan = eitherOf (inNotes "Menü ist vegan") (inName "vegan")
 
