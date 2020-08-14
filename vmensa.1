@@ -38,7 +38,15 @@ will be displayed by default.  To make the program fit your specific diet, see
 
 
 .SH OPTIONS
-.BI \-m " diet\fR,\fP " \-\-diet= "diet"
+Note that, for options allowing multiple arguments, you either need to wrap the
+arguments in quotes or not use any spaces for separating different items and for
+the items themselves.  This is to allow our parser to properly disambiguate
+between options and arguments for these options.  You may use any of the
+following characters for separation of different arguments: ',' ';' ':' '.'.
+
+In general, all arguments will be parsed case-insensitively.
+
+.BI \-d " diet\fR,\fP " \-\-diet= "diet"
 .RS
 Diet to display.  The argument
 .I diet
@@ -90,30 +98,60 @@ Print help information.
 
 .BI \-\-ikat= "str"
 .RS
-Ignore anything you want from the "Kategorie" section.  Note that you either
-need to wrap
-.I str
-in quotes if you want to ignore more than one thing or not use any spaces for
-separating different items.  Options are separated by any of the following any
-of the following characters: ',' ';' ':' '.'.  Categories have to be written out
-in full, i.e. to ignore the category "Pasta", one would have to write
+Ignore anything you want from the "Kategorie" section.  Categories have to be
+written out in full, i.e. to ignore the category "Pasta", one would have to
+write
 .I vmensa --ikat Pasta
 .RE
 
 
 .BI \-\-inotes= "str"
 .RS
-Ignore anything you want from the "Notes" section.  Note that you either need to
-wrap
-.I str
-in quotes if you want to ignore more than one thing or not use any spaces for
-separating different items.  Options are separated by any of the following
-characters: ',' ';' ':' '.'.  Notes check for partial matches, i.e to ignore
-everything containing "Soja (F)", one may use
+Ignore anything you want from the "Notes" section.  Notes check for partial
+matches, i.e to ignore everything containing "Soja (F)", one may use
 .I vmensa --inotes (F)
 or, alternatively
 .I vmensa --inotes Soja
 .RE
+
+
+.BI \-m " canteens\fR,\fP " \-\-mensen= "canteens"
+.RS
+The canteens one would like to show.  We currently support all of the canteens
+that are supported by the Studentenwerk-API itself.  The following table will
+give the name of the canteen, as well as all available aliases for it (multiple
+aliases will be specified by tuples).  Note that, after parsing an option, we
+always trim until the next separation symbol; i.e. while there is only a single
+"a" in the table for the
+.I Alte Mensa,
+something like "alte", or even "Alte Mensa" will work just fine.  The order in
+which the canteens are specified will be the order in which they are printed.
+Default: Alte Mensa, Zeltschlösschen, U-Boot, Siedepunkt.
+
+.TS
+l c l l .
+	Alte Mensa                     	<-->	A
+	Mensa Reichenbachstraße        	<-->	R
+	Mensologie                     	<-->	Mensologie
+	Mensa Siedepunkt               	<-->	Si
+	Mensa TellerRandt              	<-->	TellerRandt
+	Mensa Palucca Hochschule       	<-->	(Palucca, Hochschule)
+	Mensa Stimm-Gabel              	<-->	(Stimm, Gabel)
+	Mensa Kraatschn                	<-->	Kraat
+	Mensa Mahlwerk                 	<-->	Mahl
+	MiO - Mensa im Osten           	<-->	(MiO, Osten)
+	BioMensa U-Boot                	<-->	(Bio, U-Boot, U)
+	Mensa Sport                    	<-->	Sport
+	Mensa Johannstadt              	<-->	Johannstadt
+	Mensa WUeins / Sportsbar       	<-->	(WUeins, Sportsbar)
+	Mensa Brühl                    	<-->	Brühl
+	Zeltschlösschen                	<-->	Z
+	Grill Cube                     	<-->	(Gr, C)
+	Pasta-Mobil                    	<-->	(Pasta-Mobil, Pasta)
+	Mensa Rothenburg               	<-->	Rothenburg
+	Mensa Bautzen Polizeihochschule	<-->	(Bautzen, Polizeihochschule)
+	Mensa Oberschmausitz           	<-->	Oberschmausitz
+.TE
 
 
 
@@ -178,7 +216,7 @@ Query tomorrows lunch menu, wrapping the text at 80 characters:
 Query next Wednesday's vegan dinner menu, wrapping the text at 60 characters:
 
 .RS
-.I vmensa -m v -t d -w 60 w
+.I vmensa -d v -t d -w 60 w
 .RE
 
 Query today's vegetarian menu, ignoring pasta, as well as anything containing
@@ -191,13 +229,23 @@ eggs and soy:
 .I vmensa --inotes Eier,Soja --ikat Pasta
 .RE
 
-Query the menu for the 17th of july.
+Query the menu for the 17th of july:
 
 .RS
 .I vmensa 17 jul
 .RE
 
+Query specific canteens:
 
+.RS
+.I vmensa -m alte,zelt,siedepunkt,uboot
+.RE
+.RS
+.I vmensa -m "alte mensa, zelt"
+.RE
+.RS
+.I vmensa -m a,z,si
+.RE
 
 .SH BUGS
 For a list of bugs, see <\fIhttps://gitlab.com/tozor/vmensa/issues\fR>.

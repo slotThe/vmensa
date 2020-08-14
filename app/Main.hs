@@ -62,4 +62,4 @@ getMensa manager opts mensa@Mensa{ url } = catch
            maybe mensa (\ms -> mensa {meals = filterOptions opts ms}) tryMeals
 
     -- If any error occurs, just return the (empty) input 'Mensa'.
-    \(e :: SomeException) -> const (pure mensa) e
+    \(_ :: SomeException) -> pure mensa

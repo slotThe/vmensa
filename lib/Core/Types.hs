@@ -138,6 +138,7 @@ showMeals lw = T.unlines . map showMeal
             . T.replace "&ouml;" "ö"
             . T.replace "&lpar;" "("
             . T.replace "&rpar;" ")"
+            . T.replace "&excl;" "!"
 
         {- | Set the style for some keywords
            33 looks nice
