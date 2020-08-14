@@ -20,7 +20,7 @@ module Core.Types
     , ppMensa       -- :: Int -> Text -> Mensa -> Text
 
     -- * Constructing canteens
-    , mkEmptyMensa  -- :: Text -> Text -> Mensa
+    , mkEmptyMensa  -- :: Text -> (Text, Text -> Text) -> Mensa
     ) where
 
 import qualified Data.Text as T
@@ -48,9 +48,8 @@ data Mensa = Mensa
     , meals :: !Meals
     }
 
--- | Helper function for creating an empty 'Mensa'
-mkEmptyMensa :: Text -> Text -> Mensa
-mkEmptyMensa n u = Mensa n u []
+mkEmptyMensa :: Text -> (Text, Text -> Text) -> Mensa
+mkEmptyMensa d (n, urlWithoutDate) = Mensa n (urlWithoutDate d) []
 
 -- | A canteen serves food!
 type Meals = [Meal]

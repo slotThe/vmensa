@@ -32,6 +32,7 @@ library:
 dependencies:
   - base-noprelude
   - base-prelude
+  - containers
   - aeson
   - async
   - http-conduit

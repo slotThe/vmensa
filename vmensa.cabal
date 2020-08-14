@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 8c8a2e676359640f2faa35f83c8c2d9bfccddc9fe9b78ea1cb8ec1c9d49ffdc9
+-- hash: cc6818d3d540c654e21126c190b5e6b270fc3f329bf93a49775f0cd8e529ffc8
 
 name:           vmensa
 version:        0.1.0
@@ -34,6 +34,7 @@ library
     , attoparsec
     , base-noprelude
     , base-prelude
+    , containers
     , http-conduit
     , optparse-applicative
     , text
@@ -54,6 +55,7 @@ executable vmensa
     , attoparsec
     , base-noprelude
     , base-prelude
+    , containers
     , http-conduit
     , optparse-applicative
     , text

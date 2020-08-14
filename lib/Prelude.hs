@@ -10,13 +10,19 @@
 module Prelude
     ( module BasePrelude
     , Text
+    , Map
+    , fromList
+    , toList
+
     , tshow     -- :: Show a => a -> Text
     , fst3      -- :: (a, b, c) -> a
     , eitherOf  -- :: Applicative f => f Bool -> f Bool -> f Bool
     ) where
 
-import BasePrelude hiding (empty, option)
+import BasePrelude hiding (empty, option, toList)
+import Data.Map.Strict (Map)
 import Data.Text (Text)
+import GHC.Exts (fromList, toList)
 
 import qualified Data.Text as T
 

@@ -12,7 +12,7 @@ module Main
     ( main  -- :: IO ()
     ) where
 
-import Core.CLI (Options(Options, date, lineWrap), options)
+import Core.CLI (Options(Options, canteens, date, lineWrap), options)
 import Core.MealOptions (filterOptions)
 import Core.Time (getDate, ppDate)
 import Core.Types (Mensa(Mensa, meals, url), mkEmptyMensa, ppMensa)
@@ -33,22 +33,20 @@ import Options.Applicative (execParser)
 main :: IO ()
 main = do
     -- Parse command line options.
-    opts@Options{ lineWrap, date } <- execParser options
+    opts@Options{ lineWrap, date, canteens } <- execParser options
 
-    -- Get specified date in YYYY-MM-DD format, then build all canteens and
-    -- decide in which order they will be printed.
+    -- Get specified date in YYYY-MM-DD format
     d <- getDate date
-    let canteens = map ($! d) [alte, uboot, zelt, siedepunkt]
 
     {- Create new manager for handling network connections, then asynchronously
        connect to the API and parse the necessary JSON.  Note that
        'mapConcurrently' creates a thread for every canteen, though since that
-       list is small this is not an issue for us.
+       list is small this is not an issue in this case.
     -}
     manager <- newManager tlsManagerSettings
     let ppCanteen :: Mensa -> IO Text
         ppCanteen m = ppMensa lineWrap (ppDate date) <$> getMensa manager opts m
-    mensen <- mapConcurrently ppCanteen canteens
+    mensen <- mapConcurrently ppCanteen (map (mkEmptyMensa d) canteens)
 
     -- Print out the results synchronously.
     traverse_ T.putStr mensen
@@ -65,22 +63,3 @@ getMensa manager opts mensa@Mensa{ url } = catch
 
     -- If any error occurs, just return the (empty) input 'Mensa'.
     \(e :: SomeException) -> const (pure mensa) e
-
--- | Canteens I want to check out.
--- Numbers from: https:\/\/api.studentenwerk-dresden.de\/openmensa\/v2\/canteens
-alte, uboot, siedepunkt, zelt :: Text -> Mensa
-zelt       = mkEmptyMensa "Mensa Zeltschlösschen" . mensaURL 35
-uboot      = mkEmptyMensa "Bio Mensa"             . mensaURL 29
-siedepunkt = mkEmptyMensa "Mensa Siedepunkt"      . mensaURL 9
-alte       = mkEmptyMensa "Alte Mensa"            . mensaURL 4
-
--- | Template URL for getting all meals of a certain Meals.
-mensaURL
-    :: Int   -- ^ Number of the Mensa in the API
-    -> Text  -- ^ Date at which we would like to see the food.
-    -> Text
-mensaURL num date = mconcat
-    [ "https://api.studentenwerk-dresden.de/openmensa/v2/canteens/"
-    , tshow num, "/days/"
-    , date     , "/meals"
-    ]

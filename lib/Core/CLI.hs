@@ -24,6 +24,7 @@ import Core.Types
 import Paths_vmensa (version)
 
 import qualified Data.Attoparsec.Text as A
+import qualified Data.Map             as Map
 
 import Data.Time.Calendar
     ( Day
@@ -32,8 +33,9 @@ import Data.Time.Calendar
     , fromGregorian
     )
 import Options.Applicative
-    ( Parser, ParserInfo, ReadM, argument, auto, eitherReader, fullDesc, header
-    , help, helper, info, infoOption, long, metavar, option, short, str, value
+    ( Parser, ParserInfo, ReadM, argument, auto, eitherReader, footer, fullDesc
+    , header, help, helper, info, infoOption, long, metavar, option, short, str
+    , value
     )
 
 
@@ -45,6 +47,7 @@ data Options = Options
     , iKat     :: ![Text]
     , iNotes   :: ![Text]
     , date     :: !Date
+    , canteens :: ![(Text, Text -> Text)]
     }
 
 -- | Create an info type from our options, adding help text and other nice
@@ -53,6 +56,8 @@ options :: ParserInfo Options
 options = info
     (helper <*> versionOpt <*> pOptions)
     (  header "vmensa: Query the Stundentenwerk API from inside your terminal!"
+    <> footer ("Options may be separated by any of the following characters:"
+               ++ showSepChars)
     <> fullDesc
     )
   where
@@ -72,6 +77,7 @@ pOptions =  Options
         <*> pIKat
         <*> pINotes
         <*> pDate
+        <*> pCanteens
 
 pMealType :: Parser MealType
 pMealType = option pDiet
@@ -178,10 +184,9 @@ pIKat :: Parser [Text]
 pIKat = option pSplitter
      ( long "ikat"
     <> metavar "STR"
-    <> help ("Ignore anything you want from the \"Kategorie\" section.  \
+    <> help "Ignore anything you want from the \"Kategorie\" section.  \
             \Note that you need to either wrap STR in quotes, or refrain from \
-            \using spaces, if you want to ignore more than one thing.  Options \
-            \are separated by any of the following characters:" ++ showSepChars)
+            \using spaces, if you want to ignore more than one thing."
     <> value []
      )
 
@@ -190,25 +195,83 @@ pINotes :: Parser [Text]
 pINotes = option pSplitter
      ( long "inotes"
     <> metavar "STR"
-    <> help ("Ignore anything you want from the \"Notes\" section.  \
+    <> help "Ignore anything you want from the \"Notes\" section.  \
             \Note that you need to either wrap STR in quotes, or refrain from \
-            \using spaces, if you want to ignore more than one thing.  Options \
-            \are separated by any of the following characters:" ++ showSepChars)
+            \using spaces, if you want to ignore more than one thing."
     <> value []
      )
 
--- | Split a string.
+pCanteens :: Parser [(Text, Text -> Text)]
+pCanteens = option (pSplitterWith pCanteen)
+     ( long "mensen"
+    <> short 'm'
+    <> metavar "CANTEENS"
+    <> help "Specify the canteens that you want to show.  Note that you need \
+            \to either wrap CANTEENS in quotes, or refrain from using spaces, \
+            \if you want to specify more than one.  Default: Alte Mensa, \
+            \Zeltschlösschen, U-Boot, Siedepunkt."
+    <> value [ ("Alte Mensa"      , mensaURL 4 )
+             , ("Zeltschlösschen" , mensaURL 35)
+             , ("BioMensa U-Boot" , mensaURL 29)
+             , ("Mensa Siedepunkt", mensaURL 9 )
+             ]
+     )
+  where
+    pCanteen :: A.Parser (Text, Text -> Text)
+    pCanteen = second mensaURL <$> A.choice (map mkParser (Map.keys canteens))
+            <* A.skipWhile (`notElem` sepChars)
+
+    mkParser :: Int -> A.Parser (Text, Int)
+    mkParser k = (name, k) <$ aliases als
+      where (name, als) = canteens Map.! k
+
+    -- | __All__ available canteens.  We do have a lot of them, apparently.
+    canteens :: Map Int (Text, [Text])
+    canteens = fromList
+        [ (4,  ("Alte Mensa"                     , ["A"]))
+        , (6,  ("Mensa Reichenbachstraße"        , ["R"]))
+        , (8,  ("Mensologie"                     , ["Mensologie"]))
+        , (9,  ("Mensa Siedepunkt"               , ["Si"]))
+        , (10, ("Mensa TellerRandt"              , ["TellerRandt"]))
+        , (11, ("Mensa Palucca Hochschule"       , ["Palucca", "Hochschule"]))
+        , (13, ("Mensa Stimm-Gabel"              , ["Stimm", "Gabel"]))
+        , (24, ("Mensa Kraatschn"                , ["Kraat"]))
+        , (25, ("Mensa Mahlwerk"                 , ["Mahl"]))
+        , (28, ("MiO - Mensa im Osten"           , ["MiO", "Osten"]))
+        , (29, ("BioMensa U-Boot"                , ["Bio", "U-Boot", "U"]))
+        , (30, ("Mensa Sport"                    , ["Sport"]))
+        , (32, ("Mensa Johannstadt"              , ["Johannstadt"]))
+        , (33, ("Mensa WUeins / Sportsbar"       , ["WUeins", "Sportsbar"]))
+        , (34, ("Mensa Brühl"                    , ["Brühl"]))
+        , (35, ("Zeltschlösschen"                , ["Z"]))
+        , (36, ("Grill Cube"                     , ["Gr", "C"]))
+        , (37, ("Pasta-Mobil"                    , ["Pasta-Mobil", "Pasta"]))
+        , (38, ("Mensa Rothenburg"               , ["Rothenburg"]))
+        , (39, ("Mensa Bautzen Polizeihochschule", ["Bautzen", "Polizeihochschule"]))
+        , (42, ("Mensa Oberschmausitz"           , ["Oberschmausitz"]))
+        ]
+
+    -- | Template URL for getting all meals of a certain Meals.
+    mensaURL
+        :: Int   -- ^ Number of the Mensa in the API
+        -> Text  -- ^ Date at which we would like to see the food.
+        -> Text
+    mensaURL num date = mconcat
+        [ "https://api.studentenwerk-dresden.de/openmensa/v2/canteens/"
+        , tshow num , "/days/"
+        , date      , "/meals"
+        ]
+
 pSplitter :: ReadM [Text]
-pSplitter = attoReadM $ A.choice
+pSplitter = pSplitterWith (A.takeWhile (`notElem` sepChars))
+
+-- | Split a string according to some predicate.
+pSplitterWith :: A.Parser p -> ReadM [p]
+pSplitterWith p = attoReadM $ A.choice
     [ [] <$ A.endOfInput
-    , A.takeWhile (noneOf sepChars)
-        `A.sepBy`
-      (A.skipSpace *> anyOf sepChars <* A.skipSpace)
+    , p `A.sepBy` (A.skipSpace *> anyOf sepChars <* A.skipSpace)
     ]
   where
-    noneOf :: Eq a => [a] -> a -> Bool
-    noneOf = flip notElem
-
     anyOf :: String -> A.Parser Char
     anyOf = foldMap A.char
 
