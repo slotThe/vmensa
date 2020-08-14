@@ -101,16 +101,21 @@ showMeals lw = T.unlines . map showMeal
   where
     -- | Pretty printing for a single 'Meal'.
     showMeal :: Meal -> Text
-    showMeal Meal{ category, name, notes, prices } = T.unlines
-        [ style nameText      <> wrapName
-        , style "Preis: "     <> showEUR studentPrice
-        , style notesText     <> decodeSymbols wrapNotes
-        , style "Kategorie: " <> category
+    showMeal Meal{ category, name, notes, prices } = mconcat $ map checkPP
+        [ (nameText     , wrapName                 )
+        , ("Preis: "    , tshow studentPrice <> "€")
+        , (notesText    , decodeSymbols wrapNotes  )
+        , ("Kategorie: ", category                 )
         ]
       where
-        nameText, notesText :: Text
-        nameText  = "Essen: "
-        notesText = "Notes: "
+        -- | If the flavour text is null ignore the category, otherwise
+        -- pretty-print it.
+        checkPP :: (Text, Text) -> Text
+        checkPP (n, t) = if T.null t then "" else style n <> t <> "\n"
+          where
+            -- | See https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_parameters
+            style :: Text -> Text
+            style s = "\x1b[33m" <> s <> "\x1b[0m"
 
         wrapName :: Text
         wrapName = wrapWith " " (T.length nameText) lw (T.words name)
@@ -118,8 +123,9 @@ showMeals lw = T.unlines . map showMeal
         wrapNotes :: Text
         wrapNotes = wrapWith ", " (T.length notesText) lw notes
 
-        showEUR :: Show a => a -> Text
-        showEUR = (<> "€") . tshow
+        nameText, notesText :: Text
+        nameText  = "Essen: "
+        notesText = "Notes: "
 
         {- | We're (as of now) only interested in the student prices.
            Anything with 'SoldOut' will be filtered out later, so it's value
@@ -139,14 +145,6 @@ showMeals lw = T.unlines . map showMeal
             . T.replace "&lpar;" "("
             . T.replace "&rpar;" ")"
             . T.replace "&excl;" "!"
-
-        {- | Set the style for some keywords
-           33 looks nice
-           1 is bold
-           see https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_parameters
-        -}
-        style :: Text -> Text
-        style s = "\x1b[33m" <> s <> "\x1b[0m"
 
 -- | Simple (and probably hilariously inefficient) function to wrap text
 -- at N columns.
