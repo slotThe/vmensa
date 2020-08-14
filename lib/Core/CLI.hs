@@ -76,7 +76,7 @@ pOptions =  Options
 pMealType :: Parser MealType
 pMealType = option pDiet
      ( long "diet"
-    <> short 'm'
+    <> short 'd'
     <> metavar "D"
     <> help "Which kinds of meals do display.  Defaults to vegetarian."
     <> value Vegetarian
