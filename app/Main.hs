@@ -12,15 +12,15 @@ module Main
     ( main  -- :: IO ()
     ) where
 
-import Core.CLI (Options(Options, canteens, date, lineWrap), options)
+import Core.CLI (Options(Options, canteens, date, lineWrap, sections), options)
 import Core.MealOptions (filterOptions)
-import Core.Time (getDate, ppDate)
-import Core.Types (Mensa(Mensa, meals, url), mkEmptyMensa, ppMensa)
+import Core.Time (getDate)
+import Core.Types (Mensa(Mensa, meals, url), ppMensa)
 
 import qualified Data.Text    as T
 import qualified Data.Text.IO as T
 
-import Control.Concurrent.Async (mapConcurrently)
+import Control.Concurrent.Async (forConcurrently)
 import Data.Aeson (decode')
 import Network.HTTP.Conduit
     ( Manager, httpLbs, newManager, parseUrlThrow, responseBody
@@ -33,20 +33,19 @@ import Options.Applicative (execParser)
 main :: IO ()
 main = do
     -- Parse command line options.
-    opts@Options{ lineWrap, date, canteens } <- execParser options
+    opts@Options{ lineWrap, date, canteens, sections } <- execParser options
 
-    -- Get specified date in YYYY-MM-DD format
-    d <- getDate date
-
-    {- Create new manager for handling network connections, then asynchronously
-       connect to the API and parse the necessary JSON.  Note that
-       'mapConcurrently' creates a thread for every canteen, though since that
-       list is small this is not an issue in this case.
-    -}
+    -- Get specified date in YYYY-MM-DD format and create new manager for
+    -- handling network connections.
+    d       <- getDate date
     manager <- newManager tlsManagerSettings
-    let ppCanteen :: Mensa -> IO Text
-        ppCanteen m = ppMensa lineWrap (ppDate date) <$> getMensa manager opts m
-    mensen <- mapConcurrently ppCanteen (map (mkEmptyMensa d) canteens)
+
+    {- Asynchronously connect to the API and parse the necessary JSON.  Note
+       that 'mapConcurrently' creates a thread for every canteen, though since
+       that list is small this is not an issue in this case.
+    -}
+    mensen <- forConcurrently (canteens <&> ($ d)) \mensa ->
+        ppMensa lineWrap sections date <$> getMensa manager opts mensa
 
     -- Print out the results synchronously.
     traverse_ T.putStr mensen

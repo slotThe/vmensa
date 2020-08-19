@@ -20,12 +20,16 @@ import Core.Time
 import Core.Types
     ( MealTime(AllDay, Dinner, Lunch)
     , MealType(AllMeals, Vegan, Vegetarian)
+    , Mensa
+    , Section(Category, Name, Notes, Price)
+    , mkEmptyMensa
     )
 import Paths_vmensa (version)
 
 import qualified Data.Attoparsec.Text as A
 import qualified Data.Map             as Map
 
+import Data.Map ((!))
 import Data.Time.Calendar
     ( Day
     , DayOfWeek(Friday, Monday, Saturday, Sunday, Thursday, Tuesday,
@@ -47,7 +51,8 @@ data Options = Options
     , iKat     :: ![Text]
     , iNotes   :: ![Text]
     , date     :: !Date
-    , canteens :: ![(Text, Text -> Text)]
+    , canteens :: ![Text -> Mensa]  -- ^ Still waiting for a date.
+    , sections :: ![Section]
     }
 
 -- | Create an info type from our options, adding help text and other nice
@@ -56,8 +61,12 @@ options :: ParserInfo Options
 options = info
     (helper <*> versionOpt <*> pOptions)
     (  header "vmensa: Query the Stundentenwerk API from inside your terminal!"
-    <> footer ("Options may be separated by any of the following characters:"
-               ++ showSepChars)
+    <> footer ("In accordance to POSIX standards, options really only take a \
+              \single argument.  For options where it's intuitive to specify \
+              \more than one argument (e.g. '-m'), this is resolved by either \
+              \wrapping the argument in quotes, or not using spaces when \
+              \separating the input.  Arguments may be separated by any of the \
+              \following characters:" ++ showSepChars)
     <> fullDesc
     )
   where
@@ -78,6 +87,7 @@ pOptions =  Options
         <*> pINotes
         <*> pDate
         <*> pCanteens
+        <*> pSections
 
 pMealType :: Parser MealType
 pMealType = option pDiet
@@ -184,9 +194,7 @@ pIKat :: Parser [Text]
 pIKat = option pSplitter
      ( long "ikat"
     <> metavar "STR"
-    <> help "Ignore anything you want from the \"Kategorie\" section.  \
-            \Note that you need to either wrap STR in quotes, or refrain from \
-            \using spaces, if you want to ignore more than one thing."
+    <> help "Ignore anything you want from the \"Kategorie\" section."
     <> value []
      )
 
@@ -195,35 +203,35 @@ pINotes :: Parser [Text]
 pINotes = option pSplitter
      ( long "inotes"
     <> metavar "STR"
-    <> help "Ignore anything you want from the \"Notes\" section.  \
-            \Note that you need to either wrap STR in quotes, or refrain from \
-            \using spaces, if you want to ignore more than one thing."
+    <> help "Ignore anything you want from the \"Notes\" section."
     <> value []
      )
 
-pCanteens :: Parser [(Text, Text -> Text)]
-pCanteens = option (pSplitterWith pCanteen)
+{- | Canteens the user wants to be shown the meals of.  As command-line argument
+   parsing is a local process, we still don't know the date here.  Hence, we are
+   returning a 'Mensa' that still wants to know that information.
+-}
+pCanteens :: Parser [Text -> Mensa]
+pCanteens = option (pSplitterWith (mkEmptyMensa <$> pCanteen))
      ( long "mensen"
     <> short 'm'
     <> metavar "CANTEENS"
-    <> help "Specify the canteens that you want to show.  Note that you need \
-            \to either wrap CANTEENS in quotes, or refrain from using spaces, \
-            \if you want to specify more than one.  Default: Alte Mensa, \
-            \Zeltschlösschen, U-Boot, Siedepunkt."
-    <> value [ ("Alte Mensa"      , mensaURL 4 )
-             , ("Zeltschlösschen" , mensaURL 35)
-             , ("BioMensa U-Boot" , mensaURL 29)
-             , ("Mensa Siedepunkt", mensaURL 9 )
-             ]
+    <> help "Specify the canteens that you want to show.  \
+            \Default: Alte,Zeltschlösschen,U-Boot,Siedepunkt."
+    <> value (mkEmptyMensa <$> [ ("Alte Mensa"      , mensaURL 4 )
+                               , ("Zeltschlösschen" , mensaURL 35)
+                               , ("BioMensa U-Boot" , mensaURL 29)
+                               , ("Mensa Siedepunkt", mensaURL 9 )
+                               ])
      )
   where
     pCanteen :: A.Parser (Text, Text -> Text)
-    pCanteen = second mensaURL <$> A.choice (map mkParser (Map.keys canteens))
+    pCanteen = second mensaURL <$> A.choice (mkParser <$> Map.keys canteens)
             <* A.skipWhile (`notElem` sepChars)
 
     mkParser :: Int -> A.Parser (Text, Int)
     mkParser k = (name, k) <$ aliases als
-      where (name, als) = canteens Map.! k
+      where (name, als) = canteens ! k
 
     -- | __All__ available canteens.  We do have a lot of them, apparently.
     canteens :: Map Int (Text, [Text])
@@ -261,6 +269,25 @@ pCanteens = option (pSplitterWith pCanteen)
         , tshow num , "/days/"
         , date      , "/meals"
         ]
+
+-- | Sections to be displayed, making sure that no sections appear twice.
+pSections :: Parser [Section]
+pSections = nub <$> option (pSplitterWith pSection)
+     ( long "sections"
+    <> short 's'
+    <> metavar "S"
+    <> help "Sections to print (in order) in the final output."
+    <> value [Name, Price, Notes, Category]
+     )
+  where
+    -- | Parse user input into a proper 'MealTime'.
+    pSection :: A.Parser Section
+    pSection = A.choice
+        [ Name     <$ A.asciiCI "na"
+        , Notes    <$ A.asciiCI "no"
+        , Price    <$ A.asciiCI "p"
+        , Category <$ A.asciiCI "c"
+        ] <* A.skipWhile (`notElem` sepChars)
 
 pSplitter :: ReadM [Text]
 pSplitter = pSplitterWith (A.takeWhile (`notElem` sepChars))

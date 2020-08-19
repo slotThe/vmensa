@@ -48,24 +48,21 @@ ppDate = \case
 -- | Based on a certain weekday, calculate the day.
 -- Consistency assumption: We always want to walk forward in time.
 getDate :: Date -> IO Text
-getDate = \case
-    Today     -> showDay             <$> getCurrentTime
-    Tomorrow  -> showDay . addDays 1 <$> getCurrentTime
+getDate = fmap tshow . \case
+    Today     -> utctDay <$> getCurrentTime
+    Tomorrow  -> utctDay . addDays 1 <$> getCurrentTime
     Next wday -> do
         t <- getCurrentTime
         let diffToDay = diffBetween wday (dayOfWeek $ utctDay t)
-        pure $ showDay (addDays diffToDay t)
-    ISODate d           -> pure $ tshow d
+        pure . utctDay $ addDays diffToDay t
+    ISODate d           -> pure d
     DMYDate (mbY, m, d) -> do
         y <- maybe (fst3 . toGregorian . utctDay <$> getCurrentTime) pure mbY
-        pure . tshow $ fromGregorian y m d
+        pure $ fromGregorian y m d
   where
     -- | Add a specified number of days to a 'UTCTime'.
     addDays :: NominalDiffTime -> UTCTime -> UTCTime
     addDays = addUTCTime . (* nominalDay)
-
-    showDay :: UTCTime -> Text
-    showDay = tshow . utctDay
 
     -- | Some enum hackery.  I don't like this but it's the best I can come up
     -- with right now.

@@ -10,18 +10,21 @@
 module Core.Types
     ( -- * Types for 'Mensa' and its meals.
       Mensa(..)
-    , Meals         -- types alias: [Meal]
     , Meal(..)      -- instances: Generic, FromJSON
-    , Prices(..)    -- intsances: FromJSON
+    , Meals         -- types alias: [Meal]
+    , Prices(..)    -- instances: FromJSON
     , MealType(..)
     , MealTime(..)
 
     -- * Pretty printing
+    , Section(..)   -- instances: Eq, Show
     , ppMensa       -- :: Int -> Text -> Mensa -> Text
 
     -- * Constructing canteens
     , mkEmptyMensa  -- :: Text -> (Text, Text -> Text) -> Mensa
     ) where
+
+import Core.Time (Date, ppDate)
 
 import qualified Data.Text as T
 
@@ -48,11 +51,9 @@ data Mensa = Mensa
     , meals :: !Meals
     }
 
-mkEmptyMensa :: Text -> (Text, Text -> Text) -> Mensa
-mkEmptyMensa d (n, urlWithoutDate) = Mensa n (urlWithoutDate d) []
-
--- | A canteen serves food!
-type Meals = [Meal]
+-- | Construct an empty (i.e. no food to serve) 'Mensa'.
+mkEmptyMensa :: (Text, Text -> Text) -> Text -> Mensa
+mkEmptyMensa (n, urlWithoutDate) d = Mensa n (urlWithoutDate d) []
 
 -- | Type for a single meal.  Note that we are only specifying the contents of
 -- the JSON that we will actually use.
@@ -62,6 +63,9 @@ data Meal = Meal
     , prices   :: !Prices
     , category :: !Text
     } deriving (Generic, FromJSON)
+
+-- | A canteen serves food!
+type Meals = [Meal]
 
 -- | All the different price types.  Note again that we are only specifying the
 -- contents of the JSON that we will actually use.
@@ -76,56 +80,71 @@ instance FromJSON Prices where
         Object v -> Prices <$> (v .: "Studierende" <|> v .: "Preis 1")
         _        -> pure SoldOut
 
+-- | Section of the JSON output we would like to print.
+data Section
+    = Name
+    | Notes
+    | Price
+    | Category
+    deriving (Eq)
+
+instance Show Section where
+    show :: Section -> String
+    show = \case
+        Name     -> "Essen: "
+        Notes    -> "Notes: "
+        Price    -> "Preis: "
+        Category -> "Kategorie: "
+
 -- | Pretty print a 'Mensa'.
 ppMensa
-    :: Int    -- ^ Line wrap
-    -> Text   -- ^ Day when the meals are offered
+    :: Int        -- ^ Line wrap
+    -> [Section]  -- ^ Sections to be displayed
+    -> Date       -- ^ Day when the meals are offered
     -> Mensa
     -> Text
-ppMensa lw d mensa@Mensa{ name, meals }
+ppMensa lw sections d mensa@Mensa{ name, meals }
     | empty mensa = ""
-    | otherwise   = T.unlines [separator, d <> " in: " <> name, separator]
-                 <> showMeals lw meals
+    | otherwise   = T.unlines [sep, ppDate d <> " in: " <> name, sep]
+                 <> ppMeals lw sections meals
   where
-    -- | A 'Mensa' is empty if it doensn't have any food to serve.
+    -- | A 'Mensa' is empty if it doesn't have any food to serve.
     empty :: Mensa -> Bool
     empty (Mensa _ _ xs) = null xs
 
     -- | Separator for visual separation of different canteens.
-    separator :: Text
-    separator = T.pack $ replicate (if lw <= 0 then 80 else lw) '='
+    sep :: Text
+    sep = T.pack $ replicate (if lw > 0 then lw else 79) '='
 
 -- | Pretty print only the things I'm interested in.
-showMeals :: Int -> Meals -> Text
-showMeals lw = T.unlines . map showMeal
+ppMeals :: Int -> [Section] -> Meals -> Text
+ppMeals lw sections meals =
+    T.unlines $ map (\meal -> mconcat $ map (ppSection meal) sections) meals
   where
-    -- | Pretty printing for a single 'Meal'.
-    showMeal :: Meal -> Text
-    showMeal Meal{ category, name, notes, prices } = mconcat $ map checkPP
-        [ (nameText     , wrapName                 )
-        , ("Preis: "    , tshow studentPrice <> "€")
-        , (notesText    , decodeSymbols wrapNotes  )
-        , ("Kategorie: ", category                 )
-        ]
+    -- | Pretty printing for a single 'Meal'.  If the associated flavour text is
+    -- null ignore the category, otherwise pretty-print it.
+    ppSection :: Meal -> Section -> Text
+    ppSection Meal{ category, name, notes, prices } section =
+       if   T.null flavourText
+       then ""
+       else style (tshow section) <> flavourText <> "\n"
       where
-        -- | If the flavour text is null ignore the category, otherwise
-        -- pretty-print it.
-        checkPP :: (Text, Text) -> Text
-        checkPP (n, t) = if T.null t then "" else style n <> t <> "\n"
-          where
-            -- | See https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_parameters
-            style :: Text -> Text
-            style s = "\x1b[33m" <> s <> "\x1b[0m"
+        flavourText :: Text
+        flavourText = case section of
+            Name     -> wrapName
+            Price    -> tshow studentPrice <> "€"
+            Notes    -> decodeSymbols wrapNotes
+            Category -> category
+
+        -- | See https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_parameters
+        style :: Text -> Text
+        style s = "\x1b[33m" <> s <> "\x1b[0m"
 
         wrapName :: Text
-        wrapName = wrapWith " " (T.length nameText) lw (T.words name)
+        wrapName = wrapWith " " (T.length $ tshow Name) lw (T.words name)
 
         wrapNotes :: Text
-        wrapNotes = wrapWith ", " (T.length notesText) lw notes
-
-        nameText, notesText :: Text
-        nameText  = "Essen: "
-        notesText = "Notes: "
+        wrapNotes = wrapWith ", " (T.length $ tshow Notes) lw notes
 
         {- | We're (as of now) only interested in the student prices.
            Anything with 'SoldOut' will be filtered out later, so it's value
