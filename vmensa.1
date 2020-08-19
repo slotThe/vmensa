@@ -152,6 +152,26 @@ l c l l .
 	Mensa Bautzen Polizeihochschule	<-->	(Bautzen, Polizeihochschule)
 	Mensa Oberschmausitz           	<-->	Oberschmausitz
 .TE
+.RE
+
+
+.BI \-s " sections\fR,\fP " \-\-sections= "sections"
+.RS
+Which sections to display in the pretty-printed output.  If the users enters a
+section twice, it will be printed only once.  Sections are printed in order,
+i.e. in the specified order by the user.  By default, we display everything (in
+order: name, price, notes, category).  Users may choose among the following
+different sections (letters in square brackets may be omitted):
+.TS
+l l l .
+	Na[me]	Name of the meal.
+	P[rice]	The price one has to pay.
+	No[tes]	Additional notes about the meal, like
+        		allergy information etc.
+	C[ategory]	Which category the meal belongs to
+        		(roughly where it may be found inside
+		the canteen).
+.TE
 
 
 
@@ -246,6 +266,17 @@ Query specific canteens:
 .RS
 .I vmensa -m a,z,si
 .RE
+
+Only show certain sections:
+
+.RS
+.I vmensa -s na,p -m siede
+.RE
+.RS
+.I vmensa -s na,no
+.RE
+
+
 
 .SH BUGS
 For a list of bugs, see <\fIhttps://gitlab.com/tozor/vmensa/issues\fR>.
