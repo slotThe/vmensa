@@ -24,8 +24,6 @@ module Core.Types
     , mkEmptyMensa  -- :: Text -> (Text, Text -> Text) -> Mensa
     ) where
 
-import Core.Time (Date, ppDate)
-
 import qualified Data.Text as T
 
 import Data.Aeson (FromJSON(parseJSON), Value(Object), (.:))
@@ -100,12 +98,12 @@ instance Show Section where
 ppMensa
     :: Int        -- ^ Line wrap
     -> [Section]  -- ^ Sections to be displayed
-    -> Date       -- ^ Day when the meals are offered
+    -> Text       -- ^ Day when the meals are offered
     -> Mensa
     -> Text
-ppMensa lw sections d mensa@Mensa{ name, meals }
+ppMensa lw sections day mensa@Mensa{ name, meals }
     | empty mensa = ""
-    | otherwise   = T.unlines [sep, ppDate d <> " in: " <> name, sep]
+    | otherwise   = T.unlines [sep, day <> " in: " <> name, sep]
                  <> ppMeals lw sections meals
   where
     -- | A 'Mensa' is empty if it doesn't have any food to serve.

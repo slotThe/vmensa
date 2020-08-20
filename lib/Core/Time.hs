@@ -11,8 +11,8 @@
 module Core.Time
     ( Date(..)    -- instances: Show
     , Month(..)   -- instances: Show, Enum
-    , getDate     -- :: Date -> IO Text
-    , ppDate      -- :: Date -> Text
+    , DatePP(..)
+    , getDate     -- :: Date -> IO DatePP
     ) where
 
 import Data.Time
@@ -26,7 +26,7 @@ data Date
     = Today
     | Tomorrow
     | Next !DayOfWeek
-      -- ^ This will *always* show the next 'DayOfWeek' (e.g. calling 'Next
+      -- ^ This will __always__ show the next 'DayOfWeek' (e.g. calling 'Next
       -- Monday' on a Monday will result in getting the menu for the following
       -- Monday)
     | ISODate !Day
@@ -35,30 +35,29 @@ data Date
       -- ^ Manual date entry in the format DD MM [YYYY]
     deriving (Show)
 
--- | Pretty print a 'Date'.
-ppDate :: Date -> Text
-ppDate = \case
-    ISODate  d          -> "On " <> tshow d
-    DMYDate (mbY, m, d) ->
-        mconcat
-            . (["On ", tshow d, " ", tshow (toEnum @Month m)] ++)
-            $ maybe [] ((:[]) . tshow) mbY
-    otherDate              -> tshow otherDate
+-- | A pretty printed 'Date' in all formats necessary.
+data DatePP = DatePP
+    { iso :: Text
+    , out :: Text
+    }
 
 -- | Based on a certain weekday, calculate the day.
 -- Consistency assumption: We always want to walk forward in time.
-getDate :: Date -> IO Text
-getDate = fmap tshow . \case
-    Today     -> utctDay <$> getCurrentTime
-    Tomorrow  -> utctDay . addDays 1 <$> getCurrentTime
-    Next wday -> do
-        t <- getCurrentTime
-        let diffToDay = diffBetween wday (dayOfWeek $ utctDay t)
-        pure . utctDay $ addDays diffToDay t
-    ISODate d           -> pure d
-    DMYDate (mbY, m, d) -> do
-        y <- maybe (fst3 . toGregorian . utctDay <$> getCurrentTime) pure mbY
-        pure $ fromGregorian y m d
+getDate :: Date -> IO DatePP
+getDate date = do
+    curTime    <- getCurrentTime
+    let curDay  = utctDay curTime
+
+    pure . ppDate date $ case date of
+        Today               -> curDay
+        Tomorrow            -> utctDay $ addDays 1 curTime
+        Next wday           ->
+            let diffToDay = diffBetween wday (dayOfWeek curDay)
+             in utctDay $ addDays diffToDay curTime
+        ISODate d           -> d
+        DMYDate (mbY, m, d) ->
+            let y = fromMaybe (fst3 $ toGregorian curDay) mbY
+             in fromGregorian y m d
   where
     -- | Add a specified number of days to a 'UTCTime'.
     addDays :: NominalDiffTime -> UTCTime -> UTCTime
@@ -70,6 +69,19 @@ getDate = fmap tshow . \case
     diffBetween d d'
         | d == d'   = 7
         | otherwise = fromIntegral . abs $ (fromEnum d - fromEnum d') `mod` 7
+
+-- | Pretty print a 'Date'.
+ppDate :: Date -> Day -> DatePP
+ppDate date day = DatePP (tshow day) case date of
+    ISODate{} -> mconcat ["On ", tshow day, " (", tshow (dayOfWeek day), ")"]
+    DMYDate{} ->
+        let (y, m, d) = toGregorian day
+         in mconcat [ "On ", tshow d
+                    , " "  , tshow (toEnum @Month m)
+                    , " "  , tshow y
+                    , " (" , tshow (dayOfWeek day), ")"
+                    ]
+    otherDate -> tshow otherDate
 
 -- | Arbitrary month.
 data Month

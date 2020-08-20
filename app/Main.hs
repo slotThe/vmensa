@@ -14,7 +14,7 @@ module Main
 
 import Core.CLI (Options(Options, canteens, date, lineWrap, sections), options)
 import Core.MealOptions (filterOptions)
-import Core.Time (getDate)
+import Core.Time (DatePP(DatePP, iso, out), getDate)
 import Core.Types (Mensa(Mensa, meals, url), ppMensa)
 
 import qualified Data.Text    as T
@@ -37,15 +37,15 @@ main = do
 
     -- Get specified date in YYYY-MM-DD format and create new manager for
     -- handling network connections.
-    d       <- getDate date
-    manager <- newManager tlsManagerSettings
+    DatePP{ iso, out } <- getDate date
+    manager            <- newManager tlsManagerSettings
 
     {- Asynchronously connect to the API and parse the necessary JSON.  Note
        that 'mapConcurrently' creates a thread for every canteen, though since
        that list is small this is not an issue in this case.
     -}
-    mensen <- forConcurrently (canteens <&> ($ d)) \mensa ->
-        ppMensa lineWrap sections date <$> getMensa manager opts mensa
+    mensen <- forConcurrently (canteens <&> ($ iso)) \mensa ->
+        ppMensa lineWrap sections out <$> getMensa manager opts mensa
 
     -- Print out the results synchronously.
     traverse_ T.putStr mensen
