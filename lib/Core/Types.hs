@@ -101,31 +101,26 @@ ppMensa
     -> Text       -- ^ Day when the meals are offered
     -> Mensa
     -> Text
-ppMensa lw sections day mensa@Mensa{ name, meals }
-    | empty mensa = ""
-    | otherwise   = T.unlines [sep, day <> " in: " <> name, sep]
-                 <> ppMeals lw sections meals
+ppMensa lw sections day = \case
+    Mensa _ _ []         -> ""  -- Don't show empty canteens
+    Mensa{ name, meals } -> T.unlines [sep, day <> " in: " <> name, sep]
+                         <> ppMeals lw sections meals
   where
-    -- | A 'Mensa' is empty if it doesn't have any food to serve.
-    empty :: Mensa -> Bool
-    empty (Mensa _ _ xs) = null xs
-
     -- | Separator for visual separation of different canteens.
     sep :: Text
-    sep = T.pack $ replicate (if lw > 0 then lw else 79) '='
+    sep = T.replicate (if lw > 0 then lw else 79) "="
 
 -- | Pretty print only the things I'm interested in.
 ppMeals :: Int -> [Section] -> Meals -> Text
 ppMeals lw sections meals =
     T.unlines $ map (\meal -> mconcat $ map (ppSection meal) sections) meals
   where
-    -- | Pretty printing for a single 'Meal'.  If the associated flavour text is
-    -- null ignore the category, otherwise pretty-print it.
+    -- | Pretty print a single section of a 'Meal'.  If the associated flavour
+    -- text is empty ignore the section.
     ppSection :: Meal -> Section -> Text
-    ppSection Meal{ category, name, notes, prices } section =
-       if   T.null flavourText
-       then ""
-       else style (tshow section) <> flavourText <> "\n"
+    ppSection Meal{ category, name, notes, prices } section
+        | T.null flavourText = ""
+        | otherwise          = style (tshow section) <> flavourText <> "\n"
       where
         flavourText :: Text
         flavourText = case section of
@@ -163,11 +158,11 @@ ppMeals lw sections meals =
             . T.replace "&rpar;" ")"
             . T.replace "&excl;" "!"
 
--- | Simple (and probably hilariously inefficient) function to wrap text
--- at N columns.
+-- | Simple (and probably hilariously inefficient) function to wrap text at @N@
+-- columns.
 wrapWith
     :: Text    -- ^ How to concatenate chunks, i.e. the separator
-    -> Int     -- ^ Alignment
+    -> Int     -- ^ Left alignment
     -> Int     -- ^ Max line length (wrap)
     -> [Text]  -- ^ Text as chunks that have to stay together
     -> Text    -- ^ Text with line breaks
@@ -188,7 +183,7 @@ wrapWith sep al wrapAt chunks
         combLen = acc + T.length c        -- Length including the next word
         newLen  = combLen + T.length end  -- Take separator length into account
 
-        -- | Nicely align the text after a line-break.  We like pretty things.
+        -- | Nicely left-align the text after a line-break.  We like pretty things.
         align :: Text -> Text
         align = (<> "\n" <> T.replicate al " ")
 

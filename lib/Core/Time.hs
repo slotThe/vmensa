@@ -1,6 +1,6 @@
 {- |
    Module      : Time
-   Description : How vmensa knows *when* to query the cafeterias.
+   Description : How vmensa knows __when__ to query the cafeterias.
    Copyright   : (c) Tony Zorman, 2020
    License     : GPL-3
    Maintainer  : tonyzorman@mailbox.org

@@ -28,6 +28,7 @@ import Paths_vmensa (version)
 
 import qualified Data.Attoparsec.Text as A
 import qualified Data.Map             as Map
+import qualified Data.Text            as T
 
 import Data.Map ((!))
 import Data.Time.Calendar
@@ -66,7 +67,7 @@ options = info
               \more than one argument (e.g. '-m'), this is resolved by either \
               \wrapping the argument in quotes, or not using spaces when \
               \separating the input.  Arguments may be separated by any of the \
-              \following characters:" ++ showSepChars)
+              \following characters:" ++ concatMap ((' ' :) . (: [])) sepChars)
     <> fullDesc
     )
   where
@@ -140,8 +141,8 @@ pDate :: Parser Date
 pDate = toDate . fromMaybe [] <$> optional (some $ argument str (metavar "DAY"))
   where
     -- | Convert all the rest to a date with a default value.
-    toDate :: [String] -> Date
-    toDate = fromRight Today . A.parseOnly pDate' . fromString . unwords
+    toDate :: [Text] -> Date
+    toDate = fromRight Today . A.parseOnly pDate' . T.unwords
 
     -- | Parse our entire 'Date' type.
     pDate' :: A.Parser Date
@@ -303,12 +304,8 @@ pSplitterWith p = attoReadM $ A.choice
     anyOf = foldMap A.char
 
 -- | Our separator chars.
-sepChars :: String
+sepChars :: [Char]
 sepChars = [',', ';', ':', '.']
-
--- | A small pretty printing function for the separator chars.
-showSepChars :: String
-showSepChars = concatMap ((' ' :) . (: [])) sepChars
 
 -- | Match on a list of text case-insensitively.
 aliases :: [Text] -> A.Parser Text
