@@ -31,8 +31,8 @@ data Date
       -- Monday)
     | ISODate !Day
       -- ^ Manual date entry in the format YYYY-MM-DD
-    | DMYDate !(Maybe Integer, Int, Int)
-      -- ^ Manual date entry in the format DD MM [YYYY]
+    | DMYDate !(Maybe Integer, Maybe Int, Int)
+      -- ^ Manual date entry in the format DD [MM] [YYYY]
     deriving (Show)
 
 -- | A pretty printed 'Date' in all formats necessary.
@@ -49,15 +49,15 @@ getDate date = do
     let curDay  = utctDay curTime
 
     pure . ppDate date $ case date of
-        Today               -> curDay
-        Tomorrow            -> utctDay $ addDays 1 curTime
-        Next wday           ->
+        Today                 -> curDay
+        Tomorrow              -> utctDay $ addDays 1 curTime
+        Next wday             ->
             let diffToDay = diffBetween wday (dayOfWeek curDay)
              in utctDay $ addDays diffToDay curTime
-        ISODate d           -> d
-        DMYDate (mbY, m, d) ->
-            let y = fromMaybe (fst3 $ toGregorian curDay) mbY
-             in fromGregorian y m d
+        ISODate d             -> d
+        DMYDate (mbY, mbM, d) ->
+            let (y, m, _) = toGregorian curDay
+             in fromGregorian (fromMaybe y mbY) (fromMaybe m mbM) d
   where
     -- | Add a specified number of days to a 'UTCTime'.
     addDays :: NominalDiffTime -> UTCTime -> UTCTime

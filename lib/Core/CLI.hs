@@ -170,10 +170,10 @@ pDate = toDate . fromMaybe [] <$> optional (some $ argument str (metavar "DAY"))
     pISODate =
         fromGregorian <$> A.decimal <* "-" <*> A.decimal <* "-" <*> A.decimal
 
-    pDMYDate :: A.Parser (Maybe Integer, Int, Int)
+    pDMYDate :: A.Parser (Maybe Integer, Maybe Int, Int)
     pDMYDate = do
-        d <- A.decimal <* A.space
-        m <- fromEnum <$> A.choice
+        d <- A.decimal
+        m <- optional $ A.space >> fromEnum <$> A.choice
             [ January   <$ A.asciiCI "ja"
             , February  <$ A.asciiCI "f"
             , March     <$ A.asciiCI "mar"
