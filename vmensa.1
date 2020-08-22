@@ -12,9 +12,9 @@ vmensa \- Query the Stundentenwerk API from inside your terminal!
 .SH SYNOPSIS
 .B vmensa
 [
-.I options
+.I OPTIONS
 ] [
-.I day
+.I DATE
 ]
 
 
@@ -58,8 +58,8 @@ l l l .
 	vege[tarian], vegg[ie]	Display vegetarian and vegan meals.
 .TE
 
-.I diet
-defaults to "vegetarian".
+Defaults to
+.I vegetarian.
 .RE
 
 
@@ -85,8 +85,8 @@ l l l .
 	d[inner]	Display only the dinner options.
 .TE
 
-.I time
-defaults to "all-day".
+Defaults to
+.I all-day.
 .RE
 
 
@@ -178,8 +178,10 @@ l l l .
 .SH POSITIONAL ARGUMENTS
 Pick the day (or date) when
 .I vmensa
-should query the API.  Defaults to "today".  The argument may have the following
-values (letters in square brackets may be omitted):
+should query the API.  Defaults to
+.I today.
+The argument may have the following values (letters in square brackets may be
+omitted):
 .TS
 l l .
 	[today]
@@ -191,7 +193,7 @@ l l .
 	f[riday]
 	sa[turday]
 	su[nday], so[nntag]
-	DD MONTH-BY-NAME [YYYY]
+	DD [MONTH-BY-NAME] [YYYY]
 	YYYY-MM-DD
 .TE
 
