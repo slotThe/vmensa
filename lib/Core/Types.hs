@@ -51,7 +51,7 @@ data Mensa = Mensa
 
 -- | Construct an empty (i.e. no food to serve) 'Mensa'.
 mkEmptyMensa :: (Text, Text -> Text) -> Text -> Mensa
-mkEmptyMensa (n, urlWithoutDate) d = Mensa n (urlWithoutDate d) []
+mkEmptyMensa (name, urlWithoutDate) date = Mensa name (urlWithoutDate date) []
 
 -- | Type for a single meal.  Note that we are only specifying the contents of
 -- the JSON that we will actually use.
@@ -94,17 +94,17 @@ instance Show Section where
         Price    -> "Preis: "
         Category -> "Kategorie: "
 
--- | Pretty print a 'Mensa'.
+-- | Pretty print a single canteen.
 ppMensa
     :: Int        -- ^ Line wrap
     -> [Section]  -- ^ Sections to be displayed
     -> Text       -- ^ Day when the meals are offered
     -> Mensa
     -> Text
-ppMensa lw sections day = \case
-    Mensa _ _ []         -> ""  -- Don't show empty canteens
-    Mensa{ name, meals } -> T.unlines [sep, day <> " in: " <> name, sep]
-                         <> ppMeals lw sections meals
+ppMensa lw sections day Mensa{ name, meals }
+    | null meals = ""  -- Don't show empty canteens
+    | otherwise  = T.unlines [sep, day <> " in: " <> name, sep]
+                <> ppMeals lw sections meals
   where
     -- | Separator for visual separation of different canteens.
     sep :: Text

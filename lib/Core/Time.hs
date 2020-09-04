@@ -37,8 +37,8 @@ data Date
 
 -- | A pretty printed 'Date' in all formats necessary.
 data DatePP = DatePP
-    { iso :: Text
-    , out :: Text
+    { iso :: !Text
+    , out :: !Text
     }
 
 -- | Based on a certain weekday, calculate the day.
