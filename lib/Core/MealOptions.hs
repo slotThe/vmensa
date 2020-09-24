@@ -38,19 +38,19 @@ filterOptions opts = filter availableOpts
 getAllOpts :: Options -> [Meal -> Bool]
 getAllOpts Options{ mealType, mealTime, iKat, iNotes } =
     concat
-        [ [notSoldOut, mtype, mtime]
+        [ [notSoldOut, fitsDiet, correctTimeOfDay]
         , map notCategory    iKat
         , map notPartOfNotes iNotes
         ]
   where
-    mtype :: Meal -> Bool
-    mtype = case mealType of
+    fitsDiet :: Meal -> Bool
+    fitsDiet = case mealType of
         Vegetarian -> eitherOf vegan vegetarian
         Vegan      -> vegan
         AllMeals   -> const True
 
-    mtime :: Meal -> Bool
-    mtime = case mealTime of
+    correctTimeOfDay :: Meal -> Bool
+    correctTimeOfDay = case mealTime of
         AllDay -> const True
         Dinner -> dinner
         Lunch  -> not . dinner
