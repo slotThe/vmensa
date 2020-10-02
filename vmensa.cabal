@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: cc6818d3d540c654e21126c190b5e6b270fc3f329bf93a49775f0cd8e529ffc8
+-- hash: d79c617aaf78c42f9dbb1028a3c408ebcd1b08d1461aa317de5c64f64ddec13a
 
 name:           vmensa
 version:        0.1.0
@@ -37,6 +37,7 @@ library
     , containers
     , http-conduit
     , optparse-applicative
+    , optparse-applicative-util
     , text
     , time >=1.9
   default-language: Haskell2010
@@ -58,6 +59,7 @@ executable vmensa
     , containers
     , http-conduit
     , optparse-applicative
+    , optparse-applicative-util
     , text
     , time >=1.9
     , vmensa

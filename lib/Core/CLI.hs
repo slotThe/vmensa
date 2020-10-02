@@ -38,10 +38,10 @@ import Data.Time.Calendar
     , fromGregorian
     )
 import Options.Applicative
-    ( Parser, ParserInfo, ReadM, argument, auto, eitherReader, footer, fullDesc
-    , header, help, helper, info, infoOption, long, metavar, option, short, str
-    , value
+    ( Parser, ParserInfo, ReadM, argument, auto, footer, fullDesc, header, help
+    , helper, info, infoOption, long, metavar, option, short, str, value
     )
+import Options.Applicative.Util (aliases, attoReadM, splitOn, splitWith)
 
 
 -- | Options the user may specify on the command line.
@@ -192,7 +192,7 @@ pDate = toDate . fromMaybe [] <$> optional (some $ argument str (metavar "DAY"))
 
 -- | Ignore a certain category of meals.
 pIKat :: Parser [Text]
-pIKat = option pSplitter
+pIKat = option (splitOn sepChars)
      ( long "ikat"
     <> metavar "STR"
     <> help "Ignore anything you want from the \"Kategorie\" section."
@@ -201,7 +201,7 @@ pIKat = option pSplitter
 
 -- | Filter out meals due to certain ingredients etc.
 pINotes :: Parser [Text]
-pINotes = option pSplitter
+pINotes = option (splitOn sepChars)
      ( long "inotes"
     <> metavar "STR"
     <> help "Ignore anything you want from the \"Notes\" section."
@@ -213,7 +213,7 @@ pINotes = option pSplitter
    returning a 'Mensa' that still wants to know that information.
 -}
 pCanteens :: Parser [Text -> Mensa]
-pCanteens = option (pSplitterWith (mkEmptyMensa <$> pCanteen))
+pCanteens = option ((mkEmptyMensa <$> pCanteen) `splitWith` sepChars)
      ( long "mensen"
     <> short 'm'
     <> metavar "CANTEENS"
@@ -273,7 +273,7 @@ pCanteens = option (pSplitterWith (mkEmptyMensa <$> pCanteen))
 
 -- | Sections to be displayed, making sure that no sections appear twice.
 pSections :: Parser [Section]
-pSections = nub <$> option (pSplitterWith pSection)
+pSections = nub <$> option (pSection `splitWith` sepChars)
      ( long "sections"
     <> short 's'
     <> metavar "S"
@@ -290,27 +290,6 @@ pSections = nub <$> option (pSplitterWith pSection)
         , Category <$ A.asciiCI "c"
         ] <* A.skipWhile (`notElem` sepChars)
 
-pSplitter :: ReadM [Text]
-pSplitter = pSplitterWith (A.takeWhile (`notElem` sepChars))
-
--- | Split a string according to some predicate.
-pSplitterWith :: A.Parser p -> ReadM [p]
-pSplitterWith p = attoReadM $ A.choice
-    [ [] <$ A.endOfInput
-    , p `A.sepBy` (A.skipSpace *> anyOf sepChars <* A.skipSpace)
-    ]
-  where
-    anyOf :: String -> A.Parser Char
-    anyOf = foldMap A.char
-
 -- | Our separator chars.
 sepChars :: [Char]
 sepChars = [',', ';', ':', '.']
-
--- | Match on a list of text case-insensitively.
-aliases :: [Text] -> A.Parser Text
-aliases = foldMap A.asciiCI
-
--- | Attoparsec <--> optparse-applicative interface.
-attoReadM :: A.Parser a -> ReadM a
-attoReadM p = eitherReader (A.parseOnly p . fromString)

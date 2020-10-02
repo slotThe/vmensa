@@ -39,6 +39,7 @@ dependencies:
   - text
   - time                 >= 1.9
   - optparse-applicative
+  - optparse-applicative-util
   - attoparsec
 
 executables:

@@ -2,3 +2,7 @@ resolver: lts-16.13
 
 packages:
 - .
+
+extra-deps:
+  - git: https://gitlab.com/slotThe/optparse-applicative-util.git
+    commit: eec1453fe8ad33f9f6706bb73e43ef34bf70acb1
