@@ -1,5 +1,6 @@
 name:                vmensa
 version:             0.1.0
+homepage:            https://gitlab.com/tozor/vmensa
 synopsis:            Query the Stundentenwerk API from inside your terminal!
 license:             GPL-3
 author:              Tony Zorman

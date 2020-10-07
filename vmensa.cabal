@@ -4,11 +4,12 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d79c617aaf78c42f9dbb1028a3c408ebcd1b08d1461aa317de5c64f64ddec13a
+-- hash: 9117692c066de5ad288f2ee20d514c8743d545984349be3ad3963725079e41cd
 
 name:           vmensa
 version:        0.1.0
 synopsis:       Query the Stundentenwerk API from inside your terminal!
+homepage:       https://gitlab.com/tozor/vmensa
 author:         Tony Zorman
 maintainer:     tonyzorman@mailbox.org
 license:        GPL-3
