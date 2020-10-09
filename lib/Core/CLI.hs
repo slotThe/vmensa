@@ -41,7 +41,8 @@ import Options.Applicative
     ( Parser, ParserInfo, ReadM, argument, auto, footer, fullDesc, header, help
     , helper, info, infoOption, long, metavar, option, short, str, value
     )
-import Options.Applicative.Util (aliases, attoReadM, splitOn, splitWith)
+import Options.Applicative.Util
+    ( aliases, anyOf, attoReadM, showSepChars, splitOn, splitWith )
 
 
 -- | Options the user may specify on the command line.
@@ -67,7 +68,7 @@ options = info
               \more than one argument (e.g. '-m'), this is resolved by either \
               \wrapping the argument in quotes, or not using spaces when \
               \separating the input.  Arguments may be separated by any of the \
-              \following characters:" ++ concatMap ((' ' :) . (: [])) sepChars)
+              \following characters:" ++ showSepChars sepChars)
     <> fullDesc
     )
   where
@@ -95,16 +96,17 @@ pMealType = option pDiet
      ( long "diet"
     <> short 'd'
     <> metavar "D"
-    <> help "Which kinds of meals do display.  Defaults to vegetarian."
+    <> help "Which kinds of meals (all-meals | vegetarian | vegan) to \
+            \display.  Defaults to vegetarian."
     <> value Vegetarian
      )
   where
     -- | Parse user input into a proper 'MealTime'.
     pDiet :: ReadM MealType
-    pDiet = attoReadM $ A.choice
-        [ AllMeals   <$ A.asciiCI "a"
-        , Vegetarian <$ aliases ["vege", "vegg"]
-        , Vegan      <$ A.asciiCI "v"
+    pDiet = attoReadM $ anyOf
+        [ (AllMeals  , ["a"]           )
+        , (Vegetarian, ["vege", "vegg"])
+        , (Vegan     , ["v"]           )
         ]
 
 -- | Times of day where different meals are available.
@@ -113,18 +115,14 @@ pMealTime = option pTime
      ( long "time"
     <> short 't'
     <> metavar "T"
-    <> help "Which menu options (lunch/dinner/all-day) to display.  \
+    <> help "Which menu options (lunch | dinner | all-day) to display.  \
             \Defaults to all-day."
     <> value AllDay
      )
   where
     -- | Parse user input into a proper 'MealTime'.
     pTime :: ReadM MealTime
-    pTime = attoReadM $ A.choice
-        [ Dinner <$ A.asciiCI "d"
-        , Lunch  <$ A.asciiCI "l"
-        , AllDay <$ A.asciiCI "a"
-        ]
+    pTime = attoReadM $ anyOf [(Dinner, ["d"]), (Lunch , ["l"]), (AllDay, ["a"])]
 
 -- | Line wrapping for certain categories only.
 pLineWrap :: Parser Int
@@ -156,14 +154,14 @@ pDate = toDate . fromMaybe [] <$> optional (some $ argument str (metavar "DAY"))
 
     -- | Parse a 'DayOfWeek' using both german and english names.
     pDay :: A.Parser DayOfWeek
-    pDay = A.choice
-        [ Monday    <$ A.asciiCI "mo"
-        , Tuesday   <$ aliases ["tu", "di"]
-        , Wednesday <$ aliases ["w" , "mi"]
-        , Thursday  <$ aliases ["th", "do"]
-        , Friday    <$ A.asciiCI "f"
-        , Saturday  <$ A.asciiCI "sa"
-        , Sunday    <$ aliases ["su", "so"]
+    pDay = anyOf
+        [ (Monday   , ["mo"]      )
+        , (Tuesday  , ["tu", "di"])
+        , (Wednesday, ["w" , "mi"])
+        , (Thursday , ["th", "do"])
+        , (Friday   , ["f"]       )
+        , (Saturday , ["sa"]      )
+        , (Sunday   , ["su", "so"])
         ]
 
     pISODate :: A.Parser Day
@@ -173,19 +171,19 @@ pDate = toDate . fromMaybe [] <$> optional (some $ argument str (metavar "DAY"))
     pDMYDate :: A.Parser (Maybe Integer, Maybe Int, Int)
     pDMYDate = do
         d <- A.decimal
-        m <- optional $ A.space >> fromEnum <$> A.choice
-            [ January   <$ A.asciiCI "ja"
-            , February  <$ A.asciiCI "f"
-            , March     <$ A.asciiCI "mar"
-            , April     <$ A.asciiCI "ap"
-            , May       <$ A.asciiCI "may"
-            , June      <$ A.asciiCI "jun"
-            , July      <$ A.asciiCI "jul"
-            , August    <$ A.asciiCI "au"
-            , September <$ A.asciiCI "s"
-            , October   <$ A.asciiCI "o"
-            , November  <$ A.asciiCI "n"
-            , December  <$ A.asciiCI "d"
+        m <- optional $ A.space >> fromEnum <$> anyOf
+            [ (January  , ["ja"]        )
+            , (February , ["f"]         )
+            , (March    , ["mar", "mä"] )
+            , (April    , ["ap"]        )
+            , (May      , ["may", "mai"])
+            , (June     , ["jun"]       )
+            , (July     , ["jul"]       )
+            , (August   , ["au"]        )
+            , (September, ["s"]         )
+            , (October  , ["o"]         )
+            , (November , ["n"]         )
+            , (December , ["d"]         )
             ]
         y <- optional $ A.space *> A.decimal
         pure (y, m, d)
@@ -219,10 +217,10 @@ pCanteens = option ((mkEmptyMensa <$> pCanteen) `splitWith` sepChars)
     <> metavar "CANTEENS"
     <> help "Specify the canteens that you want to show.  \
             \Default: Alte,Zeltschlösschen,U-Boot,Siedepunkt."
-    <> value (mkEmptyMensa <$> [ ("Alte Mensa"      , mensaURL 4 )
-                               , ("Zeltschlösschen" , mensaURL 35)
-                               , ("BioMensa U-Boot" , mensaURL 29)
-                               , ("Mensa Siedepunkt", mensaURL 9 )
+    <> value (mkEmptyMensa <$> [ (fst (canteens ! 4 ), mensaURL 4 )
+                               , (fst (canteens ! 35), mensaURL 35)
+                               , (fst (canteens ! 29), mensaURL 29)
+                               , (fst (canteens ! 9 ), mensaURL 9 )
                                ])
      )
   where
@@ -232,7 +230,7 @@ pCanteens = option ((mkEmptyMensa <$> pCanteen) `splitWith` sepChars)
 
     mkParser :: Int -> A.Parser (Text, Int)
     mkParser k = (name, k) <$ aliases als
-      where (name, als) = canteens ! k
+      where (name, als) :: (Text, [Text]) = canteens ! k
 
     -- | __All__ available canteens.  We do have a lot of them, apparently.
     canteens :: Map Int (Text, [Text])
@@ -283,11 +281,11 @@ pSections = nub <$> option (pSection `splitWith` sepChars)
   where
     -- | Parse user input into a proper 'MealTime'.
     pSection :: A.Parser Section
-    pSection = A.choice
-        [ Name     <$ A.asciiCI "na"
-        , Notes    <$ A.asciiCI "no"
-        , Price    <$ A.asciiCI "p"
-        , Category <$ A.asciiCI "c"
+    pSection = anyOf
+        [ (Name    , ["na"])
+        , (Notes   , ["no"])
+        , (Price   , ["p"] )
+        , (Category, ["c"] )
         ] <* A.skipWhile (`notElem` sepChars)
 
 -- | Our separator chars.
