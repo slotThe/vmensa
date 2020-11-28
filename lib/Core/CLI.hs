@@ -52,9 +52,9 @@ data Options = Options
     , mealTime :: !MealTime
     , iKat     :: ![Text]
     , iNotes   :: ![Text]
-    , date     :: !Date
     , canteens :: ![Text -> Mensa]  -- ^ Still waiting for a date.
     , sections :: ![Section]
+    , date     :: !Date
     }
 
 -- | Create an info type from our options, adding help text and other nice
@@ -87,9 +87,9 @@ pOptions =  Options
         <*> pMealTime
         <*> pIKat
         <*> pINotes
-        <*> pDate
         <*> pCanteens
         <*> pSections
+        <*> pDate
 
 pMealType :: Parser MealType
 pMealType = option pDiet
