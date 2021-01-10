@@ -7,16 +7,15 @@
    Stability   : experimental
    Portability : non-portable
 -}
-module Core.CLI
-    ( Options(..)
-    , options      -- :: ParserInfo Options
-    ) where
+module Core.CLI (
+    Options (..),
+    options,       -- :: ParserInfo Options
+) where
 
-import Core.Time
-    ( Date(DMYDate, ISODate, Next, Today, Tomorrow)
-    , Month(April, August, December, February, January, July, June,
-      March, May, November, October, September)
-    )
+import Core.Time (
+    Date (DMYDate, ISODate, Next, Today, Tomorrow),
+    Month (April, August, December, February, January, July, June, March, May, November, October, September),
+ )
 import Core.Types
     ( MealTime(AllDay, Dinner, Lunch)
     , MealType(AllMeals, Vegan, Vegetarian)
@@ -31,18 +30,39 @@ import qualified Data.Map             as Map
 import qualified Data.Text            as T
 
 import Data.Map ((!))
-import Data.Time.Calendar
-    ( Day
-    , DayOfWeek(Friday, Monday, Saturday, Sunday, Thursday, Tuesday,
-          Wednesday)
-    , fromGregorian
-    )
-import Options.Applicative
-    ( Parser, ParserInfo, ReadM, argument, auto, footer, fullDesc, header, help
-    , helper, info, infoOption, long, metavar, option, short, str, value
-    )
-import Options.Applicative.Util
-    ( aliases, anyOf, attoReadM, showSepChars, splitOn, splitWith )
+import Data.Time.Calendar (
+    Day,
+    DayOfWeek (Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday),
+    fromGregorian,
+ )
+import Options.Applicative (
+    Parser,
+    ParserInfo,
+    ReadM,
+    argument,
+    auto,
+    footer,
+    fullDesc,
+    header,
+    help,
+    helper,
+    info,
+    infoOption,
+    long,
+    metavar,
+    option,
+    short,
+    str,
+    value,
+ )
+import Options.Applicative.Util (
+    aliases,
+    anyOf,
+    attoReadM,
+    showSepChars,
+    splitOn,
+    splitWith,
+ )
 
 
 -- | Options the user may specify on the command line.
@@ -57,8 +77,8 @@ data Options = Options
     , date     :: !Date
     }
 
--- | Create an info type from our options, adding help text and other nice
--- features.
+-- | Create an info type from our options, adding help text and other
+-- nice features.
 options :: ParserInfo Options
 options = info
     (helper <*> versionOpt <*> pOptions)
@@ -206,9 +226,11 @@ pINotes = option (splitOn sepChars)
     <> value []
      )
 
-{- | Canteens the user wants to be shown the meals of.  As command-line argument
-   parsing is a local process, we still don't know the date here.  Hence, we are
-   returning a 'Mensa' that still wants to know that information.
+{- | Canteens the user wants to be shown the meals of.
+
+As command-line argument parsing is a local process, we still don't know
+the date here.  Hence, we are returning a 'Mensa' that still wants to
+know that information.
 -}
 pCanteens :: Parser [Text -> Mensa]
 pCanteens = option ((mkEmptyMensa <$> pCanteen) `splitWith` sepChars)
@@ -281,12 +303,12 @@ pSections = nub <$> option (pSection `splitWith` sepChars)
   where
     -- | Parse user input into a proper 'MealTime'.
     pSection :: A.Parser Section
-    pSection = anyOf
-        [ (Name    , ["na"])
-        , (Notes   , ["no"])
-        , (Price   , ["p"] )
-        , (Category, ["c"] )
-        ] <* A.skipWhile (`notElem` sepChars)
+    pSection = anyOf [ (Name    , ["na"])
+                     , (Notes   , ["no"])
+                     , (Price   , ["p"] )
+                     , (Category, ["c"] )
+                     ]
+            <* A.skipWhile (`notElem` sepChars)
 
 -- | Our separator chars.
 sepChars :: [Char]

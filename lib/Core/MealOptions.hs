@@ -8,29 +8,30 @@
    Portability : non-portable
 -}
 
-module Core.MealOptions
-    ( -- * Filter for the given options
-      filterOptions  -- :: Options -> Meals -> Meals
-    ) where
+module Core.MealOptions (
+    -- * Filter for the given options
+    filterOptions,  -- :: Options -> Meals -> Meals
+) where
 
-import Core.CLI (Options(Options, iKat, iNotes, mealTime, mealType))
-import Core.Types
-    ( Meal(category, name, notes, prices)
-    , MealTime(AllDay, Dinner, Lunch)
-    , MealType(AllMeals, Vegan, Vegetarian)
-    , Meals
-    , Prices(SoldOut)
-    )
+import Core.CLI (Options (Options, iKat, iNotes, mealTime, mealType))
+import Core.Types (
+    Meal (category, name, notes, prices),
+    MealTime (AllDay, Dinner, Lunch),
+    MealType (AllMeals, Vegan, Vegetarian),
+    Meals,
+    Prices (SoldOut),
+ )
 
 import qualified Data.Text as T
 
 
--- | Filter for the meal options given, ignore anything that's already sold out.
+-- | Filter for the meal options given; ignore anything that's already
+-- sold out.
 filterOptions :: Options -> Meals -> Meals
 filterOptions opts = filter availableOpts
   where
-    -- | Every predicate should be satisfied in order for the result to be
-    -- accepted.
+    -- | Every predicate should be satisfied in order for the result to
+    -- be accepted.
     availableOpts :: Meal -> Bool
     availableOpts meal = all ($ meal) (getAllOpts opts)
 
@@ -61,12 +62,13 @@ getAllOpts Options{ mealType, mealTime, iKat, iNotes } =
     notPartOfNotes :: Text -> Meal -> Bool
     notPartOfNotes s = not . any (s `T.isInfixOf`) . notes
 
-    -- | See if meal is vegetarian or there's some sort of vegetarian variant
-    -- available.
+    -- | See if meal is vegetarian or there's some sort of vegetarian
+    -- variant available.
     vegetarian :: Meal -> Bool
     vegetarian = eitherOf (inNotes "Menü ist vegetarisch") (inName "vegetarisch")
 
-    -- | See if meal is vegan or there's some vegetarian variant available.
+    -- | See if meal is vegan or there's some vegetarian variant
+    -- available.
     vegan :: Meal -> Bool
     vegan = eitherOf (inNotes "Menü ist vegan") (inName "vegan")
 
