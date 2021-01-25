@@ -41,7 +41,7 @@ data Date
       -- ^ Manual date entry in the format YYYY-MM-DD
     | DMYDate !(Maybe Integer, Maybe Int, Int)
       -- ^ Manual date entry in the format DD [MM] [YYYY]
-    deriving (Show)
+    deriving stock (Show)
 
 -- | A pretty printed 'Date' in all formats necessary.
 data DatePP = DatePP
@@ -105,7 +105,7 @@ data Month
     | October
     | November
     | December
-    deriving (Show)
+    deriving stock (Show)
 
 -- | Custom 'Enum' instance that start at 1.
 instance Enum Month where

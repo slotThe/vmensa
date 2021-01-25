@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9117692c066de5ad288f2ee20d514c8743d545984349be3ad3963725079e41cd
+-- hash: ea7625f6777565791451245bcbbae0d22dc630dab4ddc653d6cc29032a99e85c
 
 name:           vmensa
 version:        0.1.0
@@ -27,7 +27,7 @@ library
       Paths_vmensa
   hs-source-dirs:
       lib
-  default-extensions: OverloadedStrings DeriveAnyClass DeriveGeneric InstanceSigs TypeApplications ScopedTypeVariables BangPatterns NamedFieldPuns DuplicateRecordFields BlockArguments LambdaCase
+  default-extensions: OverloadedStrings DeriveAnyClass DeriveGeneric DerivingStrategies InstanceSigs TypeApplications ScopedTypeVariables BangPatterns NamedFieldPuns DuplicateRecordFields BlockArguments LambdaCase
   ghc-options: -O2 -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
   build-depends:
       aeson
@@ -49,7 +49,7 @@ executable vmensa
       Paths_vmensa
   hs-source-dirs:
       app
-  default-extensions: OverloadedStrings DeriveAnyClass DeriveGeneric InstanceSigs TypeApplications ScopedTypeVariables BangPatterns NamedFieldPuns DuplicateRecordFields BlockArguments LambdaCase
+  default-extensions: OverloadedStrings DeriveAnyClass DeriveGeneric DerivingStrategies InstanceSigs TypeApplications ScopedTypeVariables BangPatterns NamedFieldPuns DuplicateRecordFields BlockArguments LambdaCase
   ghc-options: -O2 -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -threaded -with-rtsopts=-N
   build-depends:
       aeson

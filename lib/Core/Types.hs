@@ -71,7 +71,9 @@ data Meal = Meal
     , notes    :: ![Text]
     , prices   :: !Prices
     , category :: !Text
-    } deriving (Generic, FromJSON)
+    }
+    deriving stock    (Generic)
+    deriving anyclass (FromJSON)
 
 -- | A canteen serves food!
 type Meals = [Meal]
@@ -95,7 +97,7 @@ data Section
     | Notes
     | Price
     | Category
-    deriving (Eq)
+    deriving stock (Eq)
 
 instance Show Section where
     show :: Section -> String

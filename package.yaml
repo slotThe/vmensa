@@ -10,6 +10,7 @@ default-extensions:
   - OverloadedStrings
   - DeriveAnyClass
   - DeriveGeneric
+  - DerivingStrategies
   - InstanceSigs
   - TypeApplications
   - ScopedTypeVariables
