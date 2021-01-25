@@ -16,13 +16,13 @@ import Core.Time (
     Date (DMYDate, ISODate, Next, Today, Tomorrow),
     Month (April, August, December, February, January, July, June, March, May, November, October, September),
  )
-import Core.Types
-    ( MealTime(AllDay, Dinner, Lunch)
-    , MealType(AllMeals, Vegan, Vegetarian)
-    , Mensa
-    , Section(Category, Name, Notes, Price)
-    , mkEmptyMensa
-    )
+import Core.Types (
+    MealTime (AllDay, Dinner, Lunch),
+    MealType (AllMeals, Vegan, Vegetarian),
+    PreMensa,
+    Section (Category, Name, Notes, Price),
+    mkEmptyMensa,
+ )
 import Paths_vmensa (version)
 
 import qualified Data.Attoparsec.Text as A
@@ -72,7 +72,7 @@ data Options = Options
     , mealTime :: !MealTime
     , iKat     :: ![Text]
     , iNotes   :: ![Text]
-    , canteens :: ![Text -> Mensa]  -- ^ Still waiting for a date.
+    , canteens :: ![PreMensa]  -- ^ Still waiting for a date.
     , sections :: ![Section]
     , date     :: !Date
     }
@@ -232,8 +232,8 @@ As command-line argument parsing is a local process, we still don't know
 the date here.  Hence, we are returning a 'Mensa' that still wants to
 know that information.
 -}
-pCanteens :: Parser [Text -> Mensa]
-pCanteens = option ((mkEmptyMensa <$> pCanteen) `splitWith` sepChars)
+pCanteens :: Parser [PreMensa]
+pCanteens = option (pCanteen `splitWith` sepChars)
      ( long "mensen"
     <> short 'm'
     <> metavar "CANTEENS"
@@ -246,8 +246,9 @@ pCanteens = option ((mkEmptyMensa <$> pCanteen) `splitWith` sepChars)
                                ])
      )
   where
-    pCanteen :: A.Parser (Text, Text -> Text)
-    pCanteen = second mensaURL <$> A.choice (mkParser <$> Map.keys canteens)
+    pCanteen :: A.Parser PreMensa
+    pCanteen = mkEmptyMensa . second mensaURL
+           <$> A.choice (mkParser <$> Map.keys canteens)
             <* A.skipWhile (`notElem` sepChars)
 
     mkParser :: Int -> A.Parser (Text, Int)

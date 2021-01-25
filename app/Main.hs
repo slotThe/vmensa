@@ -12,13 +12,10 @@ module Main
     ( main  -- :: IO ()
     ) where
 
-import Core.CLI (
-    Options (Options, canteens, date, lineWrap, sections),
-    options,
- )
+import Core.CLI (Options (Options, canteens, date, lineWrap, sections), options)
 import Core.MealOptions (filterOptions)
 import Core.Time (DatePP (DatePP, iso, out), getDate)
-import Core.Types (Mensa (Mensa, meals, url), ppMensa)
+import Core.Types (Mensa (Mensa, meals, url), mkMensa, ppMensa)
 
 import qualified Data.Text.IO as T
 
@@ -47,7 +44,7 @@ main = do
     manager            <- newManager tlsManagerSettings
 
     -- See Note [Async]
-    mensen <- forConcurrently (canteens <&> ($ iso)) \mensa ->
+    mensen <- forConcurrently (canteens <&> mkMensa iso) \mensa ->
         ppMensa lineWrap sections out <$> getMensa manager opts mensa
 
     -- Print out the results synchronously, so as to respect the desired

@@ -9,19 +9,21 @@
 -}
 module Core.Types (
     -- * Types for 'Mensa' and its meals.
+    PreMensa,       -- abstract
     Mensa (..),
-    Meal (..),     -- instances: Generic, FromJSON
-    Meals,         -- types alias: [Meal]
-    Prices (..),   -- instances: FromJSON
+    Meal (..),      -- instances: Generic, FromJSON
+    Meals,          -- types alias: [Meal]
+    Prices (..),    -- instances: FromJSON
     MealType (..),
     MealTime (..),
 
     -- * Pretty printing
-    Section (..),  -- instances: Eq, Show
-    ppMensa,       -- :: Int -> Text -> Mensa -> Text
+    Section (..),   -- instances: Eq, Show
+    ppMensa,        -- :: Int -> Text -> Mensa -> Text
 
     -- * Constructing canteens
-    mkEmptyMensa,  -- :: Text -> (Text, Text -> Text) -> Mensa
+    mkEmptyMensa,   -- :: Text -> (Text, Text -> Text) -> Mensa
+    mkMensa,        -- :: Text -> PreMensa -> Mensa
 ) where
 
 import qualified Data.Text as T
@@ -42,6 +44,10 @@ data MealTime
     | Lunch
     | AllDay
 
+-- | A 'PreMensa' is just a 'Mensa' that's still waiting for a date;
+-- this date will be used to generate the correct URL.
+newtype PreMensa = PreMensa { unPM :: Text -> Mensa }
+
 -- | 'Mensa' type, all fields are needed and hence all fields are
 -- strict.
 data Mensa = Mensa
@@ -51,8 +57,12 @@ data Mensa = Mensa
     }
 
 -- | Construct an empty (i.e. no food to serve) 'Mensa'.
-mkEmptyMensa :: (Text, Text -> Text) -> Text -> Mensa
-mkEmptyMensa (name, urlWithoutDate) date = Mensa name (urlWithoutDate date) []
+mkEmptyMensa :: (Text, Text -> Text) -> PreMensa
+mkEmptyMensa (name, urlNoDate) = PreMensa \d -> Mensa name (urlNoDate d) []
+
+-- | Create a 'Mensa' out of a 'PreMensa', as well as a date.
+mkMensa :: Text -> PreMensa -> Mensa
+mkMensa = flip unPM
 
 -- | Type for a single meal.  Note that we are only specifying the
 -- contents of the JSON that we will actually use.
@@ -117,7 +127,7 @@ ppMeals lw sections meals =
     T.unlines $ map (\meal -> foldMap' (ppSection meal) sections) meals
   where
     -- | Pretty print a single section of a 'Meal'.  If the associated
-    -- flavour text is empty ignore the section.
+    -- flavour text is empty then ignore the section.
     ppSection :: Meal -> Section -> Text
     ppSection Meal{ category, name, notes, prices } section
         | T.null flavourText = ""
