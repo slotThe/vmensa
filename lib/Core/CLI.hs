@@ -188,25 +188,24 @@ pDate = toDate . fromMaybe [] <$> optional (some $ argument str (metavar "DAY"))
     pISODate =
         fromGregorian <$> A.decimal <* "-" <*> A.decimal <* "-" <*> A.decimal
 
-    pDMYDate :: A.Parser (Maybe Integer, Maybe Int, Int)
-    pDMYDate = do
-        d <- A.decimal
-        m <- optional $ A.space >> fromEnum <$> anyOf
-            [ (January  , ["ja"]        )
-            , (February , ["f"]         )
-            , (March    , ["mar", "mä"] )
-            , (April    , ["ap"]        )
-            , (May      , ["may", "mai"])
-            , (June     , ["jun"]       )
-            , (July     , ["jul"]       )
-            , (August   , ["au"]        )
-            , (September, ["s"]         )
-            , (October  , ["o"]         )
-            , (November , ["n"]         )
-            , (December , ["d"]         )
-            ]
-        y <- optional $ A.space *> A.decimal
-        pure (y, m, d)
+    pDMYDate :: A.Parser (Int, Maybe Int, Maybe Integer)
+    pDMYDate =
+        (,,) <$> A.decimal
+             <*> optional (A.space >> fromEnum <$> anyOf
+                     [ (January  , ["ja"]        )
+                     , (February , ["f"]         )
+                     , (March    , ["mar", "mä"] )
+                     , (April    , ["ap"]        )
+                     , (May      , ["may", "mai"])
+                     , (June     , ["jun"]       )
+                     , (July     , ["jul"]       )
+                     , (August   , ["au"]        )
+                     , (September, ["s"]         )
+                     , (October  , ["o"]         )
+                     , (November , ["n"]         )
+                     , (December , ["d"]         )
+                     ] <* A.takeTill (== ' '))
+             <*> optional (A.space *> A.decimal)
 
 -- | Ignore a certain category of meals.
 pIKat :: Parser [Text]

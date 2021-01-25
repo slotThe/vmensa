@@ -39,7 +39,7 @@ data Date
       -- the following Monday)
     | ISODate !Day
       -- ^ Manual date entry in the format YYYY-MM-DD
-    | DMYDate !(Maybe Integer, Maybe Int, Int)
+    | DMYDate !(Int, Maybe Int, Maybe Integer)
       -- ^ Manual date entry in the format DD [MM] [YYYY]
     deriving stock (Show)
 
@@ -63,7 +63,7 @@ getDate date = do
             let diffToDay = diffBetween wday (dayOfWeek curDay)
              in utctDay $ addDays diffToDay curTime
         ISODate d             -> d
-        DMYDate (mbY, mbM, d) ->
+        DMYDate (d, mbM, mbY) -> trace (show mbY) $
             let (y, m, _) = toGregorian curDay
              in fromGregorian (fromMaybe y mbY) (fromMaybe m mbM) d
   where
