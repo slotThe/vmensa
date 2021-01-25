@@ -24,25 +24,27 @@ vmensa \- Query the Stundentenwerk API from inside your terminal!
 Through the power of a lonely and unwanted API, kindly provided by the
 Studentenwerk Dresden,
 .I vmensa
-brings today's canteen menu directly to your terminal (or tomorrow's, or next
-Monday's... see the
+brings today's canteen menu directly to your terminal (or tomorrow's, or
+next Monday's... see the
 .I POSITIONAL ARGUMENTS
 for that)!
 
 Note that the "v" in
 .I vmensa
-stands for "vegetarian" and thusly only those meal options (plus the vegan ones)
-will be displayed by default.  To make the program fit your specific diet, see
+stands for "vegetarian" and thusly only those meal options (plus the
+vegan ones) will be displayed by default.  To make the program fit your
+specific diet, see
 .I OPTIONS.
 
 
 
 .SH OPTIONS
-Note that, for options allowing multiple arguments, you either need to wrap the
-arguments in quotes or not use any spaces for separating different items and for
-the items themselves.  This is to allow our parser to properly disambiguate
-between options and arguments for these options.  You may use any of the
-following characters for separation of different arguments: ',' ';' ':' '.'.
+Note that, for options allowing multiple arguments, you either need to
+wrap the arguments in quotes or not use any spaces for separating
+different items and for the items themselves.  This is to allow our
+parser to properly disambiguate between options and arguments for these
+options.  You may use any of the following characters for separation of
+different arguments: ',' ';' ':' '.'.
 
 In general, all arguments will be parsed case-insensitively.
 
@@ -50,7 +52,8 @@ In general, all arguments will be parsed case-insensitively.
 .RS
 Diet to display.  The argument
 .I diet
-may have the following values (letters in square brackets may be omitted):
+may have the following values (letters in square brackets may be
+omitted):
 .TS
 l l l .
 	a[ll]	Display all meals.
@@ -77,7 +80,8 @@ Canteens may server lunch or dinner, this flag decides which options
 .I vmensa
 displays.  The argument
 .I time
-may have the following values (letters in square brackets may be omitted):
+may have the following values (letters in square brackets may be
+omitted):
 .TS
 l l l .
 	a[ll-day]	Display all meals.
@@ -98,17 +102,18 @@ Print help information.
 
 .BI \-\-ikat= "str"
 .RS
-Ignore anything you want from the "Kategorie" section.  Categories have to be
-written out in full, i.e. to ignore the category "Pasta", one would have to
-write
+Ignore anything you want from the "Kategorie" section.  Categories have
+to be written out in full, i.e. to ignore the category "Pasta", one
+would have to write
 .I vmensa --ikat Pasta
 .RE
 
 
 .BI \-\-inotes= "str"
 .RS
-Ignore anything you want from the "Notes" section.  Notes check for partial
-matches, i.e to ignore everything containing "Soja (F)", one may use
+Ignore anything you want from the "Notes" section.  Notes check for
+partial matches, i.e to ignore everything containing "Soja (F)", one may
+use
 .I vmensa --inotes (F)
 or, alternatively
 .I vmensa --inotes Soja
@@ -117,16 +122,18 @@ or, alternatively
 
 .BI \-m " canteens\fR,\fP " \-\-mensen= "canteens"
 .RS
-The canteens one would like to show.  We currently support all of the canteens
-that are supported by the Studentenwerk-API itself.  The following table will
-give the name of the canteen, as well as all available aliases for it (multiple
-aliases will be specified by tuples).  Note that, after parsing an option, we
-always trim until the next separation symbol; i.e. while there is only a single
-"a" in the table for the
+The canteens one would like to show.  We currently support all of the
+canteens that are supported by the Studentenwerk-API itself.  The
+following table will give the name of the canteen, as well as all
+available aliases for it (multiple aliases will be specified by tuples).
+Note that, after parsing an option, we always trim until the next
+separation symbol; i.e. while there is only a single "a" in the table
+for the
 .I Alte Mensa,
-something like "alte", or even "Alte Mensa" will work just fine.  The order in
-which the canteens are specified will be the order in which they are printed.
-Default: Alte Mensa, Zeltschlösschen, U-Boot, Siedepunkt.
+something like "alte", or even "Alte Mensa" will work just fine.  The
+order in which the canteens are specified will be the order in which
+they are printed.  Default: Alte Mensa, Zeltschlösschen, U-Boot,
+Siedepunkt.
 
 .TS
 l c l l .
@@ -157,11 +164,12 @@ l c l l .
 
 .BI \-s " sections\fR,\fP " \-\-sections= "sections"
 .RS
-Which sections to display in the pretty-printed output.  If the users enters a
-section twice, it will be printed only once.  Sections are printed in order,
-i.e. in the specified order by the user.  By default, we display everything (in
-order: name, price, notes, category).  Users may choose among the following
-different sections (letters in square brackets may be omitted):
+Which sections to display in the pretty-printed output.  If the users
+enters a section twice, it will be printed only once.  Sections are
+printed in order, i.e. in the specified order by the user.  By default,
+we display everything (in order: name, price, notes, category).  Users
+may choose among the following different sections (letters in square
+brackets may be omitted):
 .TS
 l l l .
 	Na[me]	Name of the meal.
@@ -180,8 +188,8 @@ Pick the day (or date) when
 .I vmensa
 should query the API.  Defaults to
 .I today.
-The argument may have the following values (letters in square brackets may be
-omitted):
+The argument may have the following values (letters in square brackets
+may be omitted):
 .TS
 l l .
 	[today]
@@ -199,11 +207,11 @@ l l .
 
 Here,
 .I MONTH-BY-NAME
-is literally something like "august".  In general, the input can be as short as
-the shortest non-ambiguous sequence of characters for a specific month.  This
-means "m" would not be allowed (as it may either refer to "march" or "may"),
-while "o" (for "october") would be completely fine.  In particular, the
-following input is valid:
+is literally something like "august".  In general, the input can be as
+short as the shortest non-ambiguous sequence of characters for a
+specific month.  This means "m" would not be allowed (as it may either
+refer to "march" or "may"), while "o" (for "october") would be
+completely fine.  In particular, the following input is valid:
 .TS
 l l .
 	ja[nuary]
@@ -222,9 +230,9 @@ l l .
 
 If the year is omitted, the
 .I current year
-is assumed.  Note that specifying the week day will always jump forwards in
-time, i.e. an input of "monday" on a monday will result in getting the menu for
-the following monday.
+is assumed.  Note that specifying the week day will always jump forwards
+in time, i.e. an input of "monday" on a monday will result in getting
+the menu for the following monday.
 
 
 
@@ -235,14 +243,15 @@ Query tomorrows lunch menu, wrapping the text at 80 characters:
 .I vmensa --time lunch --wrap 80 tomorrow
 .RE
 
-Query next Wednesday's vegan dinner menu, wrapping the text at 60 characters:
+Query next Wednesday's vegan dinner menu, wrapping the text at 60
+characters:
 
 .RS
 .I vmensa -d v -t d -w 60 w
 .RE
 
-Query today's vegetarian menu, ignoring pasta, as well as anything containing
-eggs and soy:
+Query today's vegetarian menu, ignoring pasta, as well as anything
+containing eggs and soy:
 
 .RS
 .I vmensa --inotes 'Eier, Soja' --ikat Pasta
@@ -281,10 +290,12 @@ Only show certain sections:
 
 
 .SH BUGS
-For a list of bugs, see <\fIhttps://gitlab.com/tozor/vmensa/issues\fR>.
+Yes.  If you'd like to report some, either send the author an email, or
+create an isue at <\fIhttps://gitlab.com/tozor/vmensa/issues\fR>.
 
 
 
 .SH AUTHOR
-\fBvmensa\fR was written by Tony Zorman.  To contribute, or file an issue please
-visit <\fIhttps://gitlab.com/tozor/vmensa/\fR>
+\fBvmensa\fR was written by Tony Zorman <\fItonyzorman@mailbox.org\fR>.
+To contribute, or file an issue, please visit
+<\fIhttps://gitlab.com/tozor/vmensa/\fR>

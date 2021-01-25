@@ -10,7 +10,7 @@ EXE_NAME=vmensa
 stack build "$EXE_NAME"
 
 # Install manpage
-sudo cp ./vmensa.1 /usr/local/share/man/man1
+sudo cp ./man/vmensa.1 /usr/local/share/man/man1
 if type mandb > /dev/null 2>&1; then
   sudo mandb
 fi
