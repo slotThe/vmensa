@@ -56,9 +56,11 @@ import Options.Applicative (
     value,
  )
 import Options.Applicative.Util (
+    AttoParser,
     aliases,
     anyOf,
-    attoReadM,
+    anyOfRM,
+    anyOfSkip,
     showSepChars,
     splitOn,
     splitWith,
@@ -123,7 +125,7 @@ pMealType = option pDiet
   where
     -- | Parse user input into a proper 'MealTime'.
     pDiet :: ReadM MealType
-    pDiet = attoReadM $ anyOf
+    pDiet = anyOfRM
         [ (AllMeals  , ["a"]           )
         , (Vegetarian, ["vege", "vegg"])
         , (Vegan     , ["v"]           )
@@ -142,7 +144,7 @@ pMealTime = option pTime
   where
     -- | Parse user input into a proper 'MealTime'.
     pTime :: ReadM MealTime
-    pTime = attoReadM $ anyOf [(Dinner, ["d"]), (Lunch , ["l"]), (AllDay, ["a"])]
+    pTime = anyOfRM [(Dinner, ["d"]), (Lunch , ["l"]), (AllDay, ["a"])]
 
 -- | Line wrapping for certain categories only.
 pLineWrap :: Parser Int
@@ -163,7 +165,7 @@ pDate = toDate . fromMaybe [] <$> optional (some $ argument str (metavar "DAY"))
     toDate = fromRight Today . A.parseOnly pDate' . T.unwords
 
     -- | Parse our entire 'Date' type.
-    pDate' :: A.Parser Date
+    pDate' :: AttoParser Date
     pDate' = A.choice
         [ Today    <$  A.asciiCI "today"
         , Next     <$> pDay
@@ -173,7 +175,7 @@ pDate = toDate . fromMaybe [] <$> optional (some $ argument str (metavar "DAY"))
         ]
 
     -- | Parse a 'DayOfWeek' using both german and english names.
-    pDay :: A.Parser DayOfWeek
+    pDay :: AttoParser DayOfWeek
     pDay = anyOf
         [ (Monday   , ["mo"]      )
         , (Tuesday  , ["tu", "di"])
@@ -184,14 +186,14 @@ pDate = toDate . fromMaybe [] <$> optional (some $ argument str (metavar "DAY"))
         , (Sunday   , ["su", "so"])
         ]
 
-    pISODate :: A.Parser Day
+    pISODate :: AttoParser Day
     pISODate =
         fromGregorian <$> A.decimal <* "-" <*> A.decimal <* "-" <*> A.decimal
 
-    pDMYDate :: A.Parser (Int, Maybe Int, Maybe Integer)
+    pDMYDate :: AttoParser (Int, Maybe Int, Maybe Integer)
     pDMYDate =
         (,,) <$> A.decimal
-             <*> optional (A.space >> fromEnum <$> anyOf
+             <*> optional (A.space >> fromEnum <$> anyOfSkip (== ' ')
                      [ (January  , ["ja"]        )
                      , (February , ["f"]         )
                      , (March    , ["mar", "mä"] )
@@ -204,7 +206,7 @@ pDate = toDate . fromMaybe [] <$> optional (some $ argument str (metavar "DAY"))
                      , (October  , ["o"]         )
                      , (November , ["n"]         )
                      , (December , ["d"]         )
-                     ] <* A.takeTill (== ' '))
+                     ])
              <*> optional (A.space *> A.decimal)
 
 -- | Ignore a certain category of meals.
@@ -245,12 +247,12 @@ pCanteens = option (pCanteen `splitWith` sepChars)
                                ])
      )
   where
-    pCanteen :: A.Parser PreMensa
+    pCanteen :: AttoParser PreMensa
     pCanteen = mkEmptyMensa . second mensaURL
            <$> A.choice (mkParser <$> Map.keys canteens)
             <* A.skipWhile (`notElem` sepChars)
 
-    mkParser :: Int -> A.Parser (Text, Int)
+    mkParser :: Int -> AttoParser (Text, Int)
     mkParser k = (name, k) <$ aliases als
       where (name, als) :: (Text, [Text]) = canteens ! k
 
@@ -302,13 +304,13 @@ pSections = nub <$> option (pSection `splitWith` sepChars)
      )
   where
     -- | Parse user input into a proper 'MealTime'.
-    pSection :: A.Parser Section
-    pSection = anyOf [ (Name    , ["na"])
-                     , (Notes   , ["no"])
-                     , (Price   , ["p"] )
-                     , (Category, ["c"] )
-                     ]
-            <* A.skipWhile (`notElem` sepChars)
+    pSection :: AttoParser Section
+    pSection = anyOfSkip (`notElem` sepChars)
+        [ (Name    , ["na"])
+        , (Notes   , ["no"])
+        , (Price   , ["p"] )
+        , (Category, ["c"] )
+        ]
 
 -- | Our separator chars.
 sepChars :: [Char]

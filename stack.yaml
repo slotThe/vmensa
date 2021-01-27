@@ -5,4 +5,4 @@ packages:
 
 extra-deps:
   - git: https://gitlab.com/slotThe/optparse-applicative-util.git
-    commit: 72ee197ab0c2ad53e1204ed45f77269901f6d589
+    commit: 543233244e998d61b066ad25539e719fea36c355
