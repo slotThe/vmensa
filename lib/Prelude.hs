@@ -11,8 +11,6 @@ module Prelude
     ( module BasePrelude
     , Text
     , Map
-    , fromList
-    , toList
 
     , pack      -- :: String -> Text
     , unpack    -- :: Text -> String
@@ -20,10 +18,9 @@ module Prelude
     , eitherOf  -- :: (a -> Bool) -> (a -> Bool) -> a -> Bool
     ) where
 
-import BasePrelude hiding (option, toList)
+import BasePrelude hiding (option)
 import Data.Map.Strict (Map)
 import Data.Text (Text)
-import GHC.Exts (fromList, toList)
 
 import qualified Data.Text as T
 

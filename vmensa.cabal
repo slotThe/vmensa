@@ -1,10 +1,10 @@
-cabal-version: 1.12
+cabal-version: 2.0
 
 -- This file has been generated from package.yaml by hpack version 0.33.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ea7625f6777565791451245bcbbae0d22dc630dab4ddc653d6cc29032a99e85c
+-- hash: c82ee152d39a3f5b9facdfd75149e0bf28d09b476b3e57b1b95622ee69eff4d1
 
 name:           vmensa
 version:        0.1.0
@@ -33,7 +33,7 @@ library
       aeson
     , async
     , attoparsec
-    , base-noprelude
+    , base
     , base-prelude
     , containers
     , http-conduit
@@ -41,6 +41,8 @@ library
     , optparse-applicative-util
     , text
     , time >=1.9
+  mixins:
+      base hiding (Prelude)
   default-language: Haskell2010
 
 executable vmensa
@@ -55,7 +57,7 @@ executable vmensa
       aeson
     , async
     , attoparsec
-    , base-noprelude
+    , base
     , base-prelude
     , containers
     , http-conduit
@@ -64,4 +66,6 @@ executable vmensa
     , text
     , time >=1.9
     , vmensa
+  mixins:
+      base hiding (Prelude)
   default-language: Haskell2010
