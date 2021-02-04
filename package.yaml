@@ -22,6 +22,7 @@ default-extensions:
 
 ghc-options:
   -O2
+  -funbox-strict-fields
   -Wall
   -Wcompat
   -Wincomplete-record-updates

@@ -27,9 +27,11 @@ import qualified Data.Text as T
 
 pack :: String -> Text
 pack = T.pack
+{-# INLINE pack #-}
 
 unpack :: Text -> String
 unpack = T.unpack
+{-# INLINE unpack #-}
 
 -- | Showing text things.
 tshow :: Show a => a -> Text
@@ -40,3 +42,4 @@ tshow = pack . show
 -- predicate holds for at least one of the inputs.
 eitherOf :: (a -> Bool) -> (a -> Bool) -> a -> Bool
 eitherOf = liftA2 (||)
+{-# INLINE eitherOf #-}
