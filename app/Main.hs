@@ -44,7 +44,7 @@ main = do
     manager            <- newManager tlsManagerSettings
 
     -- See Note [Async]
-    mensen <- forConcurrently (canteens <&> mkMensa iso) \mensa ->
+    mensen <- forConcurrently (mkMensa iso <$> canteens) \mensa ->
         ppMensa lineWrap sections out <$> getMensa manager opts mensa
 
     -- Print out the results synchronously, so as to respect the desired
@@ -57,10 +57,10 @@ Here, we concurrently connect to the API, parse the necessary JSON and
 then create some pretty-printed text for each canteen.
 
 The function @forConcurrently@ creates a thread for every canteen, which
-would usually be a fire hazard and may cause your laptop to melt through
-your desk.  However, since the list of all canteens is rather small
-(even trying to show __everything__ there is would only be around 20
-network connections), it was deemed "worth it" in this case.
+would normally be a fire hazard and may cause your laptop to melt
+through your desk.  However, since the list of all canteens is rather
+small (even trying to show __everything__ there is would only be around
+20 network connections), it was deemed "worth it" in this case.
 -}
 
 -- | Fetch all meals of a certain canteen and process them.

@@ -72,10 +72,10 @@ data Options = Options
     { mealType :: !MealType
     , lineWrap :: !Int
     , mealTime :: !MealTime
-    , iKat     :: ![Text]
-    , iNotes   :: ![Text]
+    , iKat     :: ![Text]      -- ^ *Ignored* categories
+    , iNotes   :: ![Text]      -- ^ *Ignored* notes
     , canteens :: ![PreMensa]  -- ^ Still waiting for a date.
-    , sections :: ![Section]
+    , sections :: ![Section]   -- ^ Sections to be printed
     , date     :: !Date
     }
 
@@ -103,15 +103,15 @@ options = info
 
 -- | Parse all command line options.
 pOptions :: Parser Options
-pOptions =  Options
-        <$> pMealType
-        <*> pLineWrap
-        <*> pMealTime
-        <*> pIKat
-        <*> pINotes
-        <*> pCanteens
-        <*> pSections
-        <*> pDate
+pOptions =
+    Options <$> pMealType
+            <*> pLineWrap
+            <*> pMealTime
+            <*> pIKat
+            <*> pINotes
+            <*> pCanteens
+            <*> pSections
+            <*> pDate
 
 pMealType :: Parser MealType
 pMealType = option pDiet
@@ -158,7 +158,7 @@ pLineWrap = option auto
 
 -- | Dates are (optional) arguments.
 pDate :: Parser Date
-pDate = toDate . fromMaybe [] <$> optional (some $ argument str (metavar "DAY"))
+pDate = maybe Today toDate <$> optional (some $ argument str (metavar "DAY"))
   where
     -- | Convert all the rest to a date with a default value.
     toDate :: [Text] -> Date
