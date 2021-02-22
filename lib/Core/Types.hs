@@ -179,22 +179,26 @@ wrapWith
     -> Int     -- ^ Max line length (wrap)
     -> [Text]  -- ^ Text as chunks that have to stay together
     -> Text    -- ^ Text with line breaks
-wrapWith sep al wrapAt chunks
-    | wrapAt == 0 = mconcat $ intersperse sep chunks
-    | otherwise   = go "" al chunks
+wrapWith separator al wrapAt chunks
+    | wrapAt == 0 = mconcat $ intersperse separator chunks
+    | otherwise   = go "" separator al chunks
   where
     go :: Text    -- ^ Already processed part of the text
+       -> Text    -- ^ Separator to put between chunks
        -> Int     -- ^ Counter of the current line length
        -> [Text]  -- ^ Text as chunks that have to stay together
        -> Text
-    go !done _   []         = done
-    go !line acc xs@(c:cs)
-        | combLen >= wrapAt = go (align line)       al     xs
-        | otherwise         = go (line <> c <> end) newLen cs
+    go !done _   !_   []        = done
+    go !line sep !acc xs@(c:cs)
+          -- If the chunk itself is bigger than our threshold then break
+          -- it anyways, aggressively.
+        | cLen    >= wrapAt = go (go line " " acc (T.words c)) sep newLen cs
+        | combLen >= wrapAt = go (align line)                  sep al     xs
+        | otherwise         = go (line <> c <> end)            sep newLen cs
       where
-        combLen, newLen :: Int
-        combLen = acc + T.length c        -- Length including the next word
-        newLen  = combLen + T.length end  -- Take separator length into account
+        cLen    :: Int = T.length c
+        combLen :: Int = acc + cLen              -- Length including the next word
+        newLen  :: Int = combLen + T.length end  -- Take separator length into account
 
         -- | Nicely left-align the text after a line-break.  We like
         -- pretty things.
