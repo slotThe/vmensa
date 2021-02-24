@@ -1,7 +1,7 @@
 {- |
    Module      : Core.CLI
    Description : Command line interface for the application.
-   Copyright   : (c) Tony Zorman, 2020
+   Copyright   : (c) Tony Zorman  2020 2021
    License     : GPL-3
    Maintainer  : tonyzorman@mailbox.org
    Stability   : experimental
@@ -27,7 +27,6 @@ import Paths_vmensa (version)
 
 import qualified Data.Attoparsec.Text as A
 import qualified Data.Map             as Map
-import qualified Data.Text            as T
 
 import Data.Map ((!))
 import Data.Time.Calendar (
@@ -162,7 +161,7 @@ pDate = maybe Today toDate <$> optional (some $ argument str (metavar "DAY"))
   where
     -- | Convert all the rest to a date with a default value.
     toDate :: [Text] -> Date
-    toDate = fromRight Today . A.parseOnly pDate' . T.unwords
+    toDate = fromRight Today . A.parseOnly pDate' . unwords
 
     -- | Parse our entire 'Date' type.
     pDate' :: AttoParser Date

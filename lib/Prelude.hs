@@ -1,29 +1,49 @@
 {- |
    Module      : Prelude
    Description : Custom prelude for the project
-   Copyright   : (c) Tony Zorman, 2020
+   Copyright   : (c) Tony Zorman  2020 2021
    License     : GPL-3
    Maintainer  : tonyzorman@mailbox.org
    Stability   : experimental
    Portability : non-portable
 -}
-module Prelude
-    ( module BasePrelude
-    , Text
-    , Map
+module Prelude (
+    module BasePrelude,
+    Text,
+    Map,
+    eitherOf, -- :: (a -> Bool) -> (a -> Bool) -> a -> Bool
 
-    , pack      -- :: String -> Text
-    , unpack    -- :: Text -> String
-    , tshow     -- :: Show a => a -> Text
-    , eitherOf  -- :: (a -> Bool) -> (a -> Bool) -> a -> Bool
-    ) where
+    -- * Text!
+    unwords,  -- :: [Text] -> Text
+    words,    -- :: Text -> [Text]
+    pack,     -- :: String -> Text
+    unpack,   -- :: Text -> String
+    tshow,    -- :: Show a => a -> Text
+    length,   -- :: Text -> Int
+    replace,  -- :: Text -> Text -> Text -> Text
+) where
 
-import BasePrelude hiding (option)
+import BasePrelude hiding (length, option, unwords, words)
 import Data.Map.Strict (Map)
 import Data.Text (Text)
 
 import qualified Data.Text as T
 
+words :: Text -> [Text]
+words = T.words
+{-# INLINE words #-}
+
+unwords :: [Text] -> Text
+unwords = T.unwords
+{-# INLINE unwords #-}
+
+length :: Text -> Int
+length = T.length
+{-# INLINE length #-}
+
+replace :: Text -> Text -> Text -> Text
+replace = T.replace
+{-# INLINE replace #-}
 
 pack :: String -> Text
 pack = T.pack

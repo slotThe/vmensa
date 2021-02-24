@@ -1,7 +1,7 @@
 {- |
    Module      : Core.Types
    Description : Basic types a canteen might need
-   Copyright   : (c) Tony Zorman, 2019, 2020
+   Copyright   : (c) Tony Zorman  2019 2020 2021
    License     : GPL-3
    Maintainer  : tonyzorman@mailbox.org
    Stability   : experimental
@@ -147,10 +147,10 @@ ppMeals lw sections meals =
         style s = "\x1b[33m" <> s <> "\x1b[0m"
 
         wrapName :: Text
-        wrapName = wrapWith " " (T.length $ tshow Name) lw (T.words name)
+        wrapName = wrapWith " " (length $ tshow Name) lw (words name)
 
         wrapNotes :: Text
-        wrapNotes = wrapWith ", " (T.length $ tshow Notes) lw notes
+        wrapNotes = wrapWith ", " (length $ tshow Notes) lw notes
 
         {- | We're (as of now) only interested in the student prices.
            Anything with 'SoldOut' will be filtered out later, so it's
@@ -164,15 +164,19 @@ ppMeals lw sections meals =
         -- | For some reason only the notes are not escaped properly.
         decodeSymbols :: Text -> Text
         decodeSymbols
-            = T.replace "&uuml;" "ü"
-            . T.replace "&auml;" "ä"
-            . T.replace "&ouml;" "ö"
-            . T.replace "&lpar;" "("
-            . T.replace "&rpar;" ")"
-            . T.replace "&excl;" "!"
+            = replace "&uuml;" "ü"
+            . replace "&auml;" "ä"
+            . replace "&ouml;" "ö"
+            . replace "&lpar;" "("
+            . replace "&rpar;" ")"
+            . replace "&excl;" "!"
 
--- | Simple (and probably hilariously inefficient) function to wrap text
--- at @N@ columns.
+{- | Simple (and probably hilariously inefficient) function to wrap text
+at @N@ columns.
+
+NOTE: "Data.Text"s 'Data.Text.length' function is @O(n)@, which may or
+      may not matter here.
+-}
 wrapWith
     :: Text    -- ^ How to concatenate chunks, i.e. the separator
     -> Int     -- ^ Left alignment
@@ -192,13 +196,13 @@ wrapWith separator al wrapAt chunks
     go !line sep !acc xs@(c:cs)
           -- If the chunk itself is bigger than our threshold then break
           -- it anyways, aggressively.
-        | cLen    >= wrapAt = go (go line " " acc (T.words c)) sep newLen cs
-        | combLen >= wrapAt = go (align line)                  sep al     xs
-        | otherwise         = go (line <> c <> end)            sep newLen cs
+        | cLen    >= wrapAt = go (go line " " acc (words c)) sep newLen cs
+        | combLen >= wrapAt = go (align line)                sep al     xs
+        | otherwise         = go (line <> c <> end)          sep newLen cs
       where
-        cLen    :: Int = T.length c
-        combLen :: Int = acc + cLen              -- Length including the next word
-        newLen  :: Int = combLen + T.length end  -- Take separator length into account
+        cLen    :: Int = length c
+        combLen :: Int = acc + cLen            -- Length including the next word
+        newLen  :: Int = combLen + length end  -- Take separator length into account
 
         -- | Nicely left-align the text after a line-break.  We like
         -- pretty things.
