@@ -59,13 +59,11 @@ getDate date = do
     pure . ppDate date $ case date of
         Today                 -> curDay
         Tomorrow              -> utctDay $ addDays 1 curTime
-        Next wday             ->
-            let diffToDay = diffBetween wday (dayOfWeek curDay)
-             in utctDay $ addDays diffToDay curTime
+        Next wday             -> utctDay $ addDays diffToDay curTime
+          where diffToDay = diffBetween wday (dayOfWeek curDay)
         ISODate d             -> d
-        DMYDate (d, mbM, mbY) -> trace (show mbY) $
-            let (y, m, _) = toGregorian curDay
-             in fromGregorian (fromMaybe y mbY) (fromMaybe m mbM) d
+        DMYDate (d, mbM, mbY) -> fromGregorian (fromMaybe y mbY) (fromMaybe m mbM) d
+          where (y, m, _) = toGregorian curDay
   where
     -- | Add a specified number of days to a 'UTCTime'.
     addDays :: NominalDiffTime -> UTCTime -> UTCTime
