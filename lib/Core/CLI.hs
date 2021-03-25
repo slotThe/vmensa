@@ -28,48 +28,21 @@ import Paths_vmensa (version)
 import qualified Data.Attoparsec.Text as A
 import qualified Data.Map             as Map
 
+import Data.Attoparsec.Text ((<?>))
 import Data.Map ((!))
 import Data.Time.Calendar (
     Day,
     DayOfWeek (Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday),
     fromGregorian,
  )
-import Options.Applicative (
-    Parser,
-    ParserInfo,
-    ReadM,
-    argument,
-    auto,
-    footer,
-    fullDesc,
-    header,
-    help,
-    helper,
-    info,
-    infoOption,
-    long,
-    metavar,
-    option,
-    short,
-    str,
-    value,
- )
-import Options.Applicative.Util (
-    AttoParser,
-    aliases,
-    anyOf,
-    anyOfRM,
-    anyOfSkip,
-    showSepChars,
-    splitOn,
-    splitWith,
- )
+import Options.Applicative (Parser, ParserInfo, ReadM, argument, footer, fullDesc, header, help, helper, info, infoOption, long, metavar, option, short, str, value)
+import Options.Applicative.Util (AttoParser, aliases, anyOf, anyOfRM, anyOfSkip, attoReadM, showSepChars, splitOn, splitWith)
 
 
 -- | Options the user may specify on the command line.
 data Options = Options
     { mealType :: !MealType
-    , lineWrap :: !Int
+    , lineWrap :: !Natural
     , mealTime :: !MealTime
     , iKat     :: ![Text]      -- ^ *Ignored* categories
     , iNotes   :: ![Text]      -- ^ *Ignored* notes
@@ -146,14 +119,20 @@ pMealTime = option pTime
     pTime = anyOfRM [(Dinner, ["d"]), (Lunch , ["l"]), (AllDay, ["a"])]
 
 -- | Line wrapping for certain categories only.
-pLineWrap :: Parser Int
-pLineWrap = option auto
+pLineWrap :: Parser Natural
+pLineWrap = option pWrap
      ( long "wrap"
     <> short 'w'
-    <> metavar "INT"
-    <> help "Wrap the \"Notes\" and \"Essen\" sections at INT columns."
+    <> metavar "N"
+    <> help "Wrap the \"Notes\" and \"Essen\" sections at N columns\
+            \; minimum: 25 with the exception of 0, which indicates\
+            \ no wrapping at all."
     <> value 0  -- No line wrapping.
      )
+  where
+    pWrap :: ReadM Natural = attoReadM $
+        A.decimal >>= \n -> if n == 0 || n >= 25 then pure n else empty
+            <?> "pWrap: Argument should be at leats 25 (or 0)"
 
 -- | Dates are (optional) arguments.
 pDate :: Parser Date

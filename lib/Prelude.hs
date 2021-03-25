@@ -12,6 +12,7 @@ module Prelude (
     Text,
     Map,
     eitherOf, -- :: (a -> Bool) -> (a -> Bool) -> a -> Bool
+    fi,       -- :: (Integral a, Num b) => a -> b
 
     -- * Text!
     unwords,  -- :: [Text] -> Text
@@ -28,6 +29,10 @@ import Data.Map.Strict (Map)
 import Data.Text (Text)
 
 import qualified Data.Text as T
+
+fi :: (Integral a, Num b) => a -> b
+fi = fromIntegral
+{-# INLINE fi #-}
 
 words :: Text -> [Text]
 words = T.words

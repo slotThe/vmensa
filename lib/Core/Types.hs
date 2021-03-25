@@ -19,7 +19,7 @@ module Core.Types (
 
     -- * Pretty printing
     Section (..),   -- instances: Eq, Show
-    ppMensa,        -- :: Int -> Text -> Mensa -> Text
+    ppMensa,        -- :: Natural -> Text -> Mensa -> Text
 
     -- * Constructing canteens
     mkEmptyMensa,   -- :: Text -> (Text, Text -> Text) -> Mensa
@@ -109,7 +109,7 @@ instance Show Section where
 
 -- | Pretty print a single canteen.
 ppMensa
-    :: Int        -- ^ Line wrap
+    :: Natural    -- ^ Line wrap
     -> [Section]  -- ^ Sections to be displayed
     -> Text       -- ^ Day when the meals are offered
     -> Mensa
@@ -121,10 +121,10 @@ ppMensa lw sections day Mensa{ name, meals }
   where
     -- | Separator for visual separation of different canteens.
     sep :: Text
-    sep = T.replicate (if lw > 0 then lw else 79) "="
+    sep = T.replicate (if lw > 0 then fi lw else 79) "="
 
 -- | Pretty print only the things I'm interested in.
-ppMeals :: Int -> [Section] -> Meals -> Text
+ppMeals :: Natural -> [Section] -> Meals -> Text
 ppMeals lw sections meals =
     T.unlines $ map (\meal -> foldMap' (ppSection meal) sections) meals
   where
@@ -147,10 +147,10 @@ ppMeals lw sections meals =
         style s = "\x1b[33m" <> s <> "\x1b[0m"
 
         wrapName :: Text
-        wrapName = wrapWith " " (length $ tshow Name) lw (words name)
+        wrapName = wrapWith " " (length $ tshow Name) (fi lw) (words name)
 
         wrapNotes :: Text
-        wrapNotes = wrapWith ", " (length $ tshow Notes) lw notes
+        wrapNotes = wrapWith ", " (length $ tshow Notes) (fi lw) notes
 
         {- | We're (as of now) only interested in the student prices.
            Anything with 'SoldOut' will be filtered out later, so it's
@@ -194,15 +194,15 @@ wrapWith separator al wrapAt chunks
        -> Text
     go !done _   !_   []        = done
     go !line sep !acc xs@(c:cs)
-          -- If the chunk itself is bigger than our threshold then break
-          -- it anyways, aggressively.
-        | cLen    >= wrapAt = go (go line " " acc (words c)) sep newLen cs
-        | combLen >= wrapAt = go (align line)                sep al     xs
-        | otherwise         = go (line <> c <> end)          sep newLen cs
+        | cLen      >= wrapAt = go goAgain            sep newLen cs
+        | al + cLen >= wrapAt = go (goAgain <> ", ")  sep newLen cs
+        | combLen   >= wrapAt = go (align line)       sep al     xs
+        | otherwise           = go (line <> c <> end) sep newLen cs
       where
-        cLen    :: Int = length c
-        combLen :: Int = acc + cLen            -- Length including the next word
-        newLen  :: Int = combLen + length end  -- Take separator length into account
+        goAgain :: Text = go line " " acc (words c)
+        cLen    :: Int  = length c
+        combLen :: Int  = acc + cLen            -- Length including the next word
+        newLen  :: Int  = combLen + length end  -- Take separator length into account
 
         -- | Nicely left-align the text after a line-break.  We like
         -- pretty things.
