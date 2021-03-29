@@ -132,7 +132,7 @@ pLineWrap = option pWrap
   where
     pWrap :: ReadM Natural = attoReadM $
         A.decimal >>= \n -> if n == 0 || n >= 25 then pure n else empty
-            <?> "pWrap: Argument should be at leats 25 (or 0)"
+            <?> "pWrap: Argument should be at least 25 (or 0)"
 
 -- | Dates are (optional) arguments.
 pDate :: Parser Date
