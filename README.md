@@ -20,11 +20,10 @@ output of `stack path --local-bin` for certainty).
 
 There is also a small build script available, which takes case of
 installing the man page as well; use at your own risk.  It expects the
-path where it should store the `vmensa` executable as an input.  For
-example,
+path where it should move the executable to as an input.  For example,
 
-```shell
-./build ~/.local/bin
+``` console
+  $ ./build ~/.local/bin/vmensa
 ```
 
 will symlink the executable to `~/.local/bin/vmensa`.
