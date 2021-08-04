@@ -48,6 +48,12 @@ different arguments: ',' ';' ':' '.'.
 
 In general, all arguments will be parsed case-insensitively.
 
+.BR \-h ", " \-\-help
+.RS
+Print help information.
+.RE
+
+
 .BI \-d " diet\fR,\fP " \-\-diet= "diet"
 .RS
 Diet to display.  The argument
@@ -95,12 +101,6 @@ Defaults to
 .RE
 
 
-.BR \-h ", " \-\-help
-.RS
-Print help information.
-.RE
-
-
 .BI \-\-ikat= "str"
 .RS
 Ignore anything you want from the "Kategorie" section.  Categories have
@@ -118,6 +118,49 @@ use
 .I vmensa --inotes (F)
 or, alternatively
 .I vmensa --inotes Soja
+.RE
+
+
+.BI \-p "\fR,\fP " \-\-no-additives
+.RS
+Whether to display the unique letters corresponding to additives in
+parentheses or not.  For example, by default a meal's name may be shown
+as
+
+.RS
+  Vegane Pizza mit Grillgemüse (A, A1).
+.RE
+
+With this flag set, it will instead display as
+
+.RS
+  Vegane Pizza mit Grillgemüse.
+.RE
+
+In addition to the name, this flag also filters the notes section of a
+meal.
+
+.RE
+
+
+.BI \-s " sections\fR,\fP " \-\-sections= "sections"
+.RS
+Which sections to display in the pretty-printed output.  If the users
+enters a section twice, it will be printed only once.  Sections are
+printed in order, i.e. in the specified order by the user.  By default,
+we display everything (in order: name, price, notes, category).  Users
+may choose among the following different sections (letters in square
+brackets may be omitted):
+.TS
+l l l .
+	Na[me]	Name of the meal.
+	P[rice]	The price one has to pay.
+	No[tes]	Additional notes about the meal, like
+        		allergy information etc.
+	C[ategory]	Which category the meal belongs to
+        		(roughly where it may be found inside
+		the canteen).
+.TE
 .RE
 
 
@@ -162,48 +205,6 @@ l c l l .
 .TE
 .RE
 
-
-.BI \-s " sections\fR,\fP " \-\-sections= "sections"
-.RS
-Which sections to display in the pretty-printed output.  If the users
-enters a section twice, it will be printed only once.  Sections are
-printed in order, i.e. in the specified order by the user.  By default,
-we display everything (in order: name, price, notes, category).  Users
-may choose among the following different sections (letters in square
-brackets may be omitted):
-.TS
-l l l .
-	Na[me]	Name of the meal.
-	P[rice]	The price one has to pay.
-	No[tes]	Additional notes about the meal, like
-        		allergy information etc.
-	C[ategory]	Which category the meal belongs to
-        		(roughly where it may be found inside
-		the canteen).
-.TE
-.RE
-
-
-.BI \-p "\fR,\fP " \-\-no-additives
-.RS
-Whether to display the unique letters corresponding to additives in
-parentheses or not.  For example, by default a meal's name may be shown
-as
-
-.RS
-  Vegane Pizza mit Grillgemüse (A, A1).
-.RE
-
-With this flag set, it will instead display as
-
-.RS
-  Vegane Pizza mit Grillgemüse.
-.RE
-
-In addition to the name, this flag also filters the notes section of a
-meal.
-
-.RE
 
 
 .SH POSITIONAL ARGUMENTS
