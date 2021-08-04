@@ -19,7 +19,7 @@ module Core.Types (
 
     -- * Pretty printing
     Section (..),   -- instances: Eq, Show
-    ppMensa,        -- :: Natural -> Text -> Mensa -> Text
+    ppMensa,        -- :: Natural -> [Section] -> Text -> Bool -> Mensa -> Text
 
     -- * Constructing canteens
     mkEmptyMensa,   -- :: Text -> (Text, Text -> Text) -> Mensa
@@ -112,20 +112,21 @@ ppMensa
     :: Natural    -- ^ Line wrap
     -> [Section]  -- ^ Sections to be displayed
     -> Text       -- ^ Day when the meals are offered
+    -> Bool       -- ^ Whether to display letters for additives
     -> Mensa
     -> Text
-ppMensa lw sections day Mensa{ name, meals }
+ppMensa lw sections day noAdds Mensa{ name, meals }
     | null meals = ""  -- Don't show empty canteens
     | otherwise  = T.unlines [sep, day <> " in: " <> name, sep]
-                <> ppMeals lw sections meals
+                <> ppMeals lw sections noAdds meals
   where
     -- | Separator for visual separation of different canteens.
     sep :: Text
     sep = T.replicate (if lw > 0 then fi lw else 79) "="
 
 -- | Pretty print only the things I'm interested in.
-ppMeals :: Natural -> [Section] -> Meals -> Text
-ppMeals lw sections meals =
+ppMeals :: Natural -> [Section] -> Bool -> Meals -> Text
+ppMeals lw sections noAdds meals =
     T.unlines $ map (\meal -> foldMap' (ppSection meal) sections) meals
   where
     -- | Pretty print a single section of a 'Meal'.  If the associated
@@ -142,15 +143,15 @@ ppMeals lw sections meals =
             Notes    -> decodeSymbols wrapNotes
             Category -> category
 
-        -- | See https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_parameters
+        -- | See https:\/\/en.wikipedia.org\/wiki\/ANSI_escape_code#SGR_parameters
         style :: Text -> Text
         style s = "\x1b[33m" <> s <> "\x1b[0m"
 
         wrapName :: Text
-        wrapName = wrapWith " " (length $ tshow Name) (fi lw) (words name)
+        wrapName = wrapWith " " (length $ tshow Name) (fi lw) (words $ ignoreAdditives name)
 
         wrapNotes :: Text
-        wrapNotes = wrapWith ", " (length $ tshow Notes) (fi lw) notes
+        wrapNotes = wrapWith ", " (length $ tshow Notes) (fi lw) (map ignoreAdditives notes)
 
         {- | We're (as of now) only interested in the student prices.
            Anything with 'SoldOut' will be filtered out later, so it's
@@ -170,6 +171,15 @@ ppMeals lw sections meals =
             . replace "&lpar;" "("
             . replace "&rpar;" ")"
             . replace "&excl;" "!"
+
+        ignoreAdditives :: Text -> Text
+        ignoreAdditives = if noAdds then go else id
+          where
+            go str | T.null str = ""
+                   | otherwise  = str' <> go rest
+              where
+                (str', rest) = bimap T.stripEnd (T.drop 1 . T.dropWhile (/= ')'))
+                             $ T.breakOn "(" str
 
 {- | Simple (and probably hilariously inefficient) function to wrap text
 at @N@ columns.

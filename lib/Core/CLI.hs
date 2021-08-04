@@ -35,7 +35,7 @@ import Data.Time.Calendar (
     DayOfWeek (Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday),
     fromGregorian,
  )
-import Options.Applicative (Parser, ParserInfo, ReadM, argument, footer, fullDesc, header, help, helper, info, infoOption, long, metavar, option, short, str, value)
+import Options.Applicative (Parser, ParserInfo, ReadM, argument, footer, fullDesc, header, help, helper, info, infoOption, long, metavar, option, short, str, switch, value)
 import Options.Applicative.Util (AttoParser, aliases, anyOf, anyOfRM, anyOfSkip, attoReadM, showSepChars, splitOn, splitWith)
 
 
@@ -48,6 +48,8 @@ data Options = Options
     , iNotes   :: ![Text]      -- ^ *Ignored* notes
     , canteens :: ![PreMensa]  -- ^ Still waiting for a date.
     , sections :: ![Section]   -- ^ Sections to be printed
+    , noAdds   :: !Bool        -- ^ Whether to show the additive notes in
+                               --   parentheses, like @(A, A1, C, G)@
     , date     :: !Date
     }
 
@@ -83,6 +85,7 @@ pOptions =
             <*> pINotes
             <*> pCanteens
             <*> pSections
+            <*> pNoAdds
             <*> pDate
 
 pMealType :: Parser MealType
@@ -289,6 +292,14 @@ pSections = nub <$> option (pSection `splitWith` sepChars)
         , (Price   , ["p"] )
         , (Category, ["c"] )
         ]
+
+-- | TODO
+pNoAdds :: Parser Bool
+pNoAdds = switch
+     ( long "no-parens"
+    <> short 'p'
+    <> help "Whether to show the unique letter of additives in parentheses."
+     )
 
 -- | Our separator chars.
 sepChars :: [Char]

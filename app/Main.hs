@@ -12,7 +12,7 @@ module Main
     ( main  -- :: IO ()
     ) where
 
-import Core.CLI (Options (Options, canteens, date, lineWrap, sections), options)
+import Core.CLI (Options (Options, canteens, date, lineWrap, noAdds, sections), options)
 import Core.MealOptions (filterOptions)
 import Core.Time (DatePP (DatePP, iso, out), getDate)
 import Core.Types (Mensa (Mensa, meals, url), mkMensa, ppMensa)
@@ -36,7 +36,7 @@ import Options.Applicative (execParser)
 main :: IO ()
 main = do
     -- Parse command line options.
-    opts@Options{ lineWrap, date, canteens, sections } <- execParser options
+    opts@Options{ lineWrap, date, canteens, sections, noAdds } <- execParser options
 
     -- Get the specified date in ISO, as well as a printable format and
     -- create a new manager for handling network connections.
@@ -45,7 +45,7 @@ main = do
 
     -- See Note [Async]
     mensen <- forConcurrently (mkMensa iso <$> canteens) \mensa ->
-        ppMensa lineWrap sections out <$> getMensa manager opts mensa
+        ppMensa lineWrap sections out noAdds <$> getMensa manager opts mensa
 
     -- Print out the results synchronously, so as to respect the desired
     -- order.
