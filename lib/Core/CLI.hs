@@ -12,16 +12,16 @@ module Core.CLI (
   options,       -- :: ParserInfo Options
 ) where
 
-import Core.Time (
-  Date (DMYDate, ISODate, Next, Today, Tomorrow),
-  Month (April, August, December, February, January, July, June, March, May, November, October, September),
- )
-import Core.Types (
+import Core.Mensa (
   MealTime (AllDay, Dinner, Lunch),
   MealType (AllMeals, Vegan, Vegetarian),
   PreMensa,
   Section (Category, Name, Notes, Price),
   mkEmptyMensa,
+ )
+import Core.Time (
+  Date (DMYDate, ISODate, Next, Today, Tomorrow),
+  Month (April, August, December, February, January, July, June, March, May, November, October, September),
  )
 import Paths_vmensa (version)
 

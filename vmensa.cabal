@@ -4,7 +4,7 @@ cabal-version: 2.0
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 43f79aa6542c6bc6ff9309471a18d7ab6bc3e8c794411b0c54d34284e3adf70c
+-- hash: c5851c89193d1083849bb0a5cc92b593cbfb3f6f4a79f08acbe5fc760ee9d95d
 
 name:           vmensa
 version:        0.1.0
@@ -20,8 +20,8 @@ library
   exposed-modules:
       Core.CLI
       Core.MealOptions
+      Core.Mensa
       Core.Time
-      Core.Types
       Prelude
   other-modules:
       Paths_vmensa

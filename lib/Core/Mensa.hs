@@ -1,13 +1,13 @@
 {- |
-   Module      : Core.Types
-   Description : Basic types a canteen might need
+   Module      : Core.Mensa
+   Description : The representation for a generic canteen
    Copyright   : (c) Tony Zorman  2019 2020 2021
    License     : GPL-3
    Maintainer  : tonyzorman@mailbox.org
    Stability   : experimental
    Portability : non-portable
 -}
-module Core.Types (
+module Core.Mensa (
   -- * Types for 'Mensa' and its meals.
   PreMensa,       -- abstract
   Mensa (..),
@@ -17,13 +17,13 @@ module Core.Types (
   MealType (..),
   MealTime (..),
 
+  -- * Constructing canteens
+  mkEmptyMensa,   -- :: (Text, Text -> Text) -> PreMensa
+  mkMensa,        -- :: Text -> PreMensa -> Mensa
+
   -- * Pretty printing
   Section (..),   -- instances: Eq, Show
   ppMensa,        -- :: Natural -> [Section] -> Text -> Bool -> Mensa -> Text
-
-  -- * Constructing canteens
-  mkEmptyMensa,   -- :: Text -> (Text, Text -> Text) -> Mensa
-  mkMensa,        -- :: Text -> PreMensa -> Mensa
 ) where
 
 import qualified Data.Text as T

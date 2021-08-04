@@ -14,8 +14,8 @@ module Main (
 
 import Core.CLI (Options (Options, canteens, date, lineWrap, noAdds, sections), options)
 import Core.MealOptions (filterOptions)
+import Core.Mensa (Mensa (Mensa, meals, url), mkMensa, ppMensa)
 import Core.Time (DatePP (DatePP, iso, out), getDate)
-import Core.Types (Mensa (Mensa, meals, url), mkMensa, ppMensa)
 
 import qualified Data.Text.IO as T
 

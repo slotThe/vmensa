@@ -14,7 +14,7 @@ module Core.MealOptions (
 ) where
 
 import Core.CLI (Options (Options, iKat, iNotes, mealTime, mealType))
-import Core.Types (
+import Core.Mensa (
   Meal (category, name, notes, prices),
   MealTime (AllDay, Dinner, Lunch),
   MealType (AllMeals, Vegan, Vegetarian),
