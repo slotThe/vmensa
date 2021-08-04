@@ -40,7 +40,8 @@ dependencies:
   - containers
   - aeson
   - async
-  - http-conduit
+  - http-client
+  - http-client-tls
   - text
   - time                 >= 1.9
   - optparse-applicative

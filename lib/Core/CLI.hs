@@ -17,10 +17,10 @@ import Core.Time (Date (DMYDate, ISODate, Next, Today, Tomorrow), Month (April, 
 import Paths_vmensa (version)
 
 import qualified Data.Attoparsec.Text as A
-import qualified Data.Map             as Map
+import qualified Data.Map.Strict      as Map
 
 import Data.Attoparsec.Text ((<?>))
-import Data.Map ((!))
+import Data.Map.Strict ((!))
 import Data.Time.Calendar (Day, DayOfWeek (Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday), fromGregorian)
 import Options.Applicative (Parser, ParserInfo, ReadM, argument, footer, fullDesc, header, help, helper, info, infoOption, long, metavar, option, short, str, switch, value)
 import Options.Applicative.Util (AttoParser, aliases, anyOf, anyOfRM, anyOfSkip, attoReadM, showSepChars, splitOn, splitWith)

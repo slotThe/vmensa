@@ -4,7 +4,7 @@ cabal-version: 2.0
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2ae1c2e698994ff77236ca053116cf0ac458a319b8c8e6206d1ce924f13aed5e
+-- hash: ce2076a8c94ad4fc1b9ebe311ae55e39fe0ef936bc46882de37745153844c6ef
 
 name:           vmensa
 version:        0.1.0
@@ -49,7 +49,8 @@ library
     , base
     , base-prelude
     , containers
-    , http-conduit
+    , http-client
+    , http-client-tls
     , optparse-applicative
     , optparse-applicative-util
     , text
@@ -86,7 +87,8 @@ executable vmensa
     , base
     , base-prelude
     , containers
-    , http-conduit
+    , http-client
+    , http-client-tls
     , optparse-applicative
     , optparse-applicative-util
     , text
