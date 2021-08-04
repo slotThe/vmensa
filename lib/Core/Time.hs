@@ -15,18 +15,7 @@ module Core.Time (
   getDate,      -- :: Date -> IO DatePP
 ) where
 
-import Data.Time (
-  Day,
-  DayOfWeek,
-  NominalDiffTime,
-  UTCTime (utctDay),
-  addUTCTime,
-  dayOfWeek,
-  fromGregorian,
-  getCurrentTime,
-  nominalDay,
-  toGregorian,
- )
+import Data.Time (Day, DayOfWeek, NominalDiffTime, UTCTime (utctDay), addUTCTime, dayOfWeek, fromGregorian, getCurrentTime, nominalDay, toGregorian)
 
 
 -- | Type for specifying exactly which day one wants to see the menu for.

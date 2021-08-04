@@ -21,14 +21,7 @@ import qualified Data.Text.IO as T
 
 import Control.Concurrent.Async (forConcurrently)
 import Data.Aeson (decode')
-import Network.HTTP.Conduit (
-  Manager,
-  httpLbs,
-  newManager,
-  parseUrlThrow,
-  responseBody,
-  tlsManagerSettings,
- )
+import Network.HTTP.Conduit (Manager, httpLbs, newManager, parseUrlThrow, responseBody, tlsManagerSettings)
 import Options.Applicative (execParser)
 
 

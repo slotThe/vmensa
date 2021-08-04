@@ -12,17 +12,8 @@ module Core.CLI (
   options,       -- :: ParserInfo Options
 ) where
 
-import Core.Mensa (
-  MealTime (AllDay, Dinner, Lunch),
-  MealType (AllMeals, Vegan, Vegetarian),
-  PreMensa,
-  Section (Category, Name, Notes, Price),
-  mkEmptyMensa,
- )
-import Core.Time (
-  Date (DMYDate, ISODate, Next, Today, Tomorrow),
-  Month (April, August, December, February, January, July, June, March, May, November, October, September),
- )
+import Core.Mensa (MealTime (AllDay, Dinner, Lunch), MealType (AllMeals, Vegan, Vegetarian), PreMensa, Section (Category, Name, Notes, Price), mkEmptyMensa)
+import Core.Time (Date (DMYDate, ISODate, Next, Today, Tomorrow), Month (April, August, December, February, January, July, June, March, May, November, October, September))
 import Paths_vmensa (version)
 
 import qualified Data.Attoparsec.Text as A
@@ -30,11 +21,7 @@ import qualified Data.Map             as Map
 
 import Data.Attoparsec.Text ((<?>))
 import Data.Map ((!))
-import Data.Time.Calendar (
-  Day,
-  DayOfWeek (Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday),
-  fromGregorian,
- )
+import Data.Time.Calendar (Day, DayOfWeek (Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday), fromGregorian)
 import Options.Applicative (Parser, ParserInfo, ReadM, argument, footer, fullDesc, header, help, helper, info, infoOption, long, metavar, option, short, str, switch, value)
 import Options.Applicative.Util (AttoParser, aliases, anyOf, anyOfRM, anyOfSkip, attoReadM, showSepChars, splitOn, splitWith)
 
