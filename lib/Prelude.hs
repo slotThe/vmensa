@@ -8,20 +8,20 @@
    Portability : non-portable
 -}
 module Prelude (
-    module BasePrelude,
-    Text,
-    Map,
-    eitherOf, -- :: (a -> Bool) -> (a -> Bool) -> a -> Bool
-    fi,       -- :: (Integral a, Num b) => a -> b
+  module BasePrelude,
+  Text,
+  Map,
+  eitherOf, -- :: (a -> Bool) -> (a -> Bool) -> a -> Bool
+  fi,       -- :: (Integral a, Num b) => a -> b
 
-    -- * Text!
-    unwords,  -- :: [Text] -> Text
-    words,    -- :: Text -> [Text]
-    pack,     -- :: String -> Text
-    unpack,   -- :: Text -> String
-    tshow,    -- :: Show a => a -> Text
-    length,   -- :: Text -> Int
-    replace,  -- :: Text -> Text -> Text -> Text
+  -- * Text!
+  unwords,  -- :: [Text] -> Text
+  words,    -- :: Text -> [Text]
+  pack,     -- :: String -> Text
+  unpack,   -- :: Text -> String
+  tshow,    -- :: Show a => a -> Text
+  length,   -- :: Text -> Int
+  replace,  -- :: Text -> Text -> Text -> Text
 ) where
 
 import BasePrelude hiding (length, option, unwords, words)
