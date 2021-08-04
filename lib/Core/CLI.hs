@@ -28,16 +28,16 @@ import Options.Applicative.Util (AttoParser, aliases, anyOf, anyOfRM, anyOfSkip,
 
 -- | Options the user may specify on the command line.
 data Options = Options
-  { mealType :: !MealType
-  , lineWrap :: !Natural
-  , mealTime :: !MealTime
-  , iKat     :: ![Text]      -- ^ *Ignored* categories
-  , iNotes   :: ![Text]      -- ^ *Ignored* notes
-  , canteens :: ![PreMensa]  -- ^ Still waiting for a date.
-  , sections :: ![Section]   -- ^ Sections to be printed
-  , noAdds   :: !Bool        -- ^ Whether to show the additive notes in
+  { mealType :: MealType
+  , lineWrap :: Natural
+  , mealTime :: MealTime
+  , iKat     :: [Text]      -- ^ *Ignored* categories
+  , iNotes   :: [Text]      -- ^ *Ignored* notes
+  , canteens :: [PreMensa]  -- ^ Still waiting for a date.
+  , sections :: [Section]   -- ^ Sections to be printed
+  , noAdds   :: Bool        -- ^ Whether to show the additive notes in
                              --   parentheses, like @(A, A1, C, G)@
-  , date     :: !Date
+  , date     :: Date
   }
 
 -- | Create an info type from our options, adding help text and other

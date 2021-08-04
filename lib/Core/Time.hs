@@ -22,13 +22,13 @@ import Data.Time (Day, DayOfWeek, NominalDiffTime, UTCTime (utctDay), addUTCTime
 data Date
   = Today
   | Tomorrow
-  | Next !DayOfWeek
+  | Next DayOfWeek
     -- ^ This will __always__ show the next 'DayOfWeek' (e.g. calling
     -- 'Next Monday' on a Monday will result in getting the menu for
     -- the following Monday)
-  | ISODate !Day
+  | ISODate Day
     -- ^ Manual date entry in the format YYYY-MM-DD
-  | DMYDate !(Int, Maybe Int, Maybe Integer)
+  | DMYDate (Int, Maybe Int, Maybe Integer)
     -- ^ Manual date entry in the format DD [MM] [YYYY]
   deriving stock (Show)
 

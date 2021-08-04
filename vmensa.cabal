@@ -4,7 +4,7 @@ cabal-version: 2.0
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c5851c89193d1083849bb0a5cc92b593cbfb3f6f4a79f08acbe5fc760ee9d95d
+-- hash: 2ae1c2e698994ff77236ca053116cf0ac458a319b8c8e6206d1ce924f13aed5e
 
 name:           vmensa
 version:        0.1.0
@@ -40,6 +40,7 @@ library
       DuplicateRecordFields
       BlockArguments
       LambdaCase
+      StrictData
   ghc-options: -O2 -funbox-strict-fields -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
   build-depends:
       aeson
@@ -76,6 +77,7 @@ executable vmensa
       DuplicateRecordFields
       BlockArguments
       LambdaCase
+      StrictData
   ghc-options: -O2 -funbox-strict-fields -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -threaded -with-rtsopts=-N
   build-depends:
       aeson

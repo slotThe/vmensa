@@ -51,9 +51,9 @@ newtype PreMensa = PreMensa { unPM :: Text -> Mensa }
 -- | 'Mensa' type, all fields are needed and hence all fields are
 -- strict.
 data Mensa = Mensa
-  { name  :: !Text
-  , url   :: !Text
-  , meals :: !Meals
+  { name  :: Text
+  , url   :: Text
+  , meals :: Meals
   }
 
 -- | Construct an empty (i.e. no food to serve) 'Mensa'.
@@ -67,10 +67,10 @@ mkMensa = flip unPM
 -- | Type for a single meal.  Note that we are only specifying the
 -- contents of the JSON that we will actually use.
 data Meal = Meal
-  { name     :: !Text
-  , notes    :: ![Text]
-  , prices   :: !Prices
-  , category :: !Text
+  { name     :: Text
+  , notes    :: [Text]
+  , prices   :: Prices
+  , category :: Text
   }
   deriving stock    (Generic)
   deriving anyclass (FromJSON)
@@ -81,7 +81,7 @@ type Meals = [Meal]
 -- | All the different price types.  Note again that we are only
 -- specifying the contents of the JSON that we will actually use.
 data Prices
-  = Prices { student :: !Double }
+  = Prices { student :: Double }
   | SoldOut
 
 -- | Manually derive 'FromJSON' instance due to dumb field names.

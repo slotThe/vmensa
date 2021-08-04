@@ -19,6 +19,7 @@ default-extensions:
   - DuplicateRecordFields
   - BlockArguments
   - LambdaCase
+  - StrictData
 
 ghc-options:
   -O2
