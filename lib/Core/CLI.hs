@@ -293,13 +293,14 @@ pSections = nub <$> option (pSection `splitWith` sepChars)
         , (Category, ["c"] )
         ]
 
--- | TODO
+-- | Whether to display letters related to additives in parentheses;
+-- like @(A, A1, G)@ and so on.
 pNoAdds :: Parser Bool
 pNoAdds = switch
-     ( long "no-parens"
-    <> short 'p'
-    <> help "Whether to show the unique letter of additives in parentheses."
-     )
+   ( long "no-additives"
+  <> short 'p'
+  <> help "Whether to show the unique letter of additives in parentheses."
+   )
 
 -- | Our separator chars.
 sepChars :: [Char]
