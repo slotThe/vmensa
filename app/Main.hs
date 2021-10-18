@@ -12,10 +12,10 @@ module Main (
   main, -- :: IO ()
 ) where
 
-import Core.CLI (Options (Options, canteens, date, lineWrap, noAdds, sections), options)
-import Core.MealOptions (filterOptions)
-import Core.Mensa (Mensa (Mensa, meals, url), mkMensa, ppMensa)
-import Core.Time (DatePP (DatePP, iso, out), getDate)
+import CLI
+import Meal.Options
+import Mensa
+import Time
 
 import qualified Data.Text.IO as T
 
@@ -23,26 +23,23 @@ import Control.Concurrent.Async (forConcurrently)
 import Data.Aeson (decode')
 import Network.HTTP.Client (Manager, httpLbs, newManager, parseUrlThrow, responseBody)
 import Network.HTTP.Client.TLS (tlsManagerSettings)
-import Options.Applicative (execParser)
 
 
 -- | Fetch all meals, procces, format, and print them.
 main :: IO ()
 main = do
   -- Parse command line options.
-  opts@Options{ lineWrap, date, canteens, sections, noAdds } <- execParser options
+  Options{ date = DatePP{ iso, out }, mealOptions, mensaOptions } <- execOptionParser
 
-  -- Get the specified date in ISO, as well as a printable format and
-  -- create a new manager for handling network connections.
-  DatePP{ iso, out } <- getDate date
-  manager            <- newManager tlsManagerSettings
+  -- Create a new manager for handling network connections.
+  manager <- newManager tlsManagerSettings
 
   -- See Note [Async]
-  mensen <- forConcurrently (mkMensa iso <$> canteens) \mensa ->
-    ppMensa lineWrap sections out noAdds <$> getMensa manager opts mensa
+  mensen <- forConcurrently (mkMensa iso <$> canteen mensaOptions) \mensa ->
+    (\m -> ppMensa out mensaOptions{ canteen = m }) <$>
+      getMensa manager mealOptions mensa
 
-  -- Print out the results synchronously, so as to respect the desired
-  -- order.
+  -- Print results synchronously, so as to respect the desired order.
   traverse_ T.putStr mensen
 
 {- Note [Async]
@@ -58,7 +55,7 @@ small (even trying to show __everything__ there is would only be around
 -}
 
 -- | Fetch all meals of a certain canteen and process them.
-getMensa :: Manager -> Options -> Mensa -> IO Mensa
+getMensa :: Manager -> MealOptions -> Mensa -> IO Mensa
 getMensa manager opts mensa@Mensa{ url } =
   catch do req <- parseUrlThrow (unpack url)
            maybe mensa

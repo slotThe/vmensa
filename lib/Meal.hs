@@ -1,0 +1,45 @@
+{- |
+   Module      : Meal
+   Description : Everything meals
+   Copyright   : (c) Tony Zorman, 2021
+   License     : GPL-3
+   Maintainer  : Tony Zorman <tonyzorman@mailbox.org>
+   Stability   : experimental
+   Portability : non-portable
+-}
+module Meal (
+  Meal (..),      -- instances: Generic, FromJSON
+  Meals,          -- types alias: [Meal]
+  Prices (..),    -- instances: FromJSON
+) where
+
+import Data.Aeson (FromJSON (parseJSON), Value (Object), (.:))
+import Data.Aeson.Types (Parser)
+
+
+-- | Type for a single meal.  Note that we are only specifying the
+-- contents of the JSON that we will actually use.
+data Meal = Meal
+  { name     :: Text
+  , notes    :: [Text]
+  , prices   :: Prices
+  , category :: Text
+  }
+  deriving stock    (Generic)
+  deriving anyclass (FromJSON)
+
+-- | A canteen serves food!
+type Meals = [Meal]
+
+-- | All the different price types.  Note again that we are only
+-- specifying the contents of the JSON that we will actually use.
+data Prices
+  = Prices { student :: Double }
+  | SoldOut
+
+-- | Manually derive 'FromJSON' instance due to dumb field names.
+instance FromJSON Prices where
+  parseJSON :: Value -> Parser Prices
+  parseJSON = \case
+    Object v -> Prices <$> (v .: "Studierende" <|> v .: "Preis 1")
+    _        -> pure SoldOut

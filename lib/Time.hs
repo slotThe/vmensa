@@ -8,7 +8,7 @@
    Portability : non-portable
 -}
 
-module Core.Time (
+module Time (
   Date (..),    -- instances: Show
   Month (..),   -- instances: Show, Enum
   DatePP (..),
@@ -124,4 +124,4 @@ instance Enum Month where
     10 -> October
     11 -> November
     12 -> December
-    _  -> error "Bad argument to Core.Time.toEnum for Month type"
+    _  -> error "Bad argument to Time.toEnum for Month type"

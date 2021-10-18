@@ -1,6 +1,6 @@
 {- |
-   Module      : MealOptions
-   Description : Various functions pertaining to which meals should be displayed
+   Module      : Meal.Options
+   Description : Various functions pertaining filtering meals.
    Copyright   : (c) Tony Zorman  2020 2021
    License     : GPL-3
    Maintainer  : tonyzorman@mailbox.org
@@ -8,20 +8,44 @@
    Portability : non-portable
 -}
 
-module Core.MealOptions (
+module Meal.Options (
+  -- * Options for filtering
+  MealOptions (..),
+  MealType (..),
+  MealTime (..),
+
   -- * Filter for the given options
-  filterOptions,  -- :: Options -> Meals -> Meals
+  filterOptions, -- :: Options -> Meals -> Meals
 ) where
 
-import Core.CLI (Options (Options, iKat, iNotes, mealTime, mealType))
-import Core.Mensa (Meal (category, name, notes, prices), MealTime (AllDay, Dinner, Lunch), MealType (AllMeals, Vegan, Vegetarian), Meals, Prices (SoldOut))
+import Meal
 
 import qualified Data.Text as T
 
 
+-- | Options for filtering meals.
+data MealOptions = MealOptions
+  { mealType :: MealType
+  , mealTime :: MealTime
+  , iKat     :: [Text]    -- ^ *Ignored* categories
+  , iNotes   :: [Text]    -- ^ *Ignored* notes
+  }
+
+-- | What type of meal are we looking for?
+data MealType
+  = AllMeals
+  | Vegetarian
+  | Vegan
+
+-- | Which time of day should the meal happen at?
+data MealTime
+  = Dinner
+  | Lunch
+  | AllDay
+
 -- | Filter for the meal options given; ignore anything that's already
 -- sold out.
-filterOptions :: Options -> Meals -> Meals
+filterOptions :: MealOptions -> Meals -> Meals
 filterOptions opts = filter availableOpts
  where
   -- | Every predicate should be satisfied in order for the result to
@@ -30,8 +54,8 @@ filterOptions opts = filter availableOpts
   availableOpts meal = all ($ meal) (getAllOpts opts)
 
 -- | All of the options a user picked.
-getAllOpts :: Options -> [Meal -> Bool]
-getAllOpts Options{ mealType, mealTime, iKat, iNotes } =
+getAllOpts :: MealOptions -> [Meal -> Bool]
+getAllOpts MealOptions{ mealType, mealTime, iKat, iNotes } =
   concat
     [ [notSoldOut, fitsDiet, correctTimeOfDay]
     , map notCategory    iKat

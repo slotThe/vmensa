@@ -1,5 +1,5 @@
 {- |
-   Module      : Core.CLI
+   Module      : CLI
    Description : Command line interface for the application.
    Copyright   : (c) Tony Zorman  2020 2021
    License     : GPL-3
@@ -7,13 +7,13 @@
    Stability   : experimental
    Portability : non-portable
 -}
-module Core.CLI (
-  Options (..),
-  options,       -- :: ParserInfo Options
+module CLI (
+  execOptionParser, -- :: IO (Options [PreMensa] DatePP)
 ) where
 
-import Core.Mensa (MealTime (AllDay, Dinner, Lunch), MealType (AllMeals, Vegan, Vegetarian), PreMensa, Section (Category, Name, Notes, Price), mkEmptyMensa)
-import Core.Time (Date (DMYDate, ISODate, Next, Today, Tomorrow), Month (April, August, December, February, January, July, June, March, May, November, October, September))
+import Mensa
+import Time
+import Meal.Options
 import Paths_vmensa (version)
 
 import qualified Data.Attoparsec.Text as A
@@ -22,27 +22,19 @@ import qualified Data.Map.Strict      as Map
 import Data.Attoparsec.Text ((<?>))
 import Data.Map.Strict ((!))
 import Data.Time.Calendar (Day, DayOfWeek (Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday), fromGregorian)
-import Options.Applicative (Parser, ParserInfo, ReadM, argument, footer, fullDesc, header, help, helper, info, infoOption, long, metavar, option, short, str, switch, value)
+import Options.Applicative (Parser, ParserInfo, ReadM, argument, execParser, footer, fullDesc, header, help, helper, info, infoOption, long, metavar, option, short, str, switch, value)
 import Options.Applicative.Util (AttoParser, aliases, anyOf, anyOfRM, anyOfSkip, attoReadM, showSepChars, splitOn, splitWith)
 
 
--- | Options the user may specify on the command line.
-data Options = Options
-  { mealType :: MealType
-  , lineWrap :: Natural
-  , mealTime :: MealTime
-  , iKat     :: [Text]      -- ^ *Ignored* categories
-  , iNotes   :: [Text]      -- ^ *Ignored* notes
-  , canteens :: [PreMensa]  -- ^ Still waiting for a date.
-  , sections :: [Section]   -- ^ Sections to be printed
-  , noAdds   :: Bool        -- ^ Whether to show the additive notes in
-                             --   parentheses, like @(A, A1, C, G)@
-  , date     :: Date
-  }
+execOptionParser :: IO (Options [PreMensa] DatePP)
+execOptionParser = do
+  opts@Options{ date } <- execParser options
+  dte <- getDate date
+  pure $ opts{ date = dte }
 
--- | Create an info type from our options, adding help text and other
--- nice features.
-options :: ParserInfo Options
+-- | Create an info type from the canteen options, adding help text and
+-- other nice features.
+options :: ParserInfo (Options [PreMensa] Date)
 options = info
   (helper <*> versionOpt <*> pOptions)
   (  header "vmensa: Query the Stundentenwerk API from inside your terminal!"
@@ -63,16 +55,16 @@ options = info
      )
 
 -- | Parse all command line options.
-pOptions :: Parser Options
+pOptions :: Parser (Options [PreMensa] Date)
 pOptions =
-  Options <$> pMealType
-          <*> pLineWrap
-          <*> pMealTime
-          <*> pIKat
-          <*> pINotes
-          <*> pCanteens
-          <*> pSections
-          <*> pNoAdds
+  Options <$> (MealOptions <$> pMealType
+                           <*> pMealTime
+                           <*> pIKat
+                           <*> pINotes)
+          <*> (MensaOptions <$> pCanteens
+                            <*> pSections
+                            <*> pNoAdds
+                            <*> pLineWrap)
           <*> pDate
 
 pMealType :: Parser MealType
