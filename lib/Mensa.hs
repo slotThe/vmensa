@@ -108,7 +108,7 @@ ppMeals MensaOptions{ lineWrap, noAdds, canteen, sections }
     flavourText :: Text
     flavourText = case section of
       Name     -> wrapName
-      Price    -> tshow studentPrice <> "€"
+      Price    -> wrapPrices
       Notes    -> decodeSymbols wrapNotes
       Category -> category
 
@@ -117,19 +117,22 @@ ppMeals MensaOptions{ lineWrap, noAdds, canteen, sections }
     style s = "\x1b[33m" <> s <> "\x1b[0m"
 
     wrapName :: Text
-    wrapName = wrapWith " " (length $ tshow Name) (fi lineWrap) (words $ ignoreAdditives name)
+    wrapName = wrapWith' " " Name (words $ ignoreAdditives name)
 
     wrapNotes :: Text
-    wrapNotes = wrapWith ", " (length $ tshow Notes) (fi lineWrap) (map ignoreAdditives notes)
+    wrapNotes = wrapWith' ", " Notes (map ignoreAdditives notes)
 
-    {- | We're (as of now) only interested in the student prices.
-       Anything with 'SoldOut' will be filtered out later, so it's
-       value here is meaningless.
-    -}
-    studentPrice :: Double
-    studentPrice = case prices of
-      Prices s -> s
-      SoldOut  -> -1
+    -- | Anything with 'SoldOut' will be filtered out later, so its
+    -- value here is meaningless.
+    wrapPrices :: Text
+    wrapPrices = case prices of
+      SoldOut    -> ""
+      Prices s e -> wrapWith' ", " Price [ "Studierende: " <> tshow s <> "€"
+                                         , "Bedienstete: " <> tshow e <> "€"
+                                         ]
+
+    wrapWith' :: Text -> Section -> [Text] -> Text
+    wrapWith' s sec xs = wrapWith s (length $ tshow sec) (fi lineWrap) xs
 
     -- | For some reason only the notes are not escaped properly.
     decodeSymbols :: Text -> Text

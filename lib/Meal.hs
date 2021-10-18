@@ -34,7 +34,7 @@ type Meals = [Meal]
 -- | All the different price types.  Note again that we are only
 -- specifying the contents of the JSON that we will actually use.
 data Prices
-  = Prices { student :: Double }
+  = Prices { student :: Double, employee :: Double }
   | SoldOut
 
 -- | Manually derive 'FromJSON' instance due to dumb field names.
@@ -42,4 +42,5 @@ instance FromJSON Prices where
   parseJSON :: Value -> Parser Prices
   parseJSON = \case
     Object v -> Prices <$> (v .: "Studierende" <|> v .: "Preis 1")
+                       <*> (v .: "Bedienstete" <|> v .: "Preis 2")
     _        -> pure SoldOut
