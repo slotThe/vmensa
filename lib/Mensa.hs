@@ -9,14 +9,8 @@
 -}
 module Mensa (
   -- * Types for 'Mensa' and its meals.
-  PreMensa,          -- abstract
   Mensa (..),
   MensaOptions (..),
-  Options (..),
-
-  -- * Constructing canteens
-  mkEmptyMensa,      -- :: (Text, Text -> Text) -> PreMensa
-  mkMensa,           -- :: Text -> PreMensa -> Mensa
 
   -- * Pretty printing
   Section (..),      -- instances: Eq, Show
@@ -24,14 +18,9 @@ module Mensa (
 ) where
 
 import Meal
-import Meal.Options
 
 import qualified Data.Text as T
 
-
--- | A 'PreMensa' is just a 'Mensa' that's still waiting for a date;
--- this date will be used to generate the correct URL.
-newtype PreMensa = PreMensa { unPM :: Text -> Mensa }
 
 -- | 'Mensa' type, all fields are needed and hence all fields are
 -- strict.
@@ -40,14 +29,6 @@ data Mensa = Mensa
   , url   :: Text
   , meals :: Meals
   }
-
--- | Construct an empty (i.e. no food to serve) 'Mensa'.
-mkEmptyMensa :: (Text, Text -> Text) -> PreMensa
-mkEmptyMensa (name, urlNoDate) = PreMensa \d -> Mensa name (urlNoDate d) []
-
--- | Create a 'Mensa' out of a 'PreMensa', as well as a date.
-mkMensa :: Text -> PreMensa -> Mensa
-mkMensa = flip unPM
 
 -- | Section of the JSON output we would like to print.
 data Section
@@ -65,16 +46,9 @@ instance Show Section where
     Price    -> "Preis: "
     Category -> "Kategorie: "
 
--- | Options with which to pretty-print a canteen.  These will double as
--- command line options.
-data Options date = Options
-  { mealOptions  :: MealOptions
-  , mensaOptions :: MensaOptions [PreMensa]
-  , date         :: date  -- ^ Access date
-  }
-
+-- | Pretty-printing options for a canteen.
 data MensaOptions mensa = MensaOptions
-  { canteen :: mensa
+  { canteen  :: mensa
   , sections :: [Section] -- ^ Sections to be printed
   , noAdds   :: Bool      -- ^ Whether to show the additive notes in
                           --   parentheses, like @(A, A1, C, G)@
@@ -112,27 +86,25 @@ ppMeals MensaOptions{ lineWrap, noAdds, canteen, sections }
       Notes    -> decodeSymbols wrapNotes
       Category -> category
 
-    -- | See https:\/\/en.wikipedia.org\/wiki\/ANSI_escape_code#SGR_parameters
+    -- See https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_parameters
     style :: Text -> Text
     style s = "\x1b[33m" <> s <> "\x1b[0m"
 
     wrapName :: Text
-    wrapName = wrapWith' " " Name (words $ ignoreAdditives name)
+    wrapName = wrapSec " " Name (words $ ignoreAdditives name)
 
     wrapNotes :: Text
-    wrapNotes = wrapWith' ", " Notes (map ignoreAdditives notes)
+    wrapNotes = wrapSec ", " Notes (map ignoreAdditives notes)
 
-    -- | Anything with 'SoldOut' will be filtered out later, so its
-    -- value here is meaningless.
     wrapPrices :: Text
     wrapPrices = case prices of
-      SoldOut    -> ""
-      Prices s e -> wrapWith' ", " Price [ "Studierende: " <> tshow s <> "€"
-                                         , "Bedienstete: " <> tshow e <> "€"
-                                         ]
+      SoldOut    -> ""           -- will be filtered out later
+      Prices s e -> wrapSec ", " Price [ "Studierende: " <> tshow s <> "€"
+                                       , "Bedienstete: " <> tshow e <> "€"
+                                       ]
 
-    wrapWith' :: Text -> Section -> [Text] -> Text
-    wrapWith' s sec xs = wrapWith s (length $ tshow sec) (fi lineWrap) xs
+    wrapSec :: Text -> Section -> [Text] -> Text
+    wrapSec s sec xs = wrapWith s (length $ tshow sec) (fi lineWrap) xs
 
     -- | For some reason only the notes are not escaped properly.
     decodeSymbols :: Text -> Text

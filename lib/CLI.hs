@@ -9,6 +9,7 @@
 -}
 module CLI (
   execOptionParser, -- :: IO (Options [PreMensa] DatePP)
+  Options (..),
 ) where
 
 import Mensa
@@ -27,15 +28,29 @@ import Options.Applicative.Util (AttoParser, aliases, anyOf, anyOfRM, anyOfSkip,
 
 
 -- | Execute the Parser.
-execOptionParser :: IO (Options DatePP)
+execOptionParser :: IO (Options [Mensa] Text)
 execOptionParser = do
-  opts@Options{ date } <- execParser options
-  dte <- getDate date
-  pure $ opts{ date = dte }
+  opts@Options{ date, mensaOptions } <- execParser options
+  DatePP{ iso, out } <- getDate date
+  pure $ opts { date = out
+              , mensaOptions = mensaOptions
+                  { canteen = map (`mkMensa` iso) (canteen mensaOptions) }
+              }
+
+-- | Global canteen options.  These will double as command line options.
+data Options mensa date = Options
+  { mealOptions  :: MealOptions
+  , mensaOptions :: MensaOptions mensa
+  , date         :: date  -- ^ Access date
+  }
+
+-- | A 'PreMensa' is just a 'Mensa' that's still waiting for a date;
+-- this date will be used to generate the correct URL.
+newtype PreMensa = PreMensa { mkMensa :: Text -> Mensa }
 
 -- | Create an info type from the canteen options, adding help text and
 -- other nice features.
-options :: ParserInfo (Options Date)
+options :: ParserInfo (Options [PreMensa] Date)
 options = info
   (helper <*> versionOpt <*> pOptions)
   (  header "vmensa: Query the Stundentenwerk API from inside your terminal!"
@@ -56,7 +71,7 @@ options = info
      )
 
 -- | Parse all command line options.
-pOptions :: Parser (Options Date)
+pOptions :: Parser (Options [PreMensa] Date)
 pOptions =
   Options <$> (MealOptions <$> pMealType
                            <*> pMealTime
@@ -212,6 +227,10 @@ pCanteens = option (pCanteen `splitWith` sepChars)
   pCanteen = mkEmptyMensa . second mensaURL
          <$> A.choice (mkParser <$> Map.keys canteens)
           <* A.skipWhile (`notElem` sepChars)
+
+  -- | Construct an empty (i.e. no food to serve) 'Mensa'.
+  mkEmptyMensa :: (Text, Text -> Text) -> PreMensa
+  mkEmptyMensa (name, urlNoDate) = PreMensa \d -> Mensa name (urlNoDate d) []
 
   mkParser :: Int -> AttoParser (Text, Int)
   mkParser k = (name, k) <$ aliases als

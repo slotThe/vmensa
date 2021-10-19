@@ -15,7 +15,6 @@ module Main (
 import CLI
 import Meal.Options
 import Mensa
-import Time
 
 import qualified Data.Text.IO as T
 
@@ -29,15 +28,15 @@ import Network.HTTP.Client.TLS (tlsManagerSettings)
 main :: IO ()
 main = do
   -- Parse command line options.
-  Options{ date = DatePP{ iso, out }, mealOptions, mensaOptions } <- execOptionParser
+  Options{ date, mealOptions, mensaOptions } <- execOptionParser
 
   -- Create a new manager for handling network connections.
   manager <- newManager tlsManagerSettings
 
   -- See Note [Async]
-  mensen <- forConcurrently (mkMensa iso <$> canteen mensaOptions) \mensa ->
-    (\m -> ppMensa out mensaOptions{ canteen = m }) <$>
-      getMensa manager mealOptions mensa
+  mensen <- forConcurrently (canteen mensaOptions) $
+   fmap (\m -> ppMensa date mensaOptions {canteen = m})
+        . getMensa manager mealOptions
 
   -- Print results synchronously, so as to respect the desired order.
   traverse_ T.putStr mensen
