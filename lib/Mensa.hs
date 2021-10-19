@@ -67,10 +67,10 @@ instance Show Section where
 
 -- | Options with which to pretty-print a canteen.  These will double as
 -- command line options.
-data Options mensa date = Options
+data Options date = Options
   { mealOptions  :: MealOptions
-  , mensaOptions :: MensaOptions mensa
-  , date         :: date
+  , mensaOptions :: MensaOptions [PreMensa]
+  , date         :: date  -- ^ Access date
   }
 
 data MensaOptions mensa = MensaOptions

@@ -26,7 +26,8 @@ import Options.Applicative (Parser, ParserInfo, ReadM, argument, execParser, foo
 import Options.Applicative.Util (AttoParser, aliases, anyOf, anyOfRM, anyOfSkip, attoReadM, showSepChars, splitOn, splitWith)
 
 
-execOptionParser :: IO (Options [PreMensa] DatePP)
+-- | Execute the Parser.
+execOptionParser :: IO (Options DatePP)
 execOptionParser = do
   opts@Options{ date } <- execParser options
   dte <- getDate date
@@ -34,7 +35,7 @@ execOptionParser = do
 
 -- | Create an info type from the canteen options, adding help text and
 -- other nice features.
-options :: ParserInfo (Options [PreMensa] Date)
+options :: ParserInfo (Options Date)
 options = info
   (helper <*> versionOpt <*> pOptions)
   (  header "vmensa: Query the Stundentenwerk API from inside your terminal!"
@@ -55,7 +56,7 @@ options = info
      )
 
 -- | Parse all command line options.
-pOptions :: Parser (Options [PreMensa] Date)
+pOptions :: Parser (Options Date)
 pOptions =
   Options <$> (MealOptions <$> pMealType
                            <*> pMealTime
