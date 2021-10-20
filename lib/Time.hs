@@ -11,8 +11,9 @@
 module Time (
   Date (..),    -- instances: Show
   Month (..),   -- instances: Show, Enum
-  DatePP (..),
-  getDate,      -- :: Date -> IO DatePP
+  DatePP,       -- type alias: Text
+  getDate,      -- :: Date -> IO Day
+  ppDate,       -- :: Day -> Date -> DatePP
 ) where
 
 import Data.Time (Day, DayOfWeek, NominalDiffTime, UTCTime (utctDay), addUTCTime, dayOfWeek, fromGregorian, getCurrentTime, nominalDay, toGregorian)
@@ -32,20 +33,16 @@ data Date
     -- ^ Manual date entry in the format DD [MM] [YYYY]
   deriving stock (Show)
 
--- | A pretty printed 'Date' in all formats necessary.
-data DatePP = DatePP
-  { iso :: Text  -- ^ ISO format (YYYY-MM-DD)
-  , out :: Text  -- ^ How to print the date, because ISO is ugly :)
-  }
+-- | A pretty-printed date.
+type DatePP = Text
 
 -- | Based on a certain weekday, calculate the day.
 -- Consistency assumption: We always want to walk forward in time.
-getDate :: Date -> IO DatePP
+getDate :: Date -> IO Day
 getDate date = do
   curTime    <- getCurrentTime
   let curDay  = utctDay curTime
-
-  pure . ppDate date $ case date of
+  pure case date of
     Today                 -> curDay
     Tomorrow              -> utctDay $ addDays 1 curTime
     Next wday             -> utctDay $ addDays diffToDay curTime
@@ -66,8 +63,8 @@ getDate date = do
     | otherwise = fromIntegral . abs $ (fromEnum d - fromEnum d') `mod` 7
 
 -- | Pretty print a 'Date'.
-ppDate :: Date -> Day -> DatePP
-ppDate date day = DatePP (tshow day) case date of
+ppDate :: Day -> Date -> DatePP
+ppDate day = \case
   ISODate{} -> mconcat ["On ", tshow day, " (", tshow (dayOfWeek day), ")"]
   DMYDate{} -> mconcat [ "On ", tshow d
                        , " "  , tshow (toEnum @Month m)

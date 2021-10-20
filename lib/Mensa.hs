@@ -18,6 +18,7 @@ module Mensa (
 ) where
 
 import Meal
+import Time
 
 import qualified Data.Text as T
 
@@ -56,7 +57,7 @@ data MensaOptions mensa = MensaOptions
   }
 
 -- | Pretty print a single canteen.
-ppMensa :: Text -> MensaOptions Mensa -> Text
+ppMensa :: DatePP -> MensaOptions Mensa -> Text
 ppMensa day opts@MensaOptions{ lineWrap, canteen = Mensa{ name, meals } }
   | null meals = ""  -- Don't show empty canteens
   | otherwise  = T.unlines [sep, day <> " in: " <> name, sep]
