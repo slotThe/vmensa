@@ -1,14 +1,8 @@
 .hy
 .TH "vmensa" "1" "07 March 2020" "vmensa 0.1"
-
-
-
 .SH NAME
 .PP
 vmensa \- Query the Stundentenwerk API from inside your terminal!
-
-
-
 .SH SYNOPSIS
 .B vmensa
 [
@@ -16,9 +10,6 @@ vmensa \- Query the Stundentenwerk API from inside your terminal!
 ] [
 .I DATE
 ]
-
-
-
 .SH DESCRIPTION
 .PP
 Through the power of a lonely and unwanted API, kindly provided by the
@@ -35,9 +26,6 @@ stands for "vegetarian" and thusly only those meal options (plus the
 vegan ones) will be displayed by default.  To make the program fit your
 specific diet, see
 .I OPTIONS.
-
-
-
 .SH OPTIONS
 Note that, for options allowing multiple arguments, you either need to
 wrap the arguments in quotes or not use any spaces for separating
@@ -52,7 +40,6 @@ In general, all arguments will be parsed case-insensitively.
 .RS
 Print help information.
 .RE
-
 
 .BI \-d " diet\fR,\fP " \-\-diet= "diet"
 .RS
@@ -71,7 +58,6 @@ Defaults to
 .I vegetarian.
 .RE
 
-
 .BI \-w " n\fR,\fP " \-\-wrap= "n"
 .RS
 Wrap sections at
@@ -79,7 +65,6 @@ Wrap sections at
 columns.  The argument has to be at least 25 or 0, which indicates that
 no wrapping should take place.
 .RE
-
 
 .BI \-t " time\fR,\fP " \-\-time= "time"
 .RS
@@ -100,7 +85,6 @@ Defaults to
 .I all-day.
 .RE
 
-
 .BI \-\-ikat= "str"
 .RS
 Ignore anything you want from the "Kategorie" section.  Categories have
@@ -108,7 +92,6 @@ to be written out in full, i.e. to ignore the category "Pasta", one
 would have to write
 .I vmensa --ikat Pasta
 .RE
-
 
 .BI \-\-inotes= "str"
 .RS
@@ -119,7 +102,6 @@ use
 or, alternatively
 .I vmensa --inotes Soja
 .RE
-
 
 .BI \-\-no-additives
 .RS
@@ -142,7 +124,6 @@ meal.
 
 .RE
 
-
 .BI \-s " sections\fR,\fP " \-\-sections= "sections"
 .RS
 Which sections to display in the pretty-printed output.  If the users
@@ -162,7 +143,6 @@ l l l .
 		the canteen).
 .TE
 .RE
-
 
 .BI \-m " canteens\fR,\fP " \-\-mensen= "canteens"
 .RS
@@ -204,9 +184,6 @@ l c l l .
 	Mensa Oberschmausitz            <-->	Ob
 .TE
 .RE
-
-
-
 .SH POSITIONAL ARGUMENTS
 Pick the day (or date) when
 .I vmensa
@@ -257,9 +234,6 @@ If the year is omitted, the
 is assumed.  Note that specifying the week day will always jump forwards
 in time, i.e. an input of "monday" on a monday will result in getting
 the menu for the following monday.
-
-
-
 .SH EXAMPLES
 Query tomorrows lunch menu, wrapping the text at 80 characters:
 
@@ -310,15 +284,9 @@ Only show certain sections:
 .RS
 .I vmensa -s na,no
 .RE
-
-
-
 .SH BUGS
 Yes.  If you'd like to report some, either send the author an email, or
 create an isue at <\fIhttps://gitlab.com/slotThe/vmensa/issues\fR>.
-
-
-
 .SH AUTHOR
 \fBvmensa\fR was written by Tony Zorman <\fItonyzorman@mailbox.org\fR>.
 To contribute, or file an issue, please visit
