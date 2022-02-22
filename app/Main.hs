@@ -16,7 +16,7 @@ import CLI
 import Meal.Options
 import Mensa
 
-import qualified Data.Text.IO as T
+import Data.Text.IO qualified as T
 
 import Control.Concurrent.Async (forConcurrently)
 import Data.Aeson (decode')

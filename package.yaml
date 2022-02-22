@@ -6,7 +6,18 @@ license:             GPL-3
 author:              Tony Zorman
 maintainer:          tonyzorman@mailbox.org
 
+ghc-options:
+  -Weverything
+  -Wno-implicit-prelude
+  -Wno-missing-import-lists
+  -Wno-unused-packages
+  -Wno-missing-safe-haskell-mode
+  -Wno-all-missed-specialisations
+  -Wno-unsafe
+  -O2
+
 default-extensions:
+  - ImportQualifiedPost
   - OverloadedStrings
   - DeriveAnyClass
   - DeriveGeneric
@@ -20,15 +31,6 @@ default-extensions:
   - BlockArguments
   - LambdaCase
   - StrictData
-
-ghc-options:
-  -O2
-  -funbox-strict-fields
-  -Wall
-  -Wcompat
-  -Wincomplete-record-updates
-  -Wincomplete-uni-patterns
-  -Wredundant-constraints
 
 library:
   source-dirs: lib

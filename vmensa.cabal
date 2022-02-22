@@ -4,7 +4,7 @@ cabal-version: 2.0
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d3d39f2a3439a583967f714e2078a246e61fd3a949569c34a3134cfcbb8c1380
+-- hash: 45f3b9dec816db13dbdc577304094e5be5cb0310572fc8617466e64918fe5f1c
 
 name:           vmensa
 version:        0.1.0
@@ -29,6 +29,7 @@ library
   hs-source-dirs:
       lib
   default-extensions:
+      ImportQualifiedPost
       OverloadedStrings
       DeriveAnyClass
       DeriveGeneric
@@ -42,7 +43,7 @@ library
       BlockArguments
       LambdaCase
       StrictData
-  ghc-options: -O2 -funbox-strict-fields -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
+  ghc-options: -Weverything -Wno-implicit-prelude -Wno-missing-import-lists -Wno-unused-packages -Wno-missing-safe-haskell-mode -Wno-all-missed-specialisations -Wno-unsafe -O2
   build-depends:
       aeson
     , async
@@ -67,6 +68,7 @@ executable vmensa
   hs-source-dirs:
       app
   default-extensions:
+      ImportQualifiedPost
       OverloadedStrings
       DeriveAnyClass
       DeriveGeneric
@@ -80,7 +82,7 @@ executable vmensa
       BlockArguments
       LambdaCase
       StrictData
-  ghc-options: -O2 -funbox-strict-fields -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -threaded -with-rtsopts=-N
+  ghc-options: -Weverything -Wno-implicit-prelude -Wno-missing-import-lists -Wno-unused-packages -Wno-missing-safe-haskell-mode -Wno-all-missed-specialisations -Wno-unsafe -O2 -threaded -with-rtsopts=-N
   build-depends:
       aeson
     , async

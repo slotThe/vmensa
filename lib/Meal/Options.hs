@@ -20,7 +20,7 @@ module Meal.Options (
 
 import Meal
 
-import qualified Data.Text as T
+import Data.Text qualified as T
 
 
 -- | Options for filtering meals.

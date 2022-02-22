@@ -17,8 +17,8 @@ import Time
 import Meal.Options
 import Paths_vmensa (version)
 
-import qualified Data.Attoparsec.Text as A
-import qualified Data.Map.Strict      as Map
+import Data.Attoparsec.Text qualified as A
+import Data.Map.Strict      qualified as Map
 
 import Data.Attoparsec.Text ((<?>))
 import Data.Map.Strict ((!))
