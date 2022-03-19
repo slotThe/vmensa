@@ -1,10 +1,10 @@
 cabal-version: 2.0
 
--- This file has been generated from package.yaml by hpack version 0.34.5.
+-- This file has been generated from package.yaml by hpack version 0.34.6.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 45f3b9dec816db13dbdc577304094e5be5cb0310572fc8617466e64918fe5f1c
+-- hash: d5d9e4fafbdd64529ba5bbc8123581ea8dd2e47fe8ce3d2d9b65bbdbed94e82a
 
 name:           vmensa
 version:        0.1.0
@@ -25,6 +25,8 @@ library
       Prelude
       Time
   other-modules:
+      Paths_vmensa
+  autogen-modules:
       Paths_vmensa
   hs-source-dirs:
       lib
@@ -64,6 +66,8 @@ library
 executable vmensa
   main-is: Main.hs
   other-modules:
+      Paths_vmensa
+  autogen-modules:
       Paths_vmensa
   hs-source-dirs:
       app

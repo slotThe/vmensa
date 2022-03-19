@@ -1,8 +1,8 @@
-resolver: lts-18.15
+resolver: lts-19.0
 
 packages:
 - .
 
 extra-deps:
   - git: https://gitlab.com/slotThe/optparse-applicative-util.git
-    commit: 543233244e998d61b066ad25539e719fea36c355
+    commit: 56f55d843160d4199f4165fac3b031db13958302
