@@ -1,0 +1,5 @@
+source-repository-package
+  type: git
+  location: https://gitlab.com/slotThe/optparse-applicative-util.git
+
+packages: ./vmensa.cabal

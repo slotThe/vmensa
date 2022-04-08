@@ -1,4 +1,5 @@
 # vmensa
+
 Very simple program to connect to the [Studentenwerk API], fetch a
 couple of different canteens, filter the results according to the
 authors dietary requirements, and print out the relevant meals to
@@ -10,8 +11,9 @@ For a quick overview of all command line options, see `vmensa --help`.
 For more information, please consult the man page.
 
 # Building
-It is recommended to build the project with `stack`, though there is a
-`cabal` freeze-file available.
+
+It is recommended to build the project with `stack`, though building
+with `cabal` should also work.
 
 Build with `stack build`, then copy the executable to a convenient
 location.  Alternatively, you may use `stack install`, which will copy
