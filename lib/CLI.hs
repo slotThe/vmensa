@@ -93,7 +93,7 @@ pMealType = option pDiet
   <> value Vegetarian
    )
  where
-  -- | Parse user input into a proper 'MealTime'.
+  -- Parse user input into a proper 'MealTime'.
   pDiet :: ReadM MealType
   pDiet = anyOfRM
     [ (AllMeals  , ["a"]           )
@@ -112,7 +112,7 @@ pMealTime = option pTime
   <> value AllDay
    )
  where
-  -- | Parse user input into a proper 'MealTime'.
+  -- Parse user input into a proper 'MealTime'.
   pTime :: ReadM MealTime
   pTime = anyOfRM [(Dinner, ["d"]), (Lunch , ["l"]), (AllDay, ["a"])]
 
@@ -136,11 +136,11 @@ pLineWrap = option pWrap
 pDate :: Parser Date
 pDate = maybe Today toDate <$> optional (some $ argument str (metavar "DAY"))
  where
-  -- | Convert all the rest to a date with a default value.
+  -- Convert all the rest to a date with a default value.
   toDate :: [Text] -> Date
   toDate = fromRight Today . A.parseOnly pDate' . unwords
 
-  -- | Parse our entire 'Date' type.
+  -- Parse our entire 'Date' type.
   pDate' :: AttoParser Date
   pDate' = A.choice
     [ Today    <$  A.asciiCI "today"
@@ -150,7 +150,7 @@ pDate = maybe Today toDate <$> optional (some $ argument str (metavar "DAY"))
     , DMYDate  <$> pDMYDate
     ]
 
-  -- | Parse a 'DayOfWeek' using both german and english names.
+  -- Parse a 'DayOfWeek' using both german and english names.
   pDay :: AttoParser DayOfWeek
   pDay = anyOf
     [ (Monday   , ["mo"]      )
@@ -228,7 +228,7 @@ pCanteens = option (pCanteen `splitWith` sepChars)
          <$> A.choice (mkParser <$> Map.keys canteens)
           <* A.skipWhile (`notElem` sepChars)
 
-  -- | Construct an empty (i.e. no food to serve) 'Mensa'.
+  -- Construct an empty (i.e. no food to serve) 'Mensa'.
   mkEmptyMensa :: (Text, Text -> Text) -> PreMensa
   mkEmptyMensa (name, urlNoDate) = PreMensa \d -> Mensa name (urlNoDate d) []
 
@@ -236,7 +236,7 @@ pCanteens = option (pCanteen `splitWith` sepChars)
   mkParser k = (name, k) <$ aliases als
    where (name, als) :: (Text, [Text]) = canteens ! k
 
-  -- | __All__ available canteens.  We do have a lot of them, apparently.
+  -- __All__ available canteens.  We do have a lot of them, apparently.
   canteens :: Map Int (Text, [Text])
   canteens = fromList
     [ (4,  ("Alte Mensa"                     , ["A"]))
@@ -262,10 +262,10 @@ pCanteens = option (pCanteen `splitWith` sepChars)
     , (42, ("Mensa Oberschmausitz"           , ["Ob"]))
     ]
 
-  -- | Template URL for getting all meals of a certain Meals.
+  -- Template URL for getting all meals of a certain Meals.
   mensaURL
-    :: Int   -- ^ Number of the Mensa in the API
-    -> Text  -- ^ Date at which we would like to see the food.
+    :: Int   -- Number of the Mensa in the API
+    -> Text  -- Date at which we would like to see the food.
     -> Text
   mensaURL num date = mconcat
     [ "https://api.studentenwerk-dresden.de/openmensa/v2/canteens/"
@@ -283,7 +283,7 @@ pSections = nub <$> option (pSection `splitWith` sepChars)
   <> value [Name, Price, Notes, Category]
    )
  where
-  -- | Parse user input into a proper 'MealTime'.
+  -- Parse user input into a proper 'MealTime'.
   pSection :: AttoParser Section
   pSection = anyOfSkip (`notElem` sepChars)
     [ (Name    , ["na"])

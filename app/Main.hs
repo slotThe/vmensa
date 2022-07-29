@@ -35,8 +35,8 @@ main = do
 
   -- See Note [Async]
   mensen <- forConcurrently (canteen mensaOptions) $
-   fmap (\m -> ppMensa date mensaOptions {canteen = m})
-        . getMensa manager mealOptions
+    fmap (\m -> ppMensa date mensaOptions{ canteen = m })
+         . getMensa manager mealOptions
 
   -- Print results synchronously, so as to respect the desired order.
   traverse_ T.putStr mensen

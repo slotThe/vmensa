@@ -48,8 +48,8 @@ data MealTime
 filterOptions :: MealOptions -> Meals -> Meals
 filterOptions opts = filter availableOpts
  where
-  -- | Every predicate should be satisfied in order for the result to
-  -- be accepted.
+  -- Every predicate should be satisfied in order for the result to be
+  -- accepted.
   availableOpts :: Meal -> Bool
   availableOpts meal = all ($ meal) (getAllOpts opts)
 
@@ -80,13 +80,12 @@ getAllOpts MealOptions{ mealType, mealTime, iKat, iNotes } =
   notPartOfNotes :: Text -> Meal -> Bool
   notPartOfNotes s = not . any (s `T.isInfixOf`) . notes
 
-  -- | See if meal is vegetarian or there's some sort of vegetarian
+  -- See if meal is vegetarian or there's some sort of vegetarian
   -- variant available.
   vegetarian :: Meal -> Bool
   vegetarian = eitherOf (inNotes "Menü ist vegetarisch") (inName "vegetarisch")
 
-  -- | See if meal is vegan or there's some vegetarian variant
-  -- available.
+  -- See if meal is vegan or there's some vegetarian variant available.
   vegan :: Meal -> Bool
   vegan = eitherOf (inNotes "Menü ist vegan") (inName "vegan")
 

@@ -63,7 +63,7 @@ ppMensa day opts@MensaOptions{ lineWrap, canteen = Mensa{ name, meals } }
   | otherwise  = T.unlines [sep, day <> " in: " <> name, sep]
               <> ppMeals opts
  where
-  -- | Separator for visual separation of different canteens.
+  -- Separator for visual separation of different canteens.
   sep :: Text
   sep = T.replicate (if lineWrap > 0 then fi lineWrap else 79) "="
 
@@ -73,7 +73,7 @@ ppMeals MensaOptions{ lineWrap, noAdds, canteen, sections }
   = T.unlines $ map (\meal -> foldMap' (ppSection meal) sections)
                     (meals canteen)
  where
-  -- | Pretty print a single section of a 'Meal'.  If the associated
+  -- Pretty print a single section of a 'Meal'.  If the associated
   -- flavour text is empty then ignore the section.
   ppSection :: Meal -> Section -> Text
   ppSection Meal{ category, name, notes, prices } section
@@ -105,9 +105,9 @@ ppMeals MensaOptions{ lineWrap, noAdds, canteen, sections }
                                        ]
 
     wrapSec :: Text -> Section -> [Text] -> Text
-    wrapSec s sec xs = wrapWith s (length $ tshow sec) (fi lineWrap) xs
+    wrapSec s sec = wrapWith s (length $ tshow sec) (fi lineWrap)
 
-    -- | For some reason only the notes are not escaped properly.
+    -- For some reason only the notes are not escaped properly.
     decodeSymbols :: Text -> Text
     decodeSymbols
       = replace "&uuml;" "ü"

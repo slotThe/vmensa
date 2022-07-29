@@ -103,8 +103,8 @@ wrapWith separator al wrapAt chunks
     combLen :: Int  = acc + cLen            -- Length including the next word
     newLen  :: Int  = combLen + length end  -- Take separator length into account
 
-    -- | Nicely left-align the text after a line-break.  We like
-    -- pretty things.
+    -- Nicely left-align the text after a line-break.  We like pretty
+    -- things.
     align :: Text -> Text
     align = (<> "\n" <> T.replicate al " ")
 
