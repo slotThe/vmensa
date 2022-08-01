@@ -26,7 +26,7 @@ import Data.Attoparsec.Text ((<?>))
 import Data.Kind (Type)
 import Data.Map.Strict ((!))
 import Data.Time.Calendar (Day, DayOfWeek (Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday), fromGregorian)
-import Options.Applicative (Parser, ParserInfo, ReadM, argument, execParser, footer, fullDesc, header, help, helper, info, infoOption, long, metavar, option, short, str, switch, value)
+import Options.Applicative (Parser, ParserInfo, ReadM, argument, auto, execParser, footer, fullDesc, header, help, helper, info, infoOption, long, metavar, option, short, str, switch, value)
 import Options.Applicative.Util (AttoParser, aliases, anyOf, anyOfRM, anyOfSkip, attoReadM, showSepChars, splitOn, splitWith)
 
 
@@ -88,9 +88,9 @@ pOptions = do
     sections <- pSections
     noAdds   <- pNoAdds
     lineWrap <- pLineWrap
-    doubleCol<- pDoubleColumn
+    columns  <- pColumns
     pure MensaOptions{..}
-  date <- pDate
+  date     <- pDate
   pure Options{..}
 
 pMealType :: Parser MealType
@@ -311,11 +311,14 @@ pNoAdds = switch
   <> help "Whether to show the unique letter of additives in parentheses."
    )
 
--- | Whether canteens should be printed in a double column layout.
-pDoubleColumn :: Parser Bool
-pDoubleColumn = switch
-  (  long "double-column"
-  <> help "Whether canteens should be printed in a double column layout."
+-- | Whether canteens should be printed in a n-column layout.
+pColumns :: Parser Natural
+pColumns = option auto
+  (  long "columns"
+  <> short 'c'
+  <> metavar "N"
+  <> help "Whether canteens should be printed in an N-column layout."
+  <> value 1
   )
 
 -- | Our separator chars.
