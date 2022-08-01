@@ -77,14 +77,14 @@ NOTE: "Data.Text"s 'Data.Text.length' function is @O(n)@, which may or
       may not matter here.
 -}
 wrapWith
-  :: Text    -- ^ How to concatenate chunks, i.e. the separator
-  -> Int     -- ^ Left alignment
-  -> Int     -- ^ Max line length (wrap)
-  -> [Text]  -- ^ Text as chunks that have to stay together
-  -> [Text]  -- ^ Text with line breaks
+  :: Text   -- ^ How to concatenate chunks, i.e. the separator
+  -> Int    -- ^ Left alignment
+  -> Int    -- ^ Max line length (wrap)
+  -> [Text] -- ^ Text as chunks that have to stay together
+  -> Text   -- ^ Text with line breaks
 wrapWith separator al wrapAt chunks
-  | wrapAt == 0 = intersperse separator chunks
-  | otherwise   = T.lines (go "" separator al chunks)
+  | wrapAt == 0 = mconcat (intersperse separator chunks)
+  | otherwise   = go "" separator al chunks
  where
   go :: Text    -- Already processed part of the text
      -> Text    -- Separator to put between chunks

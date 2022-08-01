@@ -91,30 +91,30 @@ ppMeals MensaOptions{ lineWrap, noAdds, canteen, sections }
   -- flavour text is empty then ignore the section.
   ppSection :: Meal -> Section -> [Text]
   ppSection Meal{ category, name, notes, prices } section
-    | null flavourText = []
-    | otherwise        = addFirst (tshow section) flavourText
+    | T.null flavourText = []
+    | otherwise          = addFirst (tshow section) (T.lines flavourText)
    where
-    flavourText :: [Text]
+    flavourText :: Text
     flavourText = case section of
       Name     -> wrapName
       Price    -> wrapPrices
-      Notes    -> map decodeSymbols wrapNotes
-      Category -> [category]
+      Notes    -> decodeSymbols wrapNotes
+      Category -> category
 
-    wrapName :: [Text]
+    wrapName :: Text
     wrapName = wrapSec " " Name (words $ ignoreAdditives name)
 
-    wrapNotes :: [Text]
+    wrapNotes :: Text
     wrapNotes = wrapSec ", " Notes (map ignoreAdditives notes)
 
-    wrapPrices :: [Text]
+    wrapPrices :: Text
     wrapPrices = case prices of
-      SoldOut    -> []           -- will be filtered out later
+      SoldOut    -> ""           -- will be filtered out later
       Prices s e -> wrapSec ", " Price [ "Studierende: " <> tshow s <> "€"
                                        , "Bedienstete: " <> tshow e <> "€"
                                        ]
 
-    wrapSec :: Text -> Section -> [Text] -> [Text]
+    wrapSec :: Text -> Section -> [Text] -> Text
     wrapSec s sec = wrapWith s (length $ tshow sec) (fi lineWrap)
 
     -- For some reason only the notes are not escaped properly.
@@ -160,7 +160,7 @@ toColumns (fi -> lw) (fi -> cols) ms
   = map (T.unlines . map (mconcat . map T.unlines)) go
  where
   go :: [[[[Text]]]]  -- lol
-  go | cols < 1  = ms
+  go | cols <= 1 = ms
      | otherwise =
          map                                                -- canteens
            (map                                             -- meals
