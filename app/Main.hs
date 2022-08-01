@@ -18,7 +18,7 @@ import Mensa
 
 import Data.Text.IO qualified as T
 
-import Control.Concurrent.Async (forConcurrently)
+import Control.Concurrent.Async (mapConcurrently)
 import Data.Aeson (decode')
 import Network.HTTP.Client (Manager, httpLbs, newManager, parseUrlThrow, responseBody)
 import Network.HTTP.Client.TLS (tlsManagerSettings)
@@ -34,9 +34,8 @@ main = do
   manager <- newManager tlsManagerSettings
 
   -- See Note [Async]
-  mensen <- forConcurrently (canteen mensaOptions) $
-    fmap (\m -> ppMensa date mensaOptions{ canteen = m })
-         . getMensa manager mealOptions
+  mensen <- (\ms -> ppMensen date mensaOptions{ canteen = ms }) <$>
+    mapConcurrently (getMensa manager mealOptions) (canteen mensaOptions)
 
   -- Print results synchronously, so as to respect the desired order.
   traverse_ T.putStr mensen
@@ -46,7 +45,7 @@ main = do
 Here, we concurrently connect to the API, parse the necessary JSON and
 then create some pretty-printed text for each canteen.
 
-The function @forConcurrently@ creates a thread for every canteen, which
+The function @mapConcurrently@ creates a thread for every canteen, which
 would normally be a fire hazard and may cause your laptop to melt
 through your desk.  However, since the list of all canteens is rather
 small (even trying to show __everything__ there is would only be around

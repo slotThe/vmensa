@@ -4,14 +4,14 @@ cabal-version: 2.0
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d5d9e4fafbdd64529ba5bbc8123581ea8dd2e47fe8ce3d2d9b65bbdbed94e82a
+-- hash: 0e0e67ab51c5af3498b8f42beb302492b12e82cbb6691806e7117c84b73c9b30
 
 name:           vmensa
 version:        0.1.0
 synopsis:       Query the Stundentenwerk API from inside your terminal!
 homepage:       https://gitlab.com/slotThe/vmensa
 author:         Tony Zorman
-maintainer:     soliditsallgood@mailbox.org
+maintainer:     tonyzorman@mailbox.org
 license:        GPL-3
 license-file:   LICENSE
 build-type:     Simple
@@ -45,6 +45,8 @@ library
       BlockArguments
       LambdaCase
       StrictData
+      StandaloneKindSignatures
+      ViewPatterns
   ghc-options: -Weverything -Wno-implicit-prelude -Wno-missing-import-lists -Wno-unused-packages -Wno-missing-safe-haskell-mode -Wno-all-missed-specialisations -Wno-unsafe -O2
   build-depends:
       aeson
@@ -86,6 +88,8 @@ executable vmensa
       BlockArguments
       LambdaCase
       StrictData
+      StandaloneKindSignatures
+      ViewPatterns
   ghc-options: -Weverything -Wno-implicit-prelude -Wno-missing-import-lists -Wno-unused-packages -Wno-missing-safe-haskell-mode -Wno-all-missed-specialisations -Wno-unsafe -O2 -threaded -with-rtsopts=-N
   build-depends:
       aeson

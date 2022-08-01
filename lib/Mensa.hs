@@ -14,13 +14,15 @@ module Mensa (
 
   -- * Pretty printing
   Section (..),      -- instances: Eq, Show
-  ppMensa,           -- :: Natural -> [Section] -> Text -> Bool -> Mensa -> Text
+  ppMensen,          -- :: DatePP -> MensaOptions [Mensa] -> [Text]
 ) where
 
 import Meal
+import Prelude hiding (Prefix)
 import Time
 
-import qualified Data.Text as T
+import Data.List qualified as List
+import Data.Text qualified as T
 
 
 -- | 'Mensa' type, all fields are needed and hence all fields are
@@ -49,62 +51,70 @@ instance Show Section where
 
 -- | Pretty-printing options for a canteen.
 data MensaOptions mensa = MensaOptions
-  { canteen  :: mensa
-  , sections :: [Section] -- ^ Sections to be printed
-  , noAdds   :: Bool      -- ^ Whether to show the additive notes in
-                          --   parentheses, like @(A, A1, C, G)@
-  , lineWrap :: Natural   -- ^ Line wrap in the output
+  { canteen   :: mensa
+  , sections  :: [Section] -- ^ Sections to be printed
+  , noAdds    :: Bool      -- ^ Whether to show the additive notes in
+                           --   parentheses, like @(A, A1, C, G)@
+  , lineWrap  :: Natural   -- ^ Line wrap in the output
+  , doubleCol :: Bool      -- ^ Print the meals in a double column layout?
   }
 
+-- | A possible prefix that will be style with ANSI escape codes.
+data Prefix = Prefix Text | NoPrefix
+
+-- | Pretty print multiple canteens.
+ppMensen :: DatePP -> MensaOptions [Mensa] -> [Text]
+ppMensen date opts@MensaOptions{ lineWrap, doubleCol, canteen = canteens }
+  = toDoubleColumn lineWrap doubleCol
+  . map (\m -> ppMensa date opts{ canteen = m })
+  . filter (not . null . meals)
+  $ canteens
+
 -- | Pretty print a single canteen.
-ppMensa :: DatePP -> MensaOptions Mensa -> Text
+ppMensa :: DatePP -> MensaOptions Mensa -> [[[Text]]]
 ppMensa day opts@MensaOptions{ lineWrap, canteen = Mensa{ name, meals } }
-  | null meals = ""  -- Don't show empty canteens
-  | otherwise  = T.unlines [sep, day <> " in: " <> name, sep]
-              <> ppMeals opts
+  | null meals = []  -- Don't show empty canteens
+  | otherwise  = [[sep, fill NoPrefix lineWrap (day <> " in: " <> name), sep]]
+               : ppMeals opts
  where
   -- Separator for visual separation of different canteens.
   sep :: Text
   sep = T.replicate (if lineWrap > 0 then fi lineWrap else 79) "="
 
 -- | Pretty print only the things I'm interested in.
-ppMeals :: MensaOptions Mensa -> Text
+ppMeals :: MensaOptions Mensa -> [[[Text]]]
 ppMeals MensaOptions{ lineWrap, noAdds, canteen, sections }
-  = T.unlines $ map (\meal -> foldMap' (ppSection meal) sections)
-                    (meals canteen)
+  = map (\meal -> map (ppSection meal) sections)
+        (meals canteen)
  where
   -- Pretty print a single section of a 'Meal'.  If the associated
   -- flavour text is empty then ignore the section.
-  ppSection :: Meal -> Section -> Text
+  ppSection :: Meal -> Section -> [Text]
   ppSection Meal{ category, name, notes, prices } section
-    | T.null flavourText = ""
-    | otherwise          = style (tshow section) <> flavourText <> "\n"
+    | null flavourText = []
+    | otherwise        = addFirst (tshow section) flavourText
    where
-    flavourText :: Text
+    flavourText :: [Text]
     flavourText = case section of
       Name     -> wrapName
       Price    -> wrapPrices
-      Notes    -> decodeSymbols wrapNotes
-      Category -> category
+      Notes    -> map decodeSymbols wrapNotes
+      Category -> [category]
 
-    -- See https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_parameters
-    style :: Text -> Text
-    style s = "\x1b[33m" <> s <> "\x1b[0m"
-
-    wrapName :: Text
+    wrapName :: [Text]
     wrapName = wrapSec " " Name (words $ ignoreAdditives name)
 
-    wrapNotes :: Text
+    wrapNotes :: [Text]
     wrapNotes = wrapSec ", " Notes (map ignoreAdditives notes)
 
-    wrapPrices :: Text
+    wrapPrices :: [Text]
     wrapPrices = case prices of
-      SoldOut    -> ""           -- will be filtered out later
+      SoldOut    -> []           -- will be filtered out later
       Prices s e -> wrapSec ", " Price [ "Studierende: " <> tshow s <> "€"
                                        , "Bedienstete: " <> tshow e <> "€"
                                        ]
 
-    wrapSec :: Text -> Section -> [Text] -> Text
+    wrapSec :: Text -> Section -> [Text] -> [Text]
     wrapSec s sec = wrapWith s (length $ tshow sec) (fi lineWrap)
 
     -- For some reason only the notes are not escaped properly.
@@ -125,3 +135,50 @@ ppMeals MensaOptions{ lineWrap, noAdds, canteen, sections }
        where
         (str', rest) = bimap T.stripEnd (T.drop 1 . T.dropWhile (/= ')'))
                      $ T.breakOn "(" str
+
+    addFirst :: Text -> [Text] -> [Text]
+    addFirst _ []       = []
+    addFirst s (x : xs) = fill (Prefix s) lineWrap x
+                        : map (fill NoPrefix lineWrap) xs
+
+-- | Fill a bunch of text, in order to make aligning easier.
+fill :: Prefix -> Natural -> Text -> Text
+fill pfx (fi -> lw) str =
+  style prefix <> str <> if len < lw then T.replicate (lw - len) " " else ""
+ where
+  len    = length str + length prefix
+  prefix = case pfx of
+    Prefix p -> p
+    NoPrefix -> ""
+
+  -- See https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_parameters
+  style :: Text -> Text
+  style s = "\x1b[33m" <> s <> "\x1b[0m"
+
+toDoubleColumn :: Natural -> Bool -> [[[[Text]]]] -> [Text]
+toDoubleColumn (fi -> lw) dc ms
+  = map (T.unlines . map (mconcat . map T.unlines)) go
+ where
+  go :: [[[[Text]]]]  -- lol
+  go | dc = zipWith (\men men' ->                             -- mensa
+              zipWith (\meal meal' ->                         -- meal
+                zipWith (\sec sec' ->                         -- section
+                  zipWith (\l l' -> l <> "    " <> l')        -- line
+                          `uncurry` mkEven (T.replicate lw " ") sec sec')
+                        `uncurry` mkEven mempty meal meal')
+                      `uncurry` mkEven mempty men men')
+                    `uncurry` (mkEven [] `uncurry` chunks ms)
+     | otherwise = ms
+
+  mkEven :: a -> [a] -> [a] -> ([a], [a])
+  mkEven filler a b
+    | List.length a < List.length b = (a <> repeat filler, b)
+    | otherwise                     = (a, b <> repeat filler)
+
+  chunks :: [a] -> ([a], [a])
+  chunks = work ([], [])
+   where
+    work :: ([a], [a]) -> [a] -> ([a], [a])
+    work res      []       = res
+    work (as, bs) [x]      = (x : as, bs)
+    work (as, bs) (x:y:xs) = work (x : as, y : bs) xs

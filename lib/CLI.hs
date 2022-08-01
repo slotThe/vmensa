@@ -21,6 +21,7 @@ import Data.Attoparsec.Text qualified as A
 import Data.Map.Strict      qualified as Map
 
 import Data.Attoparsec.Text ((<?>))
+import Data.Kind (Type)
 import Data.Map.Strict ((!))
 import Data.Time.Calendar (Day, DayOfWeek (Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday), fromGregorian)
 import Options.Applicative (Parser, ParserInfo, ReadM, argument, execParser, footer, fullDesc, header, help, helper, info, infoOption, long, metavar, option, short, str, switch, value)
@@ -38,6 +39,7 @@ execOptionParser = do
               }
 
 -- | Global canteen options.  These will double as command line options.
+type Options :: Type -> Type -> Type
 data Options mensa date = Options
   { mealOptions  :: MealOptions
   , mensaOptions :: MensaOptions [mensa]
@@ -80,7 +82,8 @@ pOptions =
           <*> (MensaOptions <$> pCanteens
                             <*> pSections
                             <*> pNoAdds
-                            <*> pLineWrap)
+                            <*> pLineWrap
+                            <*> pDoubleColumn)
           <*> pDate
 
 pMealType :: Parser MealType
@@ -300,6 +303,13 @@ pNoAdds = switch
   <> short 'p'
   <> help "Whether to show the unique letter of additives in parentheses."
    )
+
+-- | Whether canteens should be printed in a double column layout.
+pDoubleColumn :: Parser Bool
+pDoubleColumn = switch
+  (  long "double-column"
+  <> help "Whether canteens should be printed in a double column layout."
+  )
 
 -- | Our separator chars.
 sepChars :: [Char]

@@ -31,6 +31,8 @@ default-extensions:
   - BlockArguments
   - LambdaCase
   - StrictData
+  - StandaloneKindSignatures
+  - ViewPatterns
 
 library:
   source-dirs: lib

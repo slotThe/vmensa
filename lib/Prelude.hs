@@ -81,15 +81,15 @@ wrapWith
   -> Int     -- ^ Left alignment
   -> Int     -- ^ Max line length (wrap)
   -> [Text]  -- ^ Text as chunks that have to stay together
-  -> Text    -- ^ Text with line breaks
+  -> [Text]  -- ^ Text with line breaks
 wrapWith separator al wrapAt chunks
-  | wrapAt == 0 = mconcat $ intersperse separator chunks
-  | otherwise   = go "" separator al chunks
+  | wrapAt == 0 = intersperse separator chunks
+  | otherwise   = T.lines (go "" separator al chunks)
  where
-  go :: Text    -- ^ Already processed part of the text
-     -> Text    -- ^ Separator to put between chunks
-     -> Int     -- ^ Counter of the current line length
-     -> [Text]  -- ^ Text as chunks that have to stay together
+  go :: Text    -- Already processed part of the text
+     -> Text    -- Separator to put between chunks
+     -> Int     -- Counter of the current line length
+     -> [Text]  -- Text as chunks that have to stay together
      -> Text
   go !done _   !_   []        = done
   go !line sep !acc xs@(c:cs)
