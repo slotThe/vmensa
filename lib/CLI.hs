@@ -1,3 +1,5 @@
+{-# LANGUAGE ApplicativeDo   #-}
+{-# LANGUAGE RecordWildCards #-}
 {- |
    Module      : CLI
    Description : Command line interface for the application.
@@ -74,17 +76,22 @@ options = info
 
 -- | Parse all command line options.
 pOptions :: Parser (Options PreMensa Date)
-pOptions =
-  Options <$> (MealOptions <$> pMealType
-                           <*> pMealTime
-                           <*> pIKat
-                           <*> pINotes)
-          <*> (MensaOptions <$> pCanteens
-                            <*> pSections
-                            <*> pNoAdds
-                            <*> pLineWrap
-                            <*> pDoubleColumn)
-          <*> pDate
+pOptions = do
+  mealOptions <- do
+    mealType <- pMealType
+    mealTime <- pMealTime
+    iKat     <- pIKat
+    iNotes   <- pINotes
+    pure MealOptions{..}
+  mensaOptions <- do
+    canteen  <- pCanteens
+    sections <- pSections
+    noAdds   <- pNoAdds
+    lineWrap <- pLineWrap
+    doubleCol<- pDoubleColumn
+    pure MensaOptions{..}
+  date <- pDate
+  pure Options{..}
 
 pMealType :: Parser MealType
 pMealType = option pDiet
