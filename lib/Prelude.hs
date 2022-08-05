@@ -1,7 +1,7 @@
 {- |
    Module      : Prelude
    Description : Custom prelude for the project
-   Copyright   : (c) Tony Zorman  2020 2021
+   Copyright   : (c) Tony Zorman  2020 2021 2022
    License     : GPL-3
    Maintainer  : tonyzorman@mailbox.org
    Stability   : experimental

@@ -1,16 +1,14 @@
 {- |
    Module      : Main
    Description : Connect to the API and filter the results
-   Copyright   : (c) Tony Zorman  2019 2020 2021
+   Copyright   : (c) Tony Zorman  2019 2020 2021 2022
    License     : GPL-3
    Maintainer  : tonyzorman@mailbox.org
    Stability   : experimental
    Portability : non-portable
 -}
 
-module Main (
-  main, -- :: IO ()
-) where
+module Main (main) where
 
 import CLI
 import Meal.Options

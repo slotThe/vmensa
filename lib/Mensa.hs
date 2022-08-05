@@ -1,7 +1,7 @@
 {- |
    Module      : Mensa
    Description : The representation for a generic canteen
-   Copyright   : (c) Tony Zorman  2019 2020 2021
+   Copyright   : (c) Tony Zorman  2019 2020 2021 2022
    License     : GPL-3
    Maintainer  : tonyzorman@mailbox.org
    Stability   : experimental
@@ -179,7 +179,5 @@ toColumns (fi -> lw) (fi -> cols) ms
    where n = List.length (head xs)
 
   mkEven :: a -> [[a]] -> [[a]]
-  mkEven def xs = map ( (\(lst, len) -> lst <> replicate (n - len) def)
-                      . (\a -> (a, List.length a)) )
-                      xs
+  mkEven def xs = map (\lst -> lst <> replicate (n - List.length lst) def) xs
    where n = maximum (map List.length xs)
