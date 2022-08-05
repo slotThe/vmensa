@@ -29,6 +29,7 @@ import BasePrelude hiding (length, option, unwords, words)
 import Data.Map.Strict (Map)
 import Data.Text (Text)
 
+import Data.List qualified as List
 import Data.Text qualified as T
 
 fi :: (Integral a, Num b) => a -> b
@@ -98,7 +99,10 @@ wrapWith separator al wrapAt chunks
     | combLen   >= wrapAt = go (align line)       sep al     xs
     | otherwise           = go (line <> c <> end) sep newLen cs
    where
-    goAgain :: Text = go line " " acc (words c)
+    goAgain :: Text
+      | List.length (words c) > 1 = go line " " acc (words c)
+      | otherwise                 = let w = (wrapAt - al - 2)
+                                     in go line " " acc [T.take w c <> "-", T.drop w c]
     cLen    :: Int  = length c
     combLen :: Int  = acc + cLen            -- Length including the next word
     newLen  :: Int  = combLen + length end  -- Take separator length into account
