@@ -11,6 +11,7 @@ module Mensa (
   -- * Types for 'Mensa' and its meals.
   Mensa (..),
   MensaOptions (..),
+  changeCanteen,     -- :: (MensaOptions c -> a) -> MensaOptions _c -> c -> a
 
   -- * Pretty printing
   Section (..),      -- instances: Eq, Show
@@ -59,6 +60,10 @@ data MensaOptions mensa = MensaOptions
   , columns   :: Natural   -- ^ Print the meals in an n-column layout
   }
 
+-- | Change the 'canteen' field in @opts@ to @c@.
+changeCanteen :: (MensaOptions c -> a) -> MensaOptions _c -> c -> a
+changeCanteen f opts c = f opts{ canteen = c }
+
 -- | A possible prefix that will be style with ANSI escape codes.
 data Prefix = Prefix Text | NoPrefix
 
@@ -66,7 +71,7 @@ data Prefix = Prefix Text | NoPrefix
 ppMensen :: DatePP -> MensaOptions [Mensa] -> [Text]
 ppMensen date opts@MensaOptions{ lineWrap, columns, canteen = canteens }
   = toColumns lineWrap columns
-  . map (\m -> ppMensa date opts{ canteen = m })
+  . map (ppMensa date `changeCanteen` opts)
   . filter (not . null . meals)
   $ canteens
  where

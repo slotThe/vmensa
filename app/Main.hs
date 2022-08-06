@@ -32,7 +32,7 @@ main = do
   manager <- newManager tlsManagerSettings
 
   -- See Note [Async]
-  mensen <- (\ms -> ppMensen date mensaOptions{ canteen = ms }) <$>
+  mensen <- (ppMensen date `changeCanteen` mensaOptions) <$>
     mapConcurrently (getMensa manager mealOptions) (canteen mensaOptions)
 
   -- Print results synchronously, so as to respect the desired order.
