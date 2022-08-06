@@ -69,30 +69,28 @@ ppMensen date opts@MensaOptions{ lineWrap, columns, canteen = canteens }
   . map (\m -> ppMensa date opts{ canteen = m })
   . filter (not . null . meals)
   $ canteens
-
--- | Pretty print a single canteen.
-ppMensa :: DatePP -> MensaOptions Mensa -> [[[Text]]]
-ppMensa day opts@MensaOptions{ lineWrap, canteen = Mensa{ name, meals } }
-  | null meals = []  -- Don't show empty canteens
-  | otherwise  = [[sep, fill NoPrefix lineWrap (day <> " in: " <> name), sep]]
-               : ppMeals opts
  where
+  -- Pretty print a single canteen.
+  ppMensa :: DatePP -> MensaOptions Mensa -> [[[Text]]]
+  ppMensa day mopts@MensaOptions{ canteen = Mensa{ name } }
+    = [[sep, fill NoPrefix lineWrap (day <> " in: " <> name), sep]]
+    : ppMeals mopts
+
   -- Separator for visual separation of different canteens.
   sep :: Text
   sep = T.replicate (if lineWrap > 0 then fi lineWrap else 79) "="
 
 -- | Pretty print only the things I'm interested in.
 ppMeals :: MensaOptions Mensa -> [[[Text]]]
-ppMeals MensaOptions{ lineWrap, noAdds, canteen, sections }
-  = map (\meal -> map (ppSection meal) sections)
-        (meals canteen)
+ppMeals MensaOptions{ lineWrap, noAdds, canteen = Mensa{ meals }, sections }
+  = map (\meal -> map (ppSection meal) sections) meals
  where
   -- Pretty print a single section of a 'Meal'.  If the associated
   -- flavour text is empty then ignore the section.
   ppSection :: Meal -> Section -> [Text]
   ppSection Meal{ category, name, notes, prices } section
     | T.null flavourText = []
-    | otherwise          = addFirst (tshow section) (T.lines flavourText)
+    | otherwise          = styleFirst (tshow section) (T.lines flavourText)
    where
     flavourText :: Text
     flavourText = case section of
@@ -101,13 +99,9 @@ ppMeals MensaOptions{ lineWrap, noAdds, canteen, sections }
       Notes    -> decodeSymbols wrapNotes
       Category -> category
 
-    wrapName :: Text
-    wrapName = wrapSec " " Name (words $ ignoreAdditives name)
-
-    wrapNotes :: Text
-    wrapNotes = wrapSec ", " Notes (map ignoreAdditives notes)
-
-    wrapPrices :: Text
+    wrapName, wrapNotes, wrapPrices :: Text
+    wrapName   = wrapSec " "  Name  (words $ ignoreAdditives name)
+    wrapNotes  = wrapSec ", " Notes (map ignoreAdditives notes)
     wrapPrices = case prices of
       SoldOut    -> ""           -- will be filtered out later
       Prices s e -> wrapSec ", " Price [ "Studierende: " <> tshow s <> "€"
@@ -136,10 +130,10 @@ ppMeals MensaOptions{ lineWrap, noAdds, canteen, sections }
         (str', rest) = bimap T.stripEnd (T.drop 1 . T.dropWhile (/= ')'))
                      $ T.breakOn "(" str
 
-    addFirst :: Text -> [Text] -> [Text]
-    addFirst _ []       = []
-    addFirst s (x : xs) = fill (Prefix s) lineWrap x
-                        : map (fill NoPrefix lineWrap) xs
+    styleFirst :: Text -> [Text] -> [Text]
+    styleFirst _ []       = []
+    styleFirst s (x : xs) = fill (Prefix s) lineWrap x
+                          : map (fill NoPrefix lineWrap) xs
 
 -- | Fill a bunch of text, in order to make aligning easier.
 fill :: Prefix -> Natural -> Text -> Text
