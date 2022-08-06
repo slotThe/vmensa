@@ -68,7 +68,7 @@ tshow = pack . show
 -- | Lifting @(||)@ over the Applicative @(->) a@.  See if some
 -- predicate holds for at least one of the inputs.
 eitherOf :: (a -> Bool) -> (a -> Bool) -> a -> Bool
-eitherOf = liftA2 (||)
+eitherOf x y = x >>= \x' -> if x' then pure True else y
 {-# INLINE eitherOf #-}
 
 {- | Simple (and probably hilariously inefficient) function to wrap text
