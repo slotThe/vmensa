@@ -13,6 +13,7 @@ module Main (main) where
 import CLI
 import Meal.Options
 import Mensa
+import Time (DatePP (Weekday, Weekend))
 
 import Data.Text.IO qualified as T
 
@@ -31,12 +32,14 @@ main = do
   -- Create a new manager for handling network connections.
   manager <- newManager tlsManagerSettings
 
-  -- See Note [Async]
-  mensen <- (ppMensen date `changeCanteen` mensaOptions) <$>
-    mapConcurrently (getMensa manager mealOptions) (canteen mensaOptions)
-
-  -- Print results synchronously, so as to respect the desired order.
-  traverse_ T.putStr mensen
+  case date of
+    Weekend err -> T.putStrLn err  -- Canteens aren't open on the weekend.
+    Weekday d   -> do
+      -- See Note [Async]
+      mensen <- (ppMensen d `changeCanteen` mensaOptions) <$>
+        mapConcurrently (getMensa manager mealOptions) (canteen mensaOptions)
+      -- Print results synchronously, so as to respect the desired order.
+      traverse_ T.putStr mensen
 
 {- Note [Async]
    ~~~~~~~~~~~~~~~~~~~~~~

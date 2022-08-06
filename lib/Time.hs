@@ -11,12 +11,12 @@
 module Time (
   Date (..),    -- instances: Show
   Month (..),   -- instances: Show, Enum
-  DatePP,       -- type alias: Text
+  DatePP (..),  -- isomorphic to Either
   getDate,      -- :: Date -> IO Day
   ppDate,       -- :: Day -> Date -> DatePP
 ) where
 
-import Data.Time (Day, DayOfWeek, NominalDiffTime, UTCTime (utctDay), addUTCTime, dayOfWeek, fromGregorian, getCurrentTime, nominalDay, toGregorian)
+import Data.Time (Day, DayOfWeek (Saturday, Sunday), NominalDiffTime, UTCTime (utctDay), addUTCTime, dayOfWeek, fromGregorian, getCurrentTime, nominalDay, toGregorian)
 
 
 -- | Type for specifying exactly which day one wants to see the menu for.
@@ -34,7 +34,7 @@ data Date
   deriving stock (Show)
 
 -- | A pretty-printed date.
-type DatePP = Text
+data DatePP = Weekday Text | Weekend Text
 
 -- | Based on a certain weekday, calculate the day.
 -- Consistency assumption: We always want to walk forward in time.
@@ -51,12 +51,12 @@ getDate date = do
     DMYDate (d, mbM, mbY) -> fromGregorian (fromMaybe y mbY) (fromMaybe m mbM) d
      where (y, m, _) = toGregorian curDay
  where
-  -- | Add a specified number of days to a 'UTCTime'.
+  -- Add a specified number of days to a 'UTCTime'.
   addDays :: NominalDiffTime -> UTCTime -> UTCTime
   addDays = addUTCTime . (* nominalDay)
 
-  -- | Some enum hackery.  I don't like this but it's the best I can
-  -- come up with right now.
+  -- Some enum hackery.  I don't like this but it's the best I can come
+  -- up with right now.
   diffBetween :: DayOfWeek -> DayOfWeek -> NominalDiffTime
   diffBetween d d'
     | d == d'   = 7
@@ -64,15 +64,29 @@ getDate date = do
 
 -- | Pretty print a 'Date'.
 ppDate :: Day -> Date -> DatePP
-ppDate day = \case
-  ISODate{} -> mconcat ["On ", tshow day, " (", tshow (dayOfWeek day), ")"]
-  DMYDate{} -> mconcat [ "On ", tshow d
-                       , " "  , tshow (toEnum @Month m)
-                       , " "  , tshow y
-                       , " (" , tshow (dayOfWeek day), ")"
-                       ]
-               where (y, m, d) = toGregorian day
-  otherDate -> tshow otherDate
+ppDate day date = fromMaybe mkDate checkWeekend
+ where
+  mkDate :: DatePP
+  mkDate = Weekday case date of
+    ISODate{} -> mconcat ["On ", tshow day, " (", tshow (dayOfWeek day), ")"]
+    DMYDate{} -> mconcat [ "On ", tshow d
+                         , " "  , tshow (toEnum @Month m)
+                         , " "  , tshow y
+                         , " (" , tshow (dayOfWeek day), ")"
+                         ]
+                 where (y, m, d) = toGregorian day
+    otherDate -> tshow otherDate
+
+  -- Fail if the selected day falls on a weekend, as no canteens are
+  -- open during that time.[1]
+  --
+  -- [1]: https://www.studentenwerk-dresden.de/mensen/speiseplan/
+  checkWeekend :: Maybe DatePP
+  checkWeekend = case dayOfWeek day of
+    Saturday -> Just (Weekend warn)
+    Sunday   -> Just (Weekend warn)
+    _        -> Nothing
+   where warn :: Text = "Go home, it's the weekend."
 
 -- | Arbitrary month.
 data Month

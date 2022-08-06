@@ -15,12 +15,11 @@ module Mensa (
 
   -- * Pretty printing
   Section (..),      -- instances: Eq, Show
-  ppMensen,          -- :: DatePP -> MensaOptions [Mensa] -> [Text]
+  ppMensen,          -- :: Text -> MensaOptions [Mensa] -> [Text]
 ) where
 
 import Meal
 import Prelude hiding (Prefix)
-import Time
 
 import Data.List qualified as List
 import Data.Text qualified as T
@@ -68,16 +67,16 @@ changeCanteen f opts c = f opts{ canteen = c }
 data Prefix = Prefix Text | NoPrefix
 
 -- | Pretty print multiple canteens.
-ppMensen :: DatePP -> MensaOptions [Mensa] -> [Text]
-ppMensen date opts@MensaOptions{ lineWrap, columns, canteen = canteens }
+ppMensen :: Text -> MensaOptions [Mensa] -> [Text]
+ppMensen day opts@MensaOptions{ lineWrap, columns, canteen = canteens }
   = toColumns lineWrap columns
-  . map (ppMensa date `changeCanteen` opts)
+  . map (ppMensa `changeCanteen` opts)
   . filter (not . null . meals)
   $ canteens
  where
   -- Pretty print a single canteen.
-  ppMensa :: DatePP -> MensaOptions Mensa -> [[[Text]]]
-  ppMensa day mopts@MensaOptions{ canteen = Mensa{ name } }
+  ppMensa :: MensaOptions Mensa -> [[[Text]]]
+  ppMensa mopts@MensaOptions{ canteen = Mensa{ name } }
     = [[sep, fill NoPrefix lineWrap (day <> " in: " <> name), sep]]
     : ppMeals mopts
 
