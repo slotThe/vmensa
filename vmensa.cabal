@@ -4,10 +4,10 @@ cabal-version: 2.0
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0e0e67ab51c5af3498b8f42beb302492b12e82cbb6691806e7117c84b73c9b30
+-- hash: 52b8f1ada0fe90080cf858c58f79912f01105bedff4ced480f1c0aca59d88647
 
 name:           vmensa
-version:        0.1.0
+version:        0.2.0
 synopsis:       Query the Stundentenwerk API from inside your terminal!
 homepage:       https://gitlab.com/slotThe/vmensa
 author:         Tony Zorman

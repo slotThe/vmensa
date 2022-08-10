@@ -1,5 +1,5 @@
 name:                vmensa
-version:             0.1.0
+version:             0.2.0
 homepage:            https://gitlab.com/slotThe/vmensa
 synopsis:            Query the Stundentenwerk API from inside your terminal!
 license:             GPL-3
