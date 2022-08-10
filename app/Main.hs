@@ -32,6 +32,16 @@ main = do
   -- Create a new manager for handling network connections.
   manager <- newManager tlsManagerSettings
 
+  -- Check deprecations
+  let deprecated :: Text -> Text -> Text
+      deprecated x y = mconcat
+        [ "\x1b[1;31mWARNING:\x1b[0m "
+        , "\x1b[3m", x, "\x1b[0m is deprecated and will be removed at some point; use "
+        , "\x1b[3m", y, "\x1b[0m instead."
+        ]
+  when ([] /= iKat   mealOptions) $ T.putStrLn (deprecated "--ikat"   "--ignore")
+  when ([] /= iNotes mealOptions) $ T.putStrLn (deprecated "--inotes" "--ignore")
+
   case date of
     Weekend err -> T.putStrLn err  -- Canteens aren't open on the weekend.
     Weekday d   -> do
