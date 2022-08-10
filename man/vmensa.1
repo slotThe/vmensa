@@ -93,8 +93,27 @@ Defaults to
 .I all-day.
 .RE
 
+.BI \-i " str\fR,\fP " \-\-ignore= "str"
+.RS
+Ignore certain words from the "Essen", "Kategorie", or "Notes" sections.
+These are selected via the "name:", "cat:", and "notes:" prefixes,
+respectively.  For example:
+
+    --ignore cat:this,that,these
+    --ignore notes:this,that,these
+    --ignore name:this,that,these
+
+Multiple calls to
+.I --ignore
+are possible, in order to ignore things from more than one section.
+.RE
+
 .BI \-\-ikat= "str"
 .RS
+DEPRECATED: Use
+.I --ignore
+instead.
+
 Ignore anything you want from the "Kategorie" section.  Categories have
 to be written out in full, i.e. to ignore the category "Pasta", one
 would have to write
@@ -103,6 +122,10 @@ would have to write
 
 .BI \-\-inotes= "str"
 .RS
+DEPRECATED: Use
+.I --ignore
+instead.
+
 Ignore anything you want from the "Notes" section.  Notes check for
 partial matches, i.e to ignore everything containing "Soja (F)", one may
 use
