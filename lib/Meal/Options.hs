@@ -13,6 +13,7 @@ module Meal.Options (
   MealOptions (..),
   MealType (..),
   MealTime (..),
+  Ignored (..),
 
   -- * Filter for the given options
   filterOptions, -- :: Options -> Meals -> Meals
@@ -29,7 +30,14 @@ data MealOptions = MealOptions
   , mealTime :: MealTime
   , iKat     :: [Text]    -- ^ *Ignored* categories
   , iNotes   :: [Text]    -- ^ *Ignored* notes
+  , ignored  :: [Ignored] -- ^ Ignored stuff
   }
+
+-- | Stuff one can ignore; i.e., meals the user might not want printed.
+data Ignored
+  = INotes [Text] -- ^ Ignored notes
+  | ICat   [Text] -- ^ Ignored categories
+  | IName  [Text] -- ^ Ignored names
 
 -- | What type of meal are we looking for?
 data MealType
@@ -55,9 +63,10 @@ filterOptions opts = filter availableOpts
 
 -- | All of the options a user picked.
 getAllOpts :: MealOptions -> [Meal -> Bool]
-getAllOpts MealOptions{ mealType, mealTime, iKat, iNotes } =
+getAllOpts MealOptions{ mealType, mealTime, iKat, iNotes, ignored } =
   concat
     [ [notSoldOut, fitsDiet, correctTimeOfDay]
+    , foldMap' ignoreThing ignored
     , map notCategory    iKat
     , map notPartOfNotes iNotes
     ]
@@ -74,10 +83,15 @@ getAllOpts MealOptions{ mealType, mealTime, iKat, iNotes } =
     Dinner -> dinner
     Lunch  -> not . dinner
 
-  notCategory :: Text -> Meal -> Bool
-  notCategory s = (s /=) . category
+  ignoreThing :: Ignored -> [Meal -> Bool]
+  ignoreThing = \case
+    INotes s -> map notPartOfNotes s
+    ICat   s -> map notCategory    s
+    IName  s -> map notName        s
 
-  notPartOfNotes :: Text -> Meal -> Bool
+  notName, notCategory, notPartOfNotes :: Text -> Meal -> Bool
+  notName        s = not . (s `T.isInfixOf`)     . name
+  notCategory    s =       (s /=)                . category
   notPartOfNotes s = not . any (s `T.isInfixOf`) . notes
 
   -- See if meal is vegetarian or there's some sort of vegetarian

@@ -82,6 +82,7 @@ pOptions = do
     mealTime <- pMealTime
     iKat     <- pIKat
     iNotes   <- pINotes
+    ignored  <- many pIgnored
     pure MealOptions{..}
   mensaOptions <- do
     canteen  <- pCanteens
@@ -200,7 +201,8 @@ pIKat :: Parser [Text]
 pIKat = optionA (splitOn sepChars)
    ( long "ikat"
   <> metavar "STR"
-  <> help "Ignore anything you want from the \"Kategorie\" section."
+  <> help "Ignore anything you want from the \"Kategorie\" section.  \
+          \DEPRECATED: Use --ignore instead."
   <> value []
    )
 
@@ -209,9 +211,28 @@ pINotes :: Parser [Text]
 pINotes = optionA (splitOn sepChars)
    ( long "inotes"
   <> metavar "STR"
-  <> help "Ignore anything you want from the \"Notes\" section."
+  <> help "Ignore anything you want from the \"Notes\" section.  \
+          \DEPRECATED: Use --ignore instead."
   <> value []
    )
+
+-- | Filter out things from sections.
+pIgnored :: Parser Ignored
+pIgnored = optionA go
+   ( long "ignore"
+  <> short 'i'
+  <> help "Ignore certain words from a certain section.  \
+          \Currently supported sections are name, notes, and category.  \
+          \For example: `--ignore cat:this,that,these', `--ignore notes:this,that,these', or `--ignore name:this,that,these'.  \
+          \Multiple calls to --ignore are possible."
+   )
+ where
+  go :: AttoParser Ignored
+  go = A.choice
+      [ "notes:" *> (INotes <$> splitOn sepChars)
+      , "cat:"   *> (ICat   <$> splitOn sepChars)
+      , "name:"  *> (IName  <$> splitOn sepChars)
+      ]
 
 {- | Canteens the user wants to be shown the meals of.
 
