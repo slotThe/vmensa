@@ -27,7 +27,7 @@ import Data.Kind (Type)
 import Data.Map.Strict ((!))
 import Data.Time.Calendar (Day, DayOfWeek (Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday), fromGregorian)
 import Options.Applicative (Parser, ParserInfo, ReadM, argument, auto, execParser, footer, fullDesc, header, help, helper, info, infoOption, long, metavar, option, short, str, switch, value)
-import Options.Applicative.Util (AttoParser, aliases, anyOf, anyOfRM, anyOfSkip, attoReadM, showSepChars, splitOn, splitWith)
+import Options.Applicative.CmdLine.Util (AttoParser, aliases, anyOf, anyOfRM, anyOfSkip, attoReadM, optionA, showSepChars, splitOn, splitWith)
 
 
 -- | Execute the Parser.
@@ -197,7 +197,7 @@ pDate = maybe Today toDate <$> optional (some $ argument str (metavar "DAY"))
 
 -- | Ignore a certain category of meals.
 pIKat :: Parser [Text]
-pIKat = option (splitOn sepChars)
+pIKat = optionA (splitOn sepChars)
    ( long "ikat"
   <> metavar "STR"
   <> help "Ignore anything you want from the \"Kategorie\" section."
@@ -206,7 +206,7 @@ pIKat = option (splitOn sepChars)
 
 -- | Filter out meals due to certain ingredients etc.
 pINotes :: Parser [Text]
-pINotes = option (splitOn sepChars)
+pINotes = optionA (splitOn sepChars)
    ( long "inotes"
   <> metavar "STR"
   <> help "Ignore anything you want from the \"Notes\" section."
@@ -220,7 +220,7 @@ the date here.  Hence, we are returning a 'Mensa' that still wants to
 know that information.
 -}
 pCanteens :: Parser [PreMensa]
-pCanteens = option (pCanteen `splitWith` sepChars)
+pCanteens = optionA (pCanteen `splitWith` sepChars)
    ( long "mensen"
   <> short 'm'
   <> metavar "CANTEENS"
@@ -285,7 +285,7 @@ pCanteens = option (pCanteen `splitWith` sepChars)
 
 -- | Sections to be displayed, making sure that no sections appear twice.
 pSections :: Parser [Section]
-pSections = nub <$> option (pSection `splitWith` sepChars)
+pSections = nub <$> optionA (pSection `splitWith` sepChars)
    ( long "sections"
   <> short 's'
   <> metavar "S"
