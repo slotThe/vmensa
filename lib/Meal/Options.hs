@@ -1,7 +1,7 @@
 {- |
    Module      : Meal.Options
    Description : Various functions pertaining filtering meals.
-   Copyright   : (c) Tony Zorman  2020 2021
+   Copyright   : (c) Tony Zorman  2020 2021 2022
    License     : GPL-3
    Maintainer  : tonyzorman@mailbox.org
    Stability   : experimental
@@ -16,7 +16,7 @@ module Meal.Options (
   Ignored (..),
 
   -- * Filter for the given options
-  filterOptions, -- :: Options -> Meals -> Meals
+  filterOptions, -- :: MealOptions -> Meals -> Meals
 ) where
 
 import Meal
@@ -54,22 +54,16 @@ data MealTime
 -- | Filter for the meal options given; ignore anything that's already
 -- sold out.
 filterOptions :: MealOptions -> Meals -> Meals
-filterOptions opts = filter availableOpts
- where
-  -- Every predicate should be satisfied in order for the result to be
-  -- accepted.
-  availableOpts :: Meal -> Bool
-  availableOpts meal = all ($ meal) (getAllOpts opts)
+filterOptions opts = filter (coerce $ availableOpts opts)
 
--- | All of the options a user picked.
-getAllOpts :: MealOptions -> [Meal -> Bool]
-getAllOpts MealOptions{ mealType, mealTime, iKat, iNotes, ignored } =
-  concat
-    [ [notSoldOut, fitsDiet, correctTimeOfDay]
-    , foldMap' ignoreThing ignored
-    , map notCategory    iKat
-    , map notPartOfNotes iNotes
-    ]
+-- | All of the options a user picked.  Every predicate should be
+-- satisfied in order for the result to be accepted.
+availableOpts :: MealOptions -> Predicate Meal
+availableOpts MealOptions{ mealType, mealTime, iKat, iNotes, ignored }
+  =  mconcat (coerce [notSoldOut, fitsDiet, correctTimeOfDay])
+  <> foldMap' ignoreThing    ignored
+  <> foldMap' notCategory    iKat
+  <> foldMap' notPartOfNotes iNotes
  where
   fitsDiet :: Meal -> Bool
   fitsDiet = case mealType of
@@ -83,16 +77,16 @@ getAllOpts MealOptions{ mealType, mealTime, iKat, iNotes, ignored } =
     Dinner -> dinner
     Lunch  -> not . dinner
 
-  ignoreThing :: Ignored -> [Meal -> Bool]
-  ignoreThing = \case
-    INotes s -> map notPartOfNotes s
-    ICat   s -> map notCategory    s
-    IName  s -> map notName        s
+  ignoreThing :: Ignored -> Predicate Meal
+  ignoreThing = uncurry foldMap' . \case
+    INotes s -> (notPartOfNotes, s)
+    ICat   s -> (notCategory,    s)
+    IName  s -> (notName,        s)
 
-  notName, notCategory, notPartOfNotes :: Text -> Meal -> Bool
-  notName        s = not . (s `T.isInfixOf`)     . name
-  notCategory    s =       (s /=)                . category
-  notPartOfNotes s = not . any (s `T.isInfixOf`) . notes
+  notName, notCategory, notPartOfNotes :: Text -> Predicate Meal
+  notName        s = coerce $ not . (s `T.isInfixOf`)     . name
+  notCategory    s = coerce $       (s /=)                . category
+  notPartOfNotes s = coerce $ not . any (s `T.isInfixOf`) . notes
 
   -- See if meal is vegetarian or there's some sort of vegetarian
   -- variant available.
