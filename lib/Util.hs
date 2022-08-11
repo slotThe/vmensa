@@ -1,5 +1,5 @@
 {- |
-   Module      : Prelude
+   Module      : Util
    Description : Custom prelude for the project
    Copyright   : (c) Tony Zorman  2020 2021 2022
    License     : GPL-3
@@ -7,7 +7,7 @@
    Stability   : experimental
    Portability : non-portable
 -}
-module Prelude (
+module Util (
   module BasePrelude,
   Text,
   Map,

@@ -19,7 +19,7 @@ module Mensa (
 ) where
 
 import Meal
-import Prelude hiding (Prefix)
+import Util hiding (Prefix)
 
 import Data.List qualified as List
 import Data.Text qualified as T

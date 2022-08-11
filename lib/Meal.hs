@@ -13,6 +13,8 @@ module Meal (
   Prices (..),    -- instances: FromJSON
 ) where
 
+import Util
+
 import Data.Aeson (FromJSON (parseJSON), Value (Object), (.:))
 import Data.Aeson.Types (Parser)
 

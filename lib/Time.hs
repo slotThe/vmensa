@@ -16,6 +16,8 @@ module Time (
   ppDate,       -- :: Day -> Date -> DatePP
 ) where
 
+import Util
+
 import Data.Time (Day, DayOfWeek (Saturday, Sunday), NominalDiffTime, UTCTime (utctDay), addUTCTime, dayOfWeek, fromGregorian, getCurrentTime, nominalDay, toGregorian)
 
 

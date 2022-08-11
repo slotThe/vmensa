@@ -20,6 +20,7 @@ module Meal.Options (
 ) where
 
 import Meal
+import Util
 
 import Data.Text qualified as T
 

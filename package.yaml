@@ -17,6 +17,7 @@ ghc-options:
   -O2
 
 default-extensions:
+  - NoImplicitPrelude
   - ImportQualifiedPost
   - OverloadedStrings
   - DeriveAnyClass
@@ -38,8 +39,7 @@ library:
   source-dirs: lib
 
 dependencies:
-  - name: base
-    mixin: hiding (Prelude)
+  - base
   - base-prelude
   - containers
   - aeson

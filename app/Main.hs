@@ -14,6 +14,7 @@ import CLI
 import Meal.Options
 import Mensa
 import Time (DatePP (Weekday, Weekend))
+import Util
 
 import Data.Text.IO qualified as T
 

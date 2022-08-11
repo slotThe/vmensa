@@ -14,10 +14,11 @@ module CLI (
   Options (..),
 ) where
 
-import Mensa
-import Time
 import Meal.Options
+import Mensa
 import Paths_vmensa (version)
+import Time
+import Util
 
 import Data.Attoparsec.Text qualified as A
 import Data.Map.Strict      qualified as Map

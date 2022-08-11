@@ -1,10 +1,10 @@
-cabal-version: 2.0
+cabal-version: 1.12
 
 -- This file has been generated from package.yaml by hpack version 0.34.6.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 52b8f1ada0fe90080cf858c58f79912f01105bedff4ced480f1c0aca59d88647
+-- hash: dafb85f8bb788b63be3ef42c71b0245fe8464c615b20308a1bc92c28e9091828
 
 name:           vmensa
 version:        0.2.0
@@ -22,15 +22,14 @@ library
       Meal
       Meal.Options
       Mensa
-      Prelude
       Time
+      Util
   other-modules:
-      Paths_vmensa
-  autogen-modules:
       Paths_vmensa
   hs-source-dirs:
       lib
   default-extensions:
+      NoImplicitPrelude
       ImportQualifiedPost
       OverloadedStrings
       DeriveAnyClass
@@ -61,19 +60,16 @@ library
     , optparse-applicative-util
     , text
     , time >=1.9
-  mixins:
-      base hiding (Prelude)
   default-language: Haskell2010
 
 executable vmensa
   main-is: Main.hs
   other-modules:
       Paths_vmensa
-  autogen-modules:
-      Paths_vmensa
   hs-source-dirs:
       app
   default-extensions:
+      NoImplicitPrelude
       ImportQualifiedPost
       OverloadedStrings
       DeriveAnyClass
@@ -105,6 +101,4 @@ executable vmensa
     , text
     , time >=1.9
     , vmensa
-  mixins:
-      base hiding (Prelude)
   default-language: Haskell2010
