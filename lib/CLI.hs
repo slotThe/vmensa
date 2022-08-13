@@ -83,7 +83,7 @@ pOptions = do
     mealTime <- pMealTime
     iKat     <- pIKat
     iNotes   <- pINotes
-    ignored  <- many pIgnored
+    ignored  <- pIgnored
     pure MealOptions{..}
   mensaOptions <- do
     canteen  <- pCanteens
@@ -218,8 +218,8 @@ pINotes = optionA (splitOn sepChars)
    )
 
 -- | Filter out things from sections.
-pIgnored :: Parser Ignored
-pIgnored = optionA go
+pIgnored :: Parser [Ignored]
+pIgnored = many $ optionA go
    ( long "ignore"
   <> short 'i'
   <> help "Ignore certain words from a certain section.  \
@@ -229,11 +229,10 @@ pIgnored = optionA go
    )
  where
   go :: AttoParser Ignored
-  go = A.choice
-      [ "notes:" *> (INotes <$> splitOn sepChars)
-      , "cat:"   *> (ICat   <$> splitOn sepChars)
-      , "name:"  *> (IName  <$> splitOn sepChars)
-      ]
+  go = parse "notes:" INotes <|> parse "cat:" ICat <|> parse "name:" IName
+
+  parse :: AttoParser Text -> ([Text] -> Ignored) -> AttoParser Ignored
+  parse s d = s *> (d <$> splitOn sepChars)
 
 {- | Canteens the user wants to be shown the meals of.
 
