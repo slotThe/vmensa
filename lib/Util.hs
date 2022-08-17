@@ -13,7 +13,6 @@ module Util (
   Map,
   eitherOf, -- :: (a -> Bool) -> (a -> Bool) -> a -> Bool
   fi,       -- :: (Integral a, Num b) => a -> b
-  wrapWith, -- :: Text -> Int -> Int -> [Text] -> Text
 
   -- * Text!
   unwords,  -- :: [Text] -> Text
@@ -70,47 +69,3 @@ tshow = pack . show
 eitherOf :: (a -> Bool) -> (a -> Bool) -> a -> Bool
 eitherOf x y = x >>= \x' -> if x' then pure True else y
 {-# INLINE eitherOf #-}
-
-{- | Simple (and probably hilariously inefficient) function to wrap text
-at @N@ columns.
-
-NOTE: "Data.Text"s 'Data.Text.length' function is @O(n)@, which may or
-      may not matter here.
--}
-wrapWith
-  :: Text   -- ^ How to concatenate chunks, i.e. the separator
-  -> Int    -- ^ Left alignment
-  -> Int    -- ^ Max line length (wrap)
-  -> [Text] -- ^ Text as chunks that have to stay together
-  -> Text   -- ^ Text with line breaks
-wrapWith separator al wrapAt chunks
-  | wrapAt == 0 = mconcat (intersperse separator chunks)
-  | otherwise   = go "" separator al chunks
- where
-  go :: Text    -- Already processed part of the text
-     -> Text    -- Separator to put between chunks
-     -> Int     -- Counter of the current line length
-     -> [Text]  -- Text as chunks that have to stay together
-     -> Text
-  go !done _   !_   []        = done
-  go !line sep !acc xs@(c:cs)
-    | cLen      >= wrapAt = go goAgain            sep newLen cs
-    | al + cLen >= wrapAt = go (goAgain <> ", ")  sep newLen cs
-    | combLen   >= wrapAt = go (align line)       sep al     xs
-    | otherwise           = go (line <> c <> end) sep newLen cs
-   where
-    goAgain :: Text
-      | List.length (words c) > 1 = go line " " acc (words c)
-      | otherwise                 = let w = (wrapAt - al - 2)
-                                     in go line " " acc [T.take w c <> "-", T.drop w c]
-    cLen    :: Int  = length c
-    combLen :: Int  = acc + cLen            -- Length including the next word
-    newLen  :: Int  = combLen + length end  -- Take separator length into account
-
-    -- Nicely left-align the text after a line-break.  We like pretty
-    -- things.
-    align :: Text -> Text
-    align = (<> "\n" <> T.replicate al " ")
-
-    end :: Text
-    end = if null cs then "" else sep

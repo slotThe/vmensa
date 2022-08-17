@@ -51,6 +51,7 @@ dependencies:
   - optparse-applicative
   - optparse-applicative-cmdline-util
   - attoparsec
+  - cmdline-util
 
 executables:
   vmensa:
@@ -60,7 +61,6 @@ executables:
     ghc-options:
       -threaded
       -with-rtsopts=-N
-# For static build
     #   -static
     # cc-options: -static
     # ld-options: -static -pthread

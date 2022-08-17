@@ -5,3 +5,5 @@ packages:
 
 extra-deps:
   - optparse-applicative-cmdline-util-0.2.0
+  - git: https://gitlab.com/slotThe/cmdline-util
+    commit: c6f305793f4a8c473a2e4a7c5601e6a5f1954abc

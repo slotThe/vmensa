@@ -21,9 +21,9 @@ module Mensa (
 import Meal
 import Util hiding (Prefix)
 
-import Data.List qualified as List
-import Data.Text qualified as T
-
+import CmdLine.Util (wrapText)
+import Data.List    qualified as List
+import Data.Text    qualified as T
 
 -- | 'Mensa' type, all fields are needed and hence all fields are
 -- strict.
@@ -113,7 +113,7 @@ ppMeals MensaOptions{ lineWrap, noAdds, canteen = Mensa{ meals }, sections }
                                        ]
 
     wrapSec :: Text -> Section -> [Text] -> Text
-    wrapSec s sec = wrapWith s (length $ tshow sec) (fi lineWrap)
+    wrapSec s sec = wrapText s (length $ tshow sec) (fi lineWrap)
 
     -- For some reason only the notes are not escaped properly.
     decodeSymbols :: Text -> Text

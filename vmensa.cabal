@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 702e3467fe4d86944cd6f135d4a481f259706f874b6a1f743292c02d7228ccef
+-- hash: 100923347791d3b5a7265b0100667af4cb480f911af6a67f4adca395736f7d36
 
 name:           vmensa
 version:        0.2.0
@@ -53,6 +53,7 @@ library
     , attoparsec
     , base
     , base-prelude
+    , cmdline-util
     , containers
     , http-client
     , http-client-tls
@@ -93,6 +94,7 @@ executable vmensa
     , attoparsec
     , base
     , base-prelude
+    , cmdline-util
     , containers
     , http-client
     , http-client-tls
