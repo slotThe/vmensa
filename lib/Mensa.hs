@@ -68,21 +68,24 @@ data Prefix = Prefix Text | NoPrefix
 
 -- | Pretty print multiple canteens.
 ppMensen :: Text -> MensaOptions [Mensa] -> [Text]
-ppMensen day opts@MensaOptions{ lineWrap, columns, canteen = canteens }
-  = toColumns lineWrap columns
+ppMensen day opts@MensaOptions{ lineWrap = lw, columns, canteen = canteens }
+  = toColumns lw columns
   . map (ppMensa `changeCanteen` opts)
   . filter (not . null . meals)
   $ canteens
  where
   -- Pretty print a single canteen.
   ppMensa :: MensaOptions Mensa -> [[[Text]]]
-  ppMensa mopts@MensaOptions{ canteen = Mensa{ name } }
-    = [[sep, fill NoPrefix lineWrap (day <> " in: " <> name), sep]]
-    : ppMeals mopts
+  ppMensa mopts@MensaOptions{ canteen = Mensa{ name } } =
+    let fullName  = day <> " in: " <> name
+        shortName = if   fi lw < length fullName
+                    then T.take (fi lw - 2) fullName <> "…"
+                    else fullName
+     in [[sep, fill NoPrefix lw shortName, sep]] : ppMeals mopts
 
   -- Separator for visual separation of different canteens.
   sep :: Text
-  sep = T.replicate (if lineWrap > 0 then fi lineWrap else 79) "="
+  sep = T.replicate (if lw > 0 then fi lw else 79) "="
 
 -- | Pretty print only the things I'm interested in.
 ppMeals :: MensaOptions Mensa -> [[[Text]]]
