@@ -28,7 +28,6 @@ import BasePrelude hiding (length, option, unwords, words)
 import Data.Map.Strict (Map)
 import Data.Text (Text)
 
-import Data.List qualified as List
 import Data.Text qualified as T
 
 fi :: (Integral a, Num b) => a -> b
