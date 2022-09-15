@@ -13,6 +13,7 @@ module Main (main) where
 import CLI
 import Meal.Options
 import Mensa
+import Mensa.PP
 import Time (DatePP (Weekday, Weekend))
 import Util
 

@@ -9,6 +9,7 @@
 -}
 module Util (
   module BasePrelude,
+  Type,
   Text,
   Map,
   eitherOf, -- :: (a -> Bool) -> (a -> Bool) -> a -> Bool
@@ -25,6 +26,7 @@ module Util (
 ) where
 
 import BasePrelude hiding (length, option, unwords, words)
+import Data.Kind (Type)
 import Data.Map.Strict (Map)
 import Data.Text (Text)
 

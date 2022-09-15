@@ -10,12 +10,13 @@
    Portability : non-portable
 -}
 module CLI (
-  execOptionParser, -- :: IO (Options Mensa DatePP)
+  execOptionParser, -- :: IO (Options [Mensa 'NoMeals] DatePP)
   Options (..),
 ) where
 
 import Meal.Options
 import Mensa
+import Mensa.PP
 import Paths_vmensa (version)
 import Time
 import Util
@@ -24,7 +25,6 @@ import Data.Attoparsec.Text qualified as A
 import Data.Map.Strict      qualified as Map
 
 import Data.Attoparsec.Text ((<?>))
-import Data.Kind (Type)
 import Data.Map.Strict ((!))
 import Data.Time.Calendar (Day, DayOfWeek (Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday), fromGregorian)
 import Options.Applicative (Parser, ParserInfo, ReadM, argument, auto, execParser, footer, fullDesc, header, help, helper, info, infoOption, long, metavar, option, short, str, switch, value)

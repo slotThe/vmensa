@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 7827258293d7a67f51edc120ab42c880424b52f0a6c716b6b7be39ccea0be106
+-- hash: 53fc323001559edfd7c786adb19dc1f64abecd6b594fb36e3bdd0e62d1ed4c00
 
 name:           vmensa
 version:        0.2.0
@@ -22,6 +22,7 @@ library
       Meal
       Meal.Options
       Mensa
+      Mensa.PP
       Time
       Util
   other-modules:
