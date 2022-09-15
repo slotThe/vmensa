@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 100923347791d3b5a7265b0100667af4cb480f911af6a67f4adca395736f7d36
+-- hash: 7827258293d7a67f51edc120ab42c880424b52f0a6c716b6b7be39ccea0be106
 
 name:           vmensa
 version:        0.2.0
@@ -46,6 +46,9 @@ library
       StrictData
       StandaloneKindSignatures
       ViewPatterns
+      DataKinds
+      GADTs
+      KindSignatures
   ghc-options: -Weverything -Wno-implicit-prelude -Wno-missing-import-lists -Wno-unused-packages -Wno-missing-safe-haskell-mode -Wno-all-missed-specialisations -Wno-unsafe -O2
   build-depends:
       aeson
@@ -87,6 +90,9 @@ executable vmensa
       StrictData
       StandaloneKindSignatures
       ViewPatterns
+      DataKinds
+      GADTs
+      KindSignatures
   ghc-options: -Weverything -Wno-implicit-prelude -Wno-missing-import-lists -Wno-unused-packages -Wno-missing-safe-haskell-mode -Wno-all-missed-specialisations -Wno-unsafe -O2 -threaded -with-rtsopts=-N
   build-depends:
       aeson

@@ -10,28 +10,70 @@
 module Mensa (
   -- * Types for 'Mensa' and its meals.
   Mensa (..),
+  MensaState (..),
   MensaOptions (..),
-  changeCanteen,     -- :: (MensaOptions c -> a) -> MensaOptions _c -> c -> a
+
+  -- * Combinators
+  addDate,           -- :: Text -> Mensa 'Incomplete -> Mensa 'NoMeals
+  addMeals,          -- :: Meals -> Mensa 'NoMeals -> Mensa 'Complete
+  mkIncompleteMensa, -- :: Text -> (Text -> Text) -> Mensa 'Incomplete
+  url,               -- :: Mensa a -> Maybe Text
 
   -- * Pretty printing
   Section (..),      -- instances: Eq, Show
-  ppMensen,          -- :: Text -> MensaOptions [Mensa] -> [Text]
+  ppMensen,          -- :: Text -> MensaOptions [Mensa 'Complete] -> [Text]
 ) where
 
 import Meal
 import Util hiding (Prefix)
 
 import CmdLine.Util (wrapText)
+import Data.Kind    (Type)
 import Data.List    qualified as List
 import Data.Text    qualified as T
 
 -- | 'Mensa' type, all fields are needed and hence all fields are
 -- strict.
-data Mensa = Mensa
-  { name  :: Text
-  , url   :: Text
-  , meals :: Meals
-  }
+type Mensa :: MensaState -> Type
+data Mensa (m :: MensaState) where
+  IncompleteMensa :: MensaData 'Incomplete -> Mensa 'Incomplete
+  NoMealsMensa    :: MensaData 'NoMeals    -> Mensa 'NoMeals
+  CompleteMensa   :: MensaData 'Complete   -> Mensa 'Complete
+
+type MensaData :: MensaState -> Type
+data MensaData (state :: MensaState) where
+  IncompleteData :: Text -> (Text -> Text) -> ()    -> MensaData 'Incomplete
+  NoMealsData    :: Text -> Text           -> ()    -> MensaData 'NoMeals
+  CompleteData   :: Text -> Text           -> Meals -> MensaData 'Complete
+
+addDate :: Text -> Mensa 'Incomplete -> Mensa 'NoMeals
+addDate date (IncompleteMensa (IncompleteData n f ())) =
+  NoMealsMensa (NoMealsData n (f date) ())
+
+addMeals :: Meals -> Mensa 'NoMeals -> Mensa 'Complete
+addMeals ms (NoMealsMensa (NoMealsData n u ())) =
+  CompleteMensa (CompleteData n u ms)
+
+mkIncompleteMensa :: Text -> (Text -> Text) -> Mensa 'Incomplete
+mkIncompleteMensa name urlNoDate =
+  IncompleteMensa (IncompleteData name urlNoDate ())
+
+meals :: Mensa 'Complete -> Meals
+meals (CompleteMensa (CompleteData _ _ m)) = m
+
+url :: Mensa a -> Maybe Text
+url = \case
+  IncompleteMensa IncompleteData{}     -> Nothing
+  NoMealsMensa    (NoMealsData  _ u _) -> Just u
+  CompleteMensa   (CompleteData _ u _) -> Just u
+
+mensaName :: Mensa a -> Text
+mensaName = \case
+  IncompleteMensa (IncompleteData n _ _) -> n
+  NoMealsMensa    (NoMealsData    n _ _) -> n
+  CompleteMensa   (CompleteData   n _ _) -> n
+
+data MensaState = Complete | Incomplete | NoMeals
 
 -- | Section of the JSON output we would like to print.
 data Section
@@ -59,25 +101,21 @@ data MensaOptions mensa = MensaOptions
   , columns   :: Natural   -- ^ Print the meals in an n-column layout
   }
 
--- | Change the 'canteen' field in @opts@ to @c@.
-changeCanteen :: (MensaOptions c -> a) -> MensaOptions _c -> c -> a
-changeCanteen f opts c = f opts{ canteen = c }
-
 -- | A possible prefix that will be style with ANSI escape codes.
 data Prefix = Prefix Text | NoPrefix
 
 -- | Pretty print multiple canteens.
-ppMensen :: Text -> MensaOptions [Mensa] -> [Text]
+ppMensen :: Text -> MensaOptions [Mensa 'Complete] -> [Text]
 ppMensen day opts@MensaOptions{ lineWrap = lw, columns, canteen = canteens }
   = toColumns lw columns
-  . map (ppMensa `changeCanteen` opts)
+  . map (\m -> ppMensa opts{ canteen = m })
   . filter (not . null . meals)
   $ canteens
  where
   -- Pretty print a single canteen.
-  ppMensa :: MensaOptions Mensa -> [[[Text]]]
-  ppMensa mopts@MensaOptions{ canteen = Mensa{ name } } =
-    let fullName  = day <> " in: " <> name
+  ppMensa :: MensaOptions (Mensa 'Complete) -> [[[Text]]]
+  ppMensa mopts@(MensaOptions{ canteen }) =
+    let fullName  = day <> " in: " <> mensaName canteen
         shortName = if   fi lw < length fullName
                     then T.take (fi lw - 2) fullName <> "…"
                     else fullName
@@ -88,9 +126,9 @@ ppMensen day opts@MensaOptions{ lineWrap = lw, columns, canteen = canteens }
   sep = T.replicate (if lw > 0 then fi lw else 79) "="
 
 -- | Pretty print only the things I'm interested in.
-ppMeals :: MensaOptions Mensa -> [[[Text]]]
-ppMeals MensaOptions{ lineWrap, noAdds, canteen = Mensa{ meals }, sections }
-  = map (\meal -> map (ppSection meal) sections) meals
+ppMeals :: MensaOptions (Mensa 'Complete) -> [[[Text]]]
+ppMeals (MensaOptions{ lineWrap, noAdds, sections, canteen })
+  = map (\meal -> map (ppSection meal) sections) (meals canteen)
  where
   -- Pretty print a single section of a 'Meal'.  If the associated
   -- flavour text is empty then ignore the section.

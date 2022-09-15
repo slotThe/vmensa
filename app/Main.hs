@@ -47,8 +47,9 @@ main = do
     Weekend err -> T.putStrLn err  -- Canteens aren't open on the weekend.
     Weekday d   -> do
       -- See Note [Async]
-      mensen <- (ppMensen d `changeCanteen` mensaOptions) <$>
-        mapConcurrently (getMensa manager mealOptions) (canteen mensaOptions)
+      mensen <- (\m -> ppMensen d (mensaOptions{ canteen = m }) )
+              . catMaybes
+            <$> mapConcurrently (getMensa manager mealOptions) (canteen mensaOptions)
       -- Print results synchronously, so as to respect the desired order.
       traverse_ T.putStr mensen
 
@@ -65,12 +66,12 @@ small (even trying to show __everything__ there is would only be around
 -}
 
 -- | Fetch all meals of a certain canteen and process them.
-getMensa :: Manager -> MealOptions -> Mensa -> IO Mensa
-getMensa manager opts mensa@Mensa{ url } =
-  catch do req <- parseUrlThrow (unpack url)
-           maybe mensa
-                 (\ms -> mensa{ meals = filterOptions opts ms })
-                 . decode' . responseBody <$> httpLbs req manager
-                 -- Strict decoding as we eventually check all fields.
-        -- If any error occurs, just return the (empty) input 'Mensa'.
-        \(_ :: SomeException) -> pure mensa
+getMensa :: Manager -> MealOptions -> Mensa 'NoMeals -> IO (Maybe (Mensa 'Complete))
+getMensa manager opts mensa =
+  catch do -- Safe because a @Mensa 'NoMeals@ has a URL.
+           Just req <- traverse (parseUrlThrow . unpack)
+                                (url (mensa :: Mensa 'NoMeals))
+           resp     <- httpLbs req manager
+           pure . fmap (\ms -> addMeals (filterOptions opts ms) mensa)
+                $ decode' (responseBody resp)
+        \(_ :: SomeException) -> pure Nothing

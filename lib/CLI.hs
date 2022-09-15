@@ -32,30 +32,26 @@ import Options.Applicative.CmdLine.Util (AttoParser, aliases, anyOf, anyOfRM, an
 
 
 -- | Execute the Parser.
-execOptionParser :: IO (Options Mensa DatePP)
+execOptionParser :: IO (Options [Mensa 'NoMeals] DatePP)
 execOptionParser = do
   opts@Options{ date, mensaOptions } <- execParser options
   iso <- getDate date
   pure $ opts { date = ppDate iso date
               , mensaOptions = mensaOptions
-                  { canteen = map (`mkMensa` tshow iso) (canteen mensaOptions) }
+                  { canteen = addDate (tshow iso) <$> canteen mensaOptions }
               }
 
 -- | Global canteen options.  These will double as command line options.
 type Options :: Type -> Type -> Type
 data Options mensa date = Options
   { mealOptions  :: MealOptions
-  , mensaOptions :: MensaOptions [mensa]
+  , mensaOptions :: MensaOptions mensa
   , date         :: date  -- ^ Access date
   }
 
--- | A 'PreMensa' is just a 'Mensa' that's still waiting for a date;
--- this date will be used to generate the correct URL.
-newtype PreMensa = PreMensa { mkMensa :: Text -> Mensa }
-
 -- | Create an info type from the canteen options, adding help text and
 -- other nice features.
-options :: ParserInfo (Options PreMensa Date)
+options :: ParserInfo (Options [Mensa 'Incomplete] Date)
 options = info
   (helper <*> versionOpt <*> pOptions)
   (  header "vmensa: Query the Stundentenwerk API from inside your terminal!"
@@ -76,7 +72,7 @@ options = info
      )
 
 -- | Parse all command line options.
-pOptions :: Parser (Options PreMensa Date)
+pOptions :: Parser (Options [Mensa 'Incomplete] Date)
 pOptions = do
   mealOptions <- do
     mealType <- pMealType
@@ -240,7 +236,7 @@ As command-line argument parsing is a local process, we still don't know
 the date here.  Hence, we are returning a 'Mensa' that still wants to
 know that information.
 -}
-pCanteens :: Parser [PreMensa]
+pCanteens :: Parser [Mensa 'Incomplete]
 pCanteens = optionA (pCanteen `splitWith` sepChars)
    ( long "mensen"
   <> short 'm'
@@ -254,14 +250,14 @@ pCanteens = optionA (pCanteen `splitWith` sepChars)
                              ])
    )
  where
-  pCanteen :: AttoParser PreMensa
+  pCanteen :: AttoParser (Mensa 'Incomplete)
   pCanteen = mkEmptyMensa . second mensaURL
          <$> A.choice (mkParser <$> Map.keys canteens)
           <* A.skipWhile (`notElem` sepChars)
 
   -- Construct an empty (i.e. no food to serve) 'Mensa'.
-  mkEmptyMensa :: (Text, Text -> Text) -> PreMensa
-  mkEmptyMensa (name, urlNoDate) = PreMensa \d -> Mensa name (urlNoDate d) []
+  mkEmptyMensa :: (Text, Text -> Text) -> Mensa 'Incomplete
+  mkEmptyMensa = uncurry mkIncompleteMensa
 
   mkParser :: Int -> AttoParser (Text, Int)
   mkParser k = (name, k) <$ aliases als
