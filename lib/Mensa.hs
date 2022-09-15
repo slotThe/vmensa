@@ -46,6 +46,10 @@ data Mensa state where
   NoMealsMensa    :: Text -> Text           -> ()    -> Mensa 'NoMeals
   CompleteMensa   :: Text -> Text           -> Meals -> Mensa 'Complete
 
+-- | Generate a mensa that still needs a date and meals.
+mkIncompleteMensa :: Text -> (Text -> Text) -> Mensa 'Incomplete
+mkIncompleteMensa name urlNoDate = IncompleteMensa name urlNoDate ()
+
 -- | Add a missing date to a canteen.
 addDate :: Text -> Mensa 'Incomplete -> Mensa 'NoMeals
 addDate date (IncompleteMensa n f ()) = NoMealsMensa n (f date) ()
@@ -54,24 +58,19 @@ addDate date (IncompleteMensa n f ()) = NoMealsMensa n (f date) ()
 addMeals :: Meals -> Mensa 'NoMeals -> Mensa 'Complete
 addMeals ms (NoMealsMensa n u ()) = CompleteMensa n u ms
 
--- | Generate a mensa that still needs a date and meals.
-mkIncompleteMensa :: Text -> (Text -> Text) -> Mensa 'Incomplete
-mkIncompleteMensa name urlNoDate = IncompleteMensa name urlNoDate ()
-
--- | Extract the meals out of a canteen.
-meals :: Mensa 'Complete -> Meals
-meals (CompleteMensa _ _ m) = m
-
--- | Try to get a finished URL for a canteen.
-url :: Mensa a -> Maybe Text
-url = \case
-  IncompleteMensa{}   -> Nothing
-  NoMealsMensa  _ u _ -> Just u
-  CompleteMensa _ u _ -> Just u
-
 -- | Get the name of a canteen.
 mensaName :: Mensa a -> Text
 mensaName = \case
   IncompleteMensa n _ _ -> n
   NoMealsMensa    n _ _ -> n
   CompleteMensa   n _ _ -> n
+
+-- | Get a finished URL for a canteen.
+url :: Either (Mensa 'NoMeals) (Mensa 'Complete) -> Text
+url = \case
+  Left  (NoMealsMensa  _ u _) -> u
+  Right (CompleteMensa _ u _) -> u
+
+-- | Extract the meals out of a canteen.
+meals :: Mensa 'Complete -> Meals
+meals (CompleteMensa _ _ m) = m

@@ -69,10 +69,8 @@ small (even trying to show __everything__ there is would only be around
 -- | Fetch all meals of a certain canteen and process them.
 getMensa :: Manager -> MealOptions -> Mensa 'NoMeals -> IO (Maybe (Mensa 'Complete))
 getMensa manager opts mensa =
-  catch do -- Safe because a @Mensa 'NoMeals@ has a URL.
-           Just req <- traverse (parseUrlThrow . unpack)
-                                (url (mensa :: Mensa 'NoMeals))
-           resp     <- httpLbs req manager
+  catch do req  <- parseUrlThrow . unpack . url $ Left mensa
+           resp <- httpLbs req manager
            pure . fmap (\ms -> addMeals (filterOptions opts ms) mensa)
                 $ decode' (responseBody resp)
         \(_ :: SomeException) -> pure Nothing
