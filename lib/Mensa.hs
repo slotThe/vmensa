@@ -34,39 +34,45 @@ import Data.Text    qualified as T
 
 -- | 'Mensa' type, all fields are needed and hence all fields are
 -- strict.
+-- | A canteen.
 type Mensa :: MensaState -> Type
-data Mensa (m :: MensaState) where
-  IncompleteMensa :: MensaData 'Incomplete -> Mensa 'Incomplete
-  NoMealsMensa    :: MensaData 'NoMeals    -> Mensa 'NoMeals
-  CompleteMensa   :: MensaData 'Complete   -> Mensa 'Complete
+data Mensa state where
+  -- | An /incomplete/ canteen: still missing a date on which to query
+  -- meals, as well as available meals.
+  IncompleteMensa :: Text -> (Text -> Text) -> ()    -> Mensa 'Incomplete
 
-type MensaData :: MensaState -> Type
-data MensaData (state :: MensaState) where
-  IncompleteData :: Text -> (Text -> Text) -> ()    -> MensaData 'Incomplete
-  NoMealsData    :: Text -> Text           -> ()    -> MensaData 'NoMeals
-  CompleteData   :: Text -> Text           -> Meals -> MensaData 'Complete
+  -- | A canteen with /no meals/: knows when to query for meals but has
+  -- not done that yet.
+  NoMealsMensa    :: Text -> Text           -> ()    -> Mensa 'NoMeals
 
+  -- | A /complete/ canteen: has a list of meals that it serves on the
+  -- given date.
+  CompleteMensa   :: Text -> Text           -> Meals -> Mensa 'Complete
+
+-- | Add a missing date to a canteen.
 addDate :: Text -> Mensa 'Incomplete -> Mensa 'NoMeals
-addDate date (IncompleteMensa (IncompleteData n f ())) =
-  NoMealsMensa (NoMealsData n (f date) ())
+addDate date (IncompleteMensa n f ()) = NoMealsMensa n (f date) ()
 
+-- | Add meals to a canteen.
 addMeals :: Meals -> Mensa 'NoMeals -> Mensa 'Complete
-addMeals ms (NoMealsMensa (NoMealsData n u ())) =
-  CompleteMensa (CompleteData n u ms)
+addMeals ms (NoMealsMensa n u ()) = CompleteMensa n u ms
 
+-- | Generate a mensa that still needs a date and meals.
 mkIncompleteMensa :: Text -> (Text -> Text) -> Mensa 'Incomplete
-mkIncompleteMensa name urlNoDate =
-  IncompleteMensa (IncompleteData name urlNoDate ())
+mkIncompleteMensa name urlNoDate = IncompleteMensa name urlNoDate ()
 
+-- | Extract the meals out of a canteen.
 meals :: Mensa 'Complete -> Meals
-meals (CompleteMensa (CompleteData _ _ m)) = m
+meals (CompleteMensa _ _ m) = m
 
+-- | Try to get a finished URL for a canteen.
 url :: Mensa a -> Maybe Text
 url = \case
-  IncompleteMensa IncompleteData{}     -> Nothing
-  NoMealsMensa    (NoMealsData  _ u _) -> Just u
-  CompleteMensa   (CompleteData _ u _) -> Just u
+  IncompleteMensa{}   -> Nothing
+  NoMealsMensa  _ u _ -> Just u
+  CompleteMensa _ u _ -> Just u
 
+-- | Get the name of a canteen.
 mensaName :: Mensa a -> Text
 mensaName = \case
   IncompleteMensa (IncompleteData n _ _) -> n
@@ -220,3 +226,6 @@ toColumns (fi -> lw) (fi -> cols) ms
   mkEven :: a -> [[a]] -> [[a]]
   mkEven def xs = map (\lst -> lst <> replicate (n - List.length lst) def) xs
    where n = maximum (map List.length xs)
+  IncompleteMensa n _ _ -> n
+  NoMealsMensa    n _ _ -> n
+  CompleteMensa   n _ _ -> n
