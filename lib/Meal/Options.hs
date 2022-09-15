@@ -110,4 +110,4 @@ availableOpts MealOptions{ mealType, mealTime, iKat, iNotes, ignored }
   inNotes s = (s `elem`) . notes
 
   inName :: Text -> Meal -> Bool
-  inName s = (s `T.isInfixOf`) . name
+  inName s = (s `T.isInfixOf`) . T.toLower . name
