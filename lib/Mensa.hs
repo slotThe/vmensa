@@ -42,33 +42,33 @@ data MensaState where
 -- | A canteen.
 type Mensa :: MensaState -> Type
 data Mensa state where
-  IncompleteMensa :: Text -> (Text -> Text) -> ()    -> Mensa 'Incomplete
-  NoMealsMensa    :: Text -> Text           -> ()    -> Mensa 'NoMeals
+  IncompleteMensa :: Text -> (Text -> Text)          -> Mensa 'Incomplete
+  NoMealsMensa    :: Text -> Text                    -> Mensa 'NoMeals
   CompleteMensa   :: Text -> Text           -> Meals -> Mensa 'Complete
 
 -- | Generate a mensa that still needs a date and meals.
 mkIncompleteMensa :: Text -> (Text -> Text) -> Mensa 'Incomplete
-mkIncompleteMensa name urlNoDate = IncompleteMensa name urlNoDate ()
+mkIncompleteMensa name urlNoDate = IncompleteMensa name urlNoDate
 
 -- | Add a missing date to a canteen.
 addDate :: Text -> Mensa 'Incomplete -> Mensa 'NoMeals
-addDate date (IncompleteMensa n f ()) = NoMealsMensa n (f date) ()
+addDate date (IncompleteMensa n f) = NoMealsMensa n (f date)
 
 -- | Add meals to a canteen.
 addMeals :: Meals -> Mensa 'NoMeals -> Mensa 'Complete
-addMeals ms (NoMealsMensa n u ()) = CompleteMensa n u ms
+addMeals ms (NoMealsMensa n u) = CompleteMensa n u ms
 
 -- | Get the name of a canteen.
 mensaName :: Mensa a -> Text
 mensaName = \case
-  IncompleteMensa n _ _ -> n
-  NoMealsMensa    n _ _ -> n
+  IncompleteMensa n _   -> n
+  NoMealsMensa    n _   -> n
   CompleteMensa   n _ _ -> n
 
 -- | Get a finished URL for a canteen.
 url :: Either (Mensa 'NoMeals) (Mensa 'Complete) -> Text
 url = \case
-  Left  (NoMealsMensa  _ u _) -> u
+  Left  (NoMealsMensa  _ u  ) -> u
   Right (CompleteMensa _ u _) -> u
 
 -- | Extract the meals out of a canteen.
