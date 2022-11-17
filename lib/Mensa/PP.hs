@@ -22,6 +22,7 @@ import Data.List    qualified as List
 import Data.Text    qualified as T
 
 -- | Section of the JSON output we would like to print.
+type Section :: Type
 data Section
   = Name
   | Notes
@@ -49,6 +50,7 @@ data MensaOptions mensa = MensaOptions
   }
 
 -- | A possible prefix that will be style with ANSI escape codes.
+type Prefix :: Type
 data Prefix = Prefix Text | NoPrefix
 
 -- | Pretty print multiple canteens.

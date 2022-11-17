@@ -21,6 +21,7 @@ import Data.Aeson.Types (Parser)
 
 -- | Type for a single meal.  Note that we are only specifying the
 -- contents of the JSON that we will actually use.
+type Meal :: Type
 data Meal = Meal
   { name     :: Text
   , notes    :: [Text]
@@ -31,10 +32,12 @@ data Meal = Meal
   deriving anyclass (FromJSON)
 
 -- | A canteen serves food!
+type Meals :: Type
 type Meals = [Meal]
 
 -- | All the different price types.  Note again that we are only
 -- specifying the contents of the JSON that we will actually use.
+type Prices :: Type
 data Prices
   = Prices { student :: Double, employee :: Double }
   | SoldOut

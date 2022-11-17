@@ -22,6 +22,7 @@ import Data.Time (Day, DayOfWeek (Saturday, Sunday), NominalDiffTime, UTCTime (u
 
 
 -- | Type for specifying exactly which day one wants to see the menu for.
+type Date :: Type
 data Date
   = Today
   | Tomorrow
@@ -36,6 +37,7 @@ data Date
   deriving stock (Show)
 
 -- | A pretty-printed date.
+type DatePP :: Type
 data DatePP = Weekday Text | Weekend Text
 
 -- | Based on a certain weekday, calculate the day.
@@ -91,6 +93,7 @@ ppDate day date = fromMaybe mkDate checkWeekend
    where warn :: Text = "Go home, it's the weekend."
 
 -- | Arbitrary month.
+type Month :: Type
 data Month
   = January
   | February

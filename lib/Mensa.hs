@@ -28,6 +28,7 @@ import Util hiding (Prefix)
 
 
 -- | All of the states a canteen can be in.
+type MensaState :: Type
 data MensaState where
   -- | An /incomplete/ canteen: still missing a date on which to query
   -- meals, as well as available meals.

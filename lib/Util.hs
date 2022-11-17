@@ -25,7 +25,7 @@ module Util (
   replace,  -- :: Text -> Text -> Text -> Text
 ) where
 
-import BasePrelude hiding (length, option, unwords, words)
+import BasePrelude hiding (length, unwords, words)
 import Data.Kind (Type)
 import Data.Map.Strict (Map)
 import Data.Text (Text)

@@ -26,6 +26,7 @@ import Data.Text qualified as T
 
 
 -- | Options for filtering meals.
+type MealOptions :: Type
 data MealOptions = MealOptions
   { mealType :: MealType
   , mealTime :: MealTime
@@ -35,18 +36,21 @@ data MealOptions = MealOptions
   }
 
 -- | Stuff one can ignore; i.e., meals the user might not want printed.
+type Ignored :: Type
 data Ignored
   = INotes [Text] -- ^ Ignored notes
   | ICat   [Text] -- ^ Ignored categories
   | IName  [Text] -- ^ Ignored names
 
 -- | What type of meal are we looking for?
+type MealType :: Type
 data MealType
   = AllMeals
   | Vegetarian
   | Vegan
 
 -- | Which time of day should the meal happen at?
+type MealTime :: Type
 data MealTime
   = Dinner
   | Lunch
