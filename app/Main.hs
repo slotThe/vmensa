@@ -48,7 +48,7 @@ main = do
     Weekend err -> T.putStrLn err  -- Canteens aren't open on the weekend.
     Weekday d   -> do
       -- See Note [Async]
-      mensen <- (\m -> ppMensen d (mensaOptions{ canteen = m }) )
+      mensen <- (\m -> ppMensen d (mensaOptions{ canteen = m }))
               . catMaybes
             <$> mapConcurrently (getMensa manager mealOptions) (canteen mensaOptions)
       -- Print results synchronously, so as to respect the desired order.

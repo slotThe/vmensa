@@ -65,7 +65,7 @@ ppMensen day opts@MensaOptions{ lineWrap = lw, columns, canteen = canteens }
   ppMensa :: MensaOptions (Mensa 'Complete) -> [[[Text]]]
   ppMensa mopts@(MensaOptions{ canteen }) =
     let fullName  = day <> " in: " <> mensaName canteen
-        shortName = if   fi lw < length fullName
+        shortName = if   lw > 0 && fi lw < length fullName
                     then T.take (fi lw - 2) fullName <> "…"
                     else fullName
      in [[sep, fill NoPrefix lw shortName, sep]] : ppMeals mopts
