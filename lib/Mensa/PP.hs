@@ -144,11 +144,11 @@ fill pfx (fi -> lw) str =
   style s = "\x1b[33m" <> s <> "\x1b[0m"
 
 toColumns :: Natural -> Natural -> [[[[Text]]]] -> [Text]
-toColumns (fi -> lw) (fi -> cols) ms
-  = map (T.unlines . map (mconcat . map T.unlines)) go
+toColumns (fi -> lw) (fi -> cols) ms =
+  map (T.unlines . map (mconcat . map T.unlines)) go
  where
   go :: [[[[Text]]]]  -- lol
-  go | cols <= 1 = ms
+  go | lw == 0 || cols <= 1 = ms
      | otherwise =
          map                                                -- canteens
            (map                                             -- meals

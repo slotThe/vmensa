@@ -35,14 +35,21 @@ main = do
   manager <- newManager tlsManagerSettings
 
   -- Check deprecations
-  let deprecated :: Text -> Text -> Text
+  let warning :: Text
+      warning = "\x1b[1;31mWARNING:\x1b[0m "
+      deprecated :: Text -> Text -> Text
       deprecated x y = mconcat
-        [ "\x1b[1;31mWARNING:\x1b[0m "
+        [ warning
         , "\x1b[3m", x, "\x1b[0m is deprecated and will be removed at some point; use "
         , "\x1b[3m", y, "\x1b[0m instead."
         ]
   when ([] /= iKat   mealOptions) $ T.putStrLn (deprecated "--ikat"   "--ignore")
   when ([] /= iNotes mealOptions) $ T.putStrLn (deprecated "--inotes" "--ignore")
+
+  -- Incompatibilities
+  when (lineWrap mensaOptions == 0 && columns mensaOptions > 1) $
+    T.putStrLn $ warning <> "Multiple columns need a specified line-wrap.\
+                            \Defaulting to a single column…"
 
   case date of
     Weekend err -> T.putStrLn err  -- Canteens aren't open on the weekend.
