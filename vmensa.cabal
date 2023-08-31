@@ -7,7 +7,7 @@ cabal-version: 1.12
 -- hash: 53fc323001559edfd7c786adb19dc1f64abecd6b594fb36e3bdd0e62d1ed4c00
 
 name:           vmensa
-version:        0.2.0
+version:        0.2.1
 synopsis:       Query the Stundentenwerk API from inside your terminal!
 homepage:       https://gitlab.com/slotThe/vmensa
 author:         Tony Zorman
