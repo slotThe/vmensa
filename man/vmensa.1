@@ -22,7 +22,7 @@ for that)!
 
 Note that the "v" in
 .I vmensa
-stands for "vegetarian" and thusly only those meal options (plus the
+stands for "vegan" and thusly only those meal options (plus the
 vegan ones) will be displayed by default.  To make the program fit your
 specific diet, see
 .I OPTIONS.
@@ -55,7 +55,7 @@ l l l .
 .TE
 
 Defaults to
-.I vegetarian.
+.I vegan.
 .RE
 
 .BI \-w " n\fR,\fP " \-\-wrap= "n"
@@ -272,14 +272,14 @@ Query tomorrows lunch menu, wrapping the text at 80 characters:
 .I vmensa --time lunch --wrap 80 tomorrow
 .RE
 
-Query next Wednesday's vegan dinner menu, wrapping the text at 60
+Query next Wednesday's vegetarian dinner menu, wrapping the text at 60
 characters:
 
 .RS
-.I vmensa -d v -t d -w 60 w
+.I vmensa -d vegetarian -t d -w 60 w
 .RE
 
-Query today's vegetarian menu, ignoring pasta, as well as anything
+Query today's menu, ignoring pasta, as well as anything
 containing eggs and soy:
 
 .RS

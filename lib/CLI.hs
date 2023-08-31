@@ -97,8 +97,8 @@ pMealType = option pDiet
   <> short 'd'
   <> metavar "D"
   <> help "Which kinds of meals (all-meals | vegetarian | vegan) to \
-          \display.  Defaults to vegetarian."
-  <> value Vegetarian
+          \display.  Defaults to vegan."
+  <> value Vegan
    )
  where
   -- Parse user input into a proper 'MealTime'.
