@@ -30,8 +30,6 @@ type MealOptions :: Type
 data MealOptions = MealOptions
   { mealType :: MealType
   , mealTime :: MealTime
-  , iKat     :: [Text]    -- ^ *Ignored* categories
-  , iNotes   :: [Text]    -- ^ *Ignored* notes
   , ignored  :: [Ignored] -- ^ Ignored stuff
   }
 
@@ -64,11 +62,9 @@ filterOptions opts = filter (coerce $ availableOpts opts)
 -- | All of the options a user picked.  Every predicate should be
 -- satisfied in order for the result to be accepted.
 availableOpts :: MealOptions -> Predicate Meal
-availableOpts MealOptions{ mealType, mealTime, iKat, iNotes, ignored }
+availableOpts MealOptions{ mealType, mealTime, ignored }
   =  mconcat (coerce [notSoldOut, fitsDiet, correctTimeOfDay])
-  <> foldMap' ignoreThing    ignored
-  <> foldMap' notCategory    iKat
-  <> foldMap' notPartOfNotes iNotes
+  <> foldMap' ignoreThing ignored
  where
   fitsDiet :: Meal -> Bool
   fitsDiet = case mealType of

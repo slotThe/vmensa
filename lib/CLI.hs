@@ -35,21 +35,11 @@ import Options.Applicative.CmdLine.Util (AttoParser, aliases, anyOf, anyOfRM, an
 -- | Execute the Parser.
 execOptionParser :: IO (Options [Mensa 'NoMeals] DatePP)
 execOptionParser = do
-  opts@Options{ date, mensaOptions, mealOptions } <- execParser options
-
-  -- Check deprecations
-  let warning :: Text
-      warning = "\x1b[1;31mWARNING:\x1b[0m "
-      deprecated :: Text -> Text -> Text
-      deprecated x y = mconcat
-        [ warning
-        , "\x1b[3m", x, "\x1b[0m is deprecated and will be removed at some point; use "
-        , "\x1b[3m", y, "\x1b[0m instead."
-        ]
-  when ([] /= iKat   mealOptions) $ T.putStrLn (deprecated "--ikat"   "--ignore")
-  when ([] /= iNotes mealOptions) $ T.putStrLn (deprecated "--inotes" "--ignore")
+  opts@Options{ date, mensaOptions } <- execParser options
 
   -- Incompatibilities
+  let warning :: Text
+      warning = "\x1b[1;31mWARNING:\x1b[0m "
   cs <- if lineWrap mensaOptions == 0 && columns mensaOptions > 1
         then 1 <$ T.putStrLn (warning <> "Multiple columns need a specified line-wrap. \
                                          \Defaulting to a single column…")
@@ -99,8 +89,6 @@ pOptions = do
   mealOptions <- do
     mealType <- pMealType
     mealTime <- pMealTime
-    iKat     <- pIKat
-    iNotes   <- pINotes
     ignored  <- pIgnored
     pure MealOptions{..}
   mensaOptions <- do
@@ -214,26 +202,6 @@ pDate = maybe Today toDate <$> optional (some $ argument str (metavar "DAY"))
                , (December , ["d"]         )
                ])
          <*> optional (A.space *> A.decimal)
-
--- | Ignore a certain category of meals.
-pIKat :: Parser [Text]
-pIKat = optionA (splitOn sepChars)
-   ( long "ikat"
-  <> metavar "STR"
-  <> help "Ignore anything you want from the \"Kategorie\" section.  \
-          \DEPRECATED: Use --ignore instead."
-  <> value []
-   )
-
--- | Filter out meals due to certain ingredients etc.
-pINotes :: Parser [Text]
-pINotes = optionA (splitOn sepChars)
-   ( long "inotes"
-  <> metavar "STR"
-  <> help "Ignore anything you want from the \"Notes\" section.  \
-          \DEPRECATED: Use --ignore instead."
-  <> value []
-   )
 
 -- | Filter out things from sections.
 pIgnored :: Parser [Ignored]
