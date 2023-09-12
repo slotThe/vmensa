@@ -23,6 +23,7 @@ import Util
 
 import Data.Attoparsec.Text qualified as A
 import Data.Map.Strict      qualified as Map
+import Data.Text.IO         qualified as T
 
 import Data.Attoparsec.Text ((<?>))
 import Data.Map.Strict ((!))
@@ -34,11 +35,32 @@ import Options.Applicative.CmdLine.Util (AttoParser, aliases, anyOf, anyOfRM, an
 -- | Execute the Parser.
 execOptionParser :: IO (Options [Mensa 'NoMeals] DatePP)
 execOptionParser = do
-  opts@Options{ date, mensaOptions } <- execParser options
+  opts@Options{ date, mensaOptions, mealOptions } <- execParser options
+
+  -- Check deprecations
+  let warning :: Text
+      warning = "\x1b[1;31mWARNING:\x1b[0m "
+      deprecated :: Text -> Text -> Text
+      deprecated x y = mconcat
+        [ warning
+        , "\x1b[3m", x, "\x1b[0m is deprecated and will be removed at some point; use "
+        , "\x1b[3m", y, "\x1b[0m instead."
+        ]
+  when ([] /= iKat   mealOptions) $ T.putStrLn (deprecated "--ikat"   "--ignore")
+  when ([] /= iNotes mealOptions) $ T.putStrLn (deprecated "--inotes" "--ignore")
+
+  -- Incompatibilities
+  cs <- if lineWrap mensaOptions == 0 && columns mensaOptions > 1
+        then 1 <$ T.putStrLn (warning <> "Multiple columns need a specified line-wrap. \
+                                         \Defaulting to a single column…")
+        else pure $ columns mensaOptions
+
   iso <- getDate date
   pure $ opts { date = ppDate iso date
               , mensaOptions = mensaOptions
-                  { canteen = addDate (tshow iso) <$> canteen mensaOptions }
+                  { columns = cs
+                  , canteen = addDate (tshow iso) <$> canteen mensaOptions
+                  }
               }
 
 -- | Global canteen options.  These will double as command line options.
