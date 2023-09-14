@@ -1,13 +1,13 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.6.
+-- This file has been generated from package.yaml by hpack version 0.35.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 53fc323001559edfd7c786adb19dc1f64abecd6b594fb36e3bdd0e62d1ed4c00
+-- hash: 76e6af743f5e14e1fb045ddea2901af6ebb5b8a7c4a43c1d9ad9f5cd5177b4e9
 
 name:           vmensa
-version:        0.2.1
+version:        0.3.0
 synopsis:       Query the Stundentenwerk API from inside your terminal!
 homepage:       https://gitlab.com/slotThe/vmensa
 author:         Tony Zorman
