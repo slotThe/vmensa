@@ -10,7 +10,7 @@
 module Meal (
   Meal (..),      -- instances: Generic, FromJSON
   Meals,          -- types alias: [Meal]
-  Prices (..),    -- instances: FromJSON
+  Prices (..),    -- instance FromJSON (Maybe Price)
 ) where
 
 import Util
@@ -25,7 +25,7 @@ type Meal :: Type
 data Meal = Meal
   { name     :: Text
   , notes    :: [Text]
-  , prices   :: Prices
+  , prices   :: Maybe Prices
   , category :: Text
   }
   deriving stock    (Generic)
@@ -38,14 +38,11 @@ type Meals = [Meal]
 -- | All the different price types.  Note again that we are only
 -- specifying the contents of the JSON that we will actually use.
 type Prices :: Type
-data Prices
-  = Prices { student :: Double, employee :: Double }
-  | SoldOut
+data Prices = Prices { student :: Double, employee :: Double }
 
--- | Manually derive 'FromJSON' instance due to dumb field names.
 instance FromJSON Prices where
   parseJSON :: Value -> Parser Prices
   parseJSON = \case
     Object v -> Prices <$> (v .: "Studierende" <|> v .: "Preis 1")
                        <*> (v .: "Bedienstete" <|> v .: "Preis 2")
-    _        -> pure SoldOut
+    _ -> error "Prices.FromJSON: not a price"

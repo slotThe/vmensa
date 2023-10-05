@@ -82,25 +82,24 @@ ppMeals (MensaOptions{ lineWrap, noAdds, sections, canteen })
   -- Pretty print a single section of a 'Meal'.  If the associated
   -- flavour text is empty then ignore the section.
   ppSection :: Meal -> Section -> [Text]
-  ppSection Meal{ category, name, notes, prices } section
-    | T.null flavourText = []
-    | otherwise          = styleFirst (tshow section) (T.lines flavourText)
+  ppSection Meal{ category, name, notes, prices } section =
+    maybe [] (styleFirst (tshow section) . T.lines) flavourText
    where
-    flavourText :: Text
+    flavourText :: Maybe Text
     flavourText = case section of
-      Name     -> wrapName
+      Name     -> Just wrapName
       Price    -> wrapPrices
-      Notes    -> decodeSymbols wrapNotes
-      Category -> category
+      Notes    -> Just (decodeSymbols wrapNotes)
+      Category -> Just category
 
-    wrapName, wrapNotes, wrapPrices :: Text
+    wrapName, wrapNotes :: Text
     wrapName   = wrapSec " "  Name  (words $ ignoreAdditives name)
     wrapNotes  = wrapSec ", " Notes (map ignoreAdditives notes)
-    wrapPrices = case prices of
-      SoldOut    -> ""           -- will be filtered out later
-      Prices s e -> wrapSec ", " Price [ "Studierende: " <> tshow s <> "€"
-                                       , "Bedienstete: " <> tshow e <> "€"
-                                       ]
+    wrapPrices :: Maybe Text
+    wrapPrices = prices <&> \(Prices s e) ->
+      wrapSec ", " Price [ "Studierende: " <> tshow s <> "€"
+                         , "Bedienstete: " <> tshow e <> "€"
+                         ]
 
     wrapSec :: Text -> Section -> [Text] -> Text
     wrapSec s sec = wrapText s (length $ tshow sec) (fi lineWrap)

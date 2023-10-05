@@ -102,9 +102,7 @@ availableOpts MealOptions{ mealType, mealTime, ignored }
   dinner = ("Abendangebot" `T.isInfixOf`) . category
 
   notSoldOut :: Meal -> Bool
-  notSoldOut = prices >>> \case
-    SoldOut -> False
-    _       -> True
+  notSoldOut = isJust . prices
 
   inNotes :: Text -> Meal -> Bool
   inNotes s = (s `elem`) . notes
