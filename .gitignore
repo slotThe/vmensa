@@ -3,3 +3,4 @@ Setup.hs
 stack.yaml.lock
 .hie
 dist-newstyle
+.direnv
