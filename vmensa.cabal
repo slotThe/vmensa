@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.35.2.
+-- This file has been generated from package.yaml by hpack version 0.36.1.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 76e6af743f5e14e1fb045ddea2901af6ebb5b8a7c4a43c1d9ad9f5cd5177b4e9
+-- hash: bc20dc2b326f581b18e5c51098d12ad754cdf81a980b8ab77b32e1aa95bcbc68
 
 name:           vmensa
 version:        0.3.0
@@ -23,6 +23,7 @@ library
       Meal.Options
       Mensa
       Mensa.PP
+      OpeningTimes
       Time
       Util
   other-modules:
@@ -50,15 +51,19 @@ library
       DataKinds
       GADTs
       KindSignatures
-  ghc-options: -Weverything -Wno-implicit-prelude -Wno-missing-import-lists -Wno-unused-packages -Wno-missing-safe-haskell-mode -Wno-all-missed-specialisations -Wno-unsafe -O2
+      FlexibleInstances
+  ghc-options: -Weverything -Wno-implicit-prelude -Wno-missing-import-lists -Wno-unused-packages -Wno-missing-safe-haskell-mode -Wno-all-missed-specialisations -Wno-unsafe -Wno-name-shadowing -O2
   build-depends:
       aeson
     , async
     , attoparsec
     , base
     , base-prelude
+    , bytestring
     , cmdline-util
     , containers
+    , html-parse
+    , html-parse-util
     , http-client
     , http-client-tls
     , optparse-applicative
@@ -94,15 +99,19 @@ executable vmensa
       DataKinds
       GADTs
       KindSignatures
-  ghc-options: -Weverything -Wno-implicit-prelude -Wno-missing-import-lists -Wno-unused-packages -Wno-missing-safe-haskell-mode -Wno-all-missed-specialisations -Wno-unsafe -O2 -threaded -with-rtsopts=-N
+      FlexibleInstances
+  ghc-options: -Weverything -Wno-implicit-prelude -Wno-missing-import-lists -Wno-unused-packages -Wno-missing-safe-haskell-mode -Wno-all-missed-specialisations -Wno-unsafe -Wno-name-shadowing -O2 -threaded -with-rtsopts=-N
   build-depends:
       aeson
     , async
     , attoparsec
     , base
     , base-prelude
+    , bytestring
     , cmdline-util
     , containers
+    , html-parse
+    , html-parse-util
     , http-client
     , http-client-tls
     , optparse-applicative

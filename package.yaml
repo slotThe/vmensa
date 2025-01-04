@@ -14,6 +14,7 @@ ghc-options:
   -Wno-missing-safe-haskell-mode
   -Wno-all-missed-specialisations
   -Wno-unsafe
+  -Wno-name-shadowing
   -O2
 
 default-extensions:
@@ -56,6 +57,9 @@ dependencies:
   - optparse-applicative-cmdline-util
   - attoparsec
   - cmdline-util
+  - html-parse
+  - html-parse-util
+  - bytestring
 
 executables:
   vmensa:

@@ -3,14 +3,15 @@
 {- |
    Module      : CLI
    Description : Command line interface for the application.
-   Copyright   : (c) Tony Zorman  2020 2021 2022
+   Copyright   : (c) Tony Zorman  2020 2021 2022 2025
    License     : GPL-3
    Maintainer  : tonyzorman@mailbox.org
    Stability   : experimental
    Portability : non-portable
 -}
 module CLI (
-  execOptionParser, -- :: IO (Options [Mensa 'NoMeals] DatePP)
+  execOptionParser,
+  Mode(..),
   Options (..),
 ) where
 
@@ -28,30 +29,35 @@ import Data.Text.IO         qualified as T
 import Data.Attoparsec.Text ((<?>))
 import Data.Map.Strict ((!))
 import Data.Time.Calendar (Day, DayOfWeek (Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday), fromGregorian)
-import Options.Applicative (Parser, ParserInfo, ReadM, argument, auto, execParser, footer, fullDesc, header, help, helper, info, infoOption, long, metavar, option, short, str, switch, value)
+import Options.Applicative (Parser, ParserInfo, ReadM, argument, auto, execParser, footer, fullDesc, header, help, helper, info, infoOption, long, metavar, option, short, str, switch, value, subparser, command)
 import Options.Applicative.CmdLine.Util (AttoParser, aliases, anyOf, anyOfRM, anyOfSkip, attoReadM, optionA, showSepChars, splitOn, splitWith)
 
+type Mode :: MensaState -> Type -> Type
+data Mode mensa date = OpeningTimes | Food (Options [Mensa mensa] date)
 
 -- | Execute the Parser.
-execOptionParser :: IO (Options [Mensa 'NoMeals] DatePP)
-execOptionParser = do
-  opts@Options{ date, mensaOptions } <- execParser options
-
-  -- Incompatibilities
-  let warning :: Text
-      warning = "\x1b[1;31mWARNING:\x1b[0m "
-  cs <- if lineWrap mensaOptions == 0 && columns mensaOptions > 1
-        then 1 <$ T.putStrLn (warning <> "Multiple columns need a specified line-wrap. \
-                                         \Defaulting to a single column…")
-        else pure $ columns mensaOptions
-
-  iso <- getDate date
-  pure $ opts { date = ppDate iso date
-              , mensaOptions = mensaOptions
-                  { columns = cs
-                  , canteen = addDate (tshow iso) <$> canteen mensaOptions
-                  }
-              }
+execOptionParser :: IO (Mode 'NoMeals DatePP)
+execOptionParser = execParser options >>= \case
+  -- We pattern match on this here, and then again in main; this is a bit
+  -- awkward, but the idea is that we do the IO bits of the parsing here, and
+  -- in main we actually do things *with* the parsed data.
+  OpeningTimes -> pure OpeningTimes
+  Food opts@Options{ date, mensaOptions } -> do
+    -- Incompatibilities
+    let warning :: Text
+        warning = "\x1b[1;31mWARNING:\x1b[0m "
+    cs <- if lineWrap mensaOptions == 0 && columns mensaOptions > 1
+          then 1 <$ T.putStrLn (warning <> "Multiple columns need a specified line-wrap. \
+                                           \Defaulting to a single column…")
+          else pure $ columns mensaOptions
+    iso <- getDate date
+    pure . Food $
+      opts { date = ppDate iso date
+           , mensaOptions = mensaOptions
+               { columns = cs
+               , canteen = addDate (tshow iso) <$> canteen mensaOptions
+               }
+           }
 
 -- | Global canteen options.  These will double as command line options.
 type Options :: Type -> Type -> Type
@@ -63,9 +69,9 @@ data Options mensa date = Options
 
 -- | Create an info type from the canteen options, adding help text and
 -- other nice features.
-options :: ParserInfo (Options [Mensa 'Incomplete] Date)
+options :: ParserInfo (Mode 'Incomplete Date)
 options = info
-  (helper <*> versionOpt <*> pOptions)
+  (helper <*> versionOpt <*> pMode)
   (  header "vmensa: Query the Stundentenwerk API from inside your terminal!"
   <> footer ("In accordance to POSIX standards, options really only take a \
             \single argument.  For options where it's intuitive to specify \
@@ -84,22 +90,28 @@ options = info
      )
 
 -- | Parse all command line options.
-pOptions :: Parser (Options [Mensa 'Incomplete] Date)
-pOptions = do
-  mealOptions <- do
-    mealType <- pMealType
-    mealTime <- pMealTime
-    ignored  <- pIgnored
-    pure MealOptions{..}
-  mensaOptions <- do
-    canteen  <- pCanteens
-    sections <- pSections
-    noAdds   <- pNoAdds
-    lineWrap <- pLineWrap
-    columns  <- pColumns
-    pure MensaOptions{..}
-  date     <- pDate
-  pure Options{..}
+pMode :: Parser (Mode 'Incomplete Date)
+pMode = A.choice
+  [ subparser (command "opening-times" (info (pure OpeningTimes) mempty))
+  , Food <$> pOptions
+  ]
+ where
+  pOptions :: Parser (Options [Mensa 'Incomplete] Date)
+  pOptions = do
+    mealOptions <- do
+      mealType <- pMealType
+      mealTime <- pMealTime
+      ignored  <- pIgnored
+      pure MealOptions{..}
+    mensaOptions <- do
+      canteen  <- pCanteens
+      sections <- pSections
+      noAdds   <- pNoAdds
+      lineWrap <- pLineWrap
+      columns  <- pColumns
+      pure MensaOptions{..}
+    date     <- pDate
+    pure Options{..}
 
 pMealType :: Parser MealType
 pMealType = option pDiet
