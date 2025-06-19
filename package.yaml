@@ -6,6 +6,8 @@ license:             GPL-3
 author:              Tony Zorman
 maintainer:          tonyzorman@mailbox.org
 
+extra-doc-files: man/*.1
+
 ghc-options:
   -Weverything
   -Wno-implicit-prelude

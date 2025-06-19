@@ -1,10 +1,10 @@
-cabal-version: 1.12
+cabal-version: 1.18
 
 -- This file has been generated from package.yaml by hpack version 0.36.1.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: bc20dc2b326f581b18e5c51098d12ad754cdf81a980b8ab77b32e1aa95bcbc68
+-- hash: 5236e4e26ac1201b1f90f3c48fc74a992f2ab9be8bba7887b23921826c7e3ba2
 
 name:           vmensa
 version:        0.3.0
@@ -15,6 +15,8 @@ maintainer:     tonyzorman@mailbox.org
 license:        GPL-3
 license-file:   LICENSE
 build-type:     Simple
+extra-doc-files:
+    man/vmensa.1
 
 library
   exposed-modules:
