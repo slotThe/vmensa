@@ -17,6 +17,8 @@ ghc-options:
   -Wno-all-missed-specialisations
   -Wno-unsafe
   -Wno-name-shadowing
+  -Wno-missing-role-annotations
+  -Wno-x-partial
   -O2
 
 default-extensions:
@@ -41,6 +43,7 @@ default-extensions:
   - GADTs
   - KindSignatures
   - FlexibleInstances
+  - RecordWildCards
 
 library:
   source-dirs: lib
@@ -62,6 +65,8 @@ dependencies:
   - html-parse
   - html-parse-util
   - bytestring
+  - scalpel
+  - tagsoup
 
 executables:
   vmensa:
