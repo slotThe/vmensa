@@ -1,7 +1,7 @@
 {- |
    Module      : Meal
    Description : Everything meals
-   Copyright   : (c) Tony Zorman, 2021
+   Copyright   : (c) Tony Zorman, 2021 2025
    License     : GPL-3
    Maintainer  : Tony Zorman <tonyzorman@mailbox.org>
    Stability   : experimental
@@ -28,7 +28,7 @@ data Meal = Meal
   , prices   :: Maybe Prices
   , category :: Text
   }
-  deriving stock    (Generic)
+  deriving stock    (Generic, Show)
   deriving anyclass (FromJSON)
 
 -- | A canteen serves food!
@@ -39,6 +39,7 @@ type Meals = [Meal]
 -- specifying the contents of the JSON that we will actually use.
 type Prices :: Type
 data Prices = Prices { student :: Double, employee :: Double }
+  deriving stock (Show)
 
 instance FromJSON Prices where
   parseJSON :: Value -> Parser Prices
