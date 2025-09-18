@@ -1,7 +1,7 @@
 {- |
    Module      : Meal.Options
    Description : Various functions pertaining filtering meals.
-   Copyright   : (c) Tony Zorman  2020 2021 2022
+   Copyright   : (c) Tony Zorman  2020 2021 2022 2025
    License     : GPL-3
    Maintainer  : tonyzorman@mailbox.org
    Stability   : experimental
@@ -92,11 +92,11 @@ availableOpts MealOptions{ mealType, mealTime, ignored }
   -- See if meal is vegetarian or there's some sort of vegetarian
   -- variant available.
   vegetarian :: Meal -> Bool
-  vegetarian = eitherOf (inNotes "Menü ist vegetarisch") (inName "vegetarisch")
+  vegetarian = eitherOf (inNotes "vegetarisch") (inName "vegetarisch")
 
   -- See if meal is vegan or there's some vegetarian variant available.
   vegan :: Meal -> Bool
-  vegan = eitherOf (inNotes "Menü ist vegan") (inName "vegan")
+  vegan = eitherOf (inNotes "vegan") (inName "vegan")
 
   dinner :: Meal -> Bool
   dinner = ("Abendangebot" `T.isInfixOf`) . category
@@ -105,7 +105,7 @@ availableOpts MealOptions{ mealType, mealTime, ignored }
   notSoldOut = isJust . prices
 
   inNotes :: Text -> Meal -> Bool
-  inNotes s = (s `elem`) . notes
+  inNotes s = any ((s `T.isInfixOf`) . T.toLower) . notes
 
   inName :: Text -> Meal -> Bool
   inName s = (s `T.isInfixOf`) . T.toLower . name
