@@ -1,7 +1,7 @@
 {- |
    Module      : Util
    Description : Custom prelude for the project
-   Copyright   : (c) Tony Zorman  2020 2021 2022
+   Copyright   : (c) Tony Zorman  2020 2021 2022 2025
    License     : GPL-3
    Maintainer  : tonyzorman@mailbox.org
    Stability   : experimental
@@ -14,6 +14,7 @@ module Util (
   Map,
   eitherOf, -- :: (a -> Bool) -> (a -> Bool) -> a -> Bool
   fi,       -- :: (Integral a, Num b) => a -> b
+  snd3,     -- :: (a, b, c) -> b
 
   -- * Text!
   unwords,  -- :: [Text] -> Text
@@ -70,3 +71,7 @@ tshow = pack . show
 eitherOf :: (a -> Bool) -> (a -> Bool) -> a -> Bool
 eitherOf x y = x >>= \x' -> if x' then pure True else y
 {-# INLINE eitherOf #-}
+
+snd3 :: (a, b, c) -> b
+snd3 (_, b, _) = b
+{-# INLINE snd3 #-}
