@@ -28,7 +28,7 @@ parse tags mensaId = concat . fromMaybe [[]] . flip scrape tags $
     chroots (_class "menue-tile") do
       name <- stext $ _class "singlemeal__headline"
       (notes, prices) <- chroot (_class "singlemeal") do
-        notes <- chroots (_class "singlemeal__icontooltip") do
+        notes <- fmap adjustNotes . chroots (_class "singlemeal__icontooltip") $
           T.takeWhile (/= '<') . T.drop (length "<b>") . T.strip <$> attr "title" anySelector
         prices <- do -- XXX trust; could also visit the sibling node instead.
           raw <- stexts (select "dlist » singlemeal__info » singlemeal__info--semibold")
@@ -39,6 +39,11 @@ parse tags mensaId = concat . fromMaybe [[]] . flip scrape tags $
           pure $ Just Prices{..}
         pure (notes, prices)
       pure Meal{..}
+ where
+  adjustNotes :: [Text] -> [Text]
+  adjustNotes ns
+    | "Vegan" `elem` ns = filter (not . ("laktose" `T.isInfixOf`) . T.toLower) ns
+    | otherwise    = ns
 
 _class :: String -> Selector
 _class cl = AnyTag @: [hasClass cl]
