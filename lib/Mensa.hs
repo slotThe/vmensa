@@ -1,7 +1,7 @@
 {- |
    Module      : Mensa
    Description : The representation for a generic canteen
-   Copyright   : (c) Tony Zorman  2019 2020 2021 2022
+   Copyright   : (c) Tony Zorman  2019 2020 2021 2022 2025
    License     : GPL-3
    Maintainer  : tonyzorman@mailbox.org
    Stability   : experimental
@@ -11,21 +11,23 @@ module Mensa (
   -- * Types for 'Mensa' and its meals.
   Mensa,             -- abstract
   MensaState (..),
+  Loc (..),
+  LocMensa (..), UhhMensa, TudMensa,
 
   -- * Transformations
-  mkIncompleteMensa, -- :: Text -> (Text -> Text) -> Mensa 'Incomplete
-  addDate,           -- :: Text -> Mensa 'Incomplete -> Mensa 'NoMeals
-  addMeals,          -- :: Meals -> Mensa 'NoMeals -> Mensa 'Complete
+  mkIncompleteMensa,
+  addDate,
+  addMeals,
+  locToMensa,
 
   -- * Getters
-  mensaName,         -- :: Mensa a -> Text
-  url,               -- :: Mensa a -> Maybe Text
-  meals,             -- :: Mensa 'Complete -> Meals
+  mensaName,
+  url,
+  meals,
 ) where
 
 import Meal
 import Util hiding (Prefix)
-
 
 -- | All of the states a canteen can be in.
 type MensaState :: Type
@@ -49,7 +51,7 @@ data Mensa state where
 
 -- | Generate a mensa that still needs a date and meals.
 mkIncompleteMensa :: Text -> (Text -> Text) -> Mensa 'Incomplete
-mkIncompleteMensa name urlNoDate = IncompleteMensa name urlNoDate
+mkIncompleteMensa = IncompleteMensa
 
 -- | Add a missing date to a canteen.
 addDate :: Text -> Mensa 'Incomplete -> Mensa 'NoMeals
@@ -75,3 +77,26 @@ url = \case
 -- | Extract the meals out of a canteen.
 meals :: Mensa 'Complete -> Meals
 meals (CompleteMensa _ _ m) = m
+
+-- | A location for a canteen.
+type Loc :: Type
+data Loc = DD | HH
+  deriving stock (Eq)
+
+-- | A canteen with some extra location data.
+type LocMensa :: MensaState -> Loc -> Type
+data LocMensa s l where
+  TudMensa :: Mensa s        -> LocMensa s 'DD
+  UhhMensa :: Mensa s -> Int -> LocMensa s 'HH
+
+type TudMensa :: MensaState -> Type
+type TudMensa s = LocMensa s 'DD
+
+type UhhMensa :: MensaState -> Type
+type UhhMensa s = LocMensa s 'HH
+
+-- | Forget the location of a canteen.
+locToMensa :: LocMensa s l -> Mensa s
+locToMensa = \case
+  TudMensa m   -> m
+  UhhMensa m _ -> m

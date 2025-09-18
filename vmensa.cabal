@@ -1,10 +1,10 @@
 cabal-version: 1.18
 
--- This file has been generated from package.yaml by hpack version 0.36.1.
+-- This file has been generated from package.yaml by hpack version 0.37.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5236e4e26ac1201b1f90f3c48fc74a992f2ab9be8bba7887b23921826c7e3ba2
+-- hash: 17c5416155b9dac3779a3439e472a367e0720ff218b63af7b923e86b79ba70d1
 
 name:           vmensa
 version:        0.3.0
@@ -26,6 +26,7 @@ library
       Mensa
       Mensa.PP
       OpeningTimes
+      Parser.Uhh
       Time
       Util
   other-modules:
@@ -54,7 +55,8 @@ library
       GADTs
       KindSignatures
       FlexibleInstances
-  ghc-options: -Weverything -Wno-implicit-prelude -Wno-missing-import-lists -Wno-unused-packages -Wno-missing-safe-haskell-mode -Wno-all-missed-specialisations -Wno-unsafe -Wno-name-shadowing -O2
+      RecordWildCards
+  ghc-options: -Weverything -Wno-implicit-prelude -Wno-missing-import-lists -Wno-unused-packages -Wno-missing-safe-haskell-mode -Wno-all-missed-specialisations -Wno-unsafe -Wno-name-shadowing -Wno-missing-role-annotations -Wno-x-partial -O2
   build-depends:
       aeson
     , async
@@ -70,6 +72,8 @@ library
     , http-client-tls
     , optparse-applicative
     , optparse-applicative-cmdline-util
+    , scalpel
+    , tagsoup
     , text
     , time >=1.9
   default-language: Haskell2010
@@ -102,7 +106,8 @@ executable vmensa
       GADTs
       KindSignatures
       FlexibleInstances
-  ghc-options: -Weverything -Wno-implicit-prelude -Wno-missing-import-lists -Wno-unused-packages -Wno-missing-safe-haskell-mode -Wno-all-missed-specialisations -Wno-unsafe -Wno-name-shadowing -O2 -threaded -with-rtsopts=-N
+      RecordWildCards
+  ghc-options: -Weverything -Wno-implicit-prelude -Wno-missing-import-lists -Wno-unused-packages -Wno-missing-safe-haskell-mode -Wno-all-missed-specialisations -Wno-unsafe -Wno-name-shadowing -Wno-missing-role-annotations -Wno-x-partial -O2 -threaded -with-rtsopts=-N
   build-depends:
       aeson
     , async
@@ -118,6 +123,8 @@ executable vmensa
     , http-client-tls
     , optparse-applicative
     , optparse-applicative-cmdline-util
+    , scalpel
+    , tagsoup
     , text
     , time >=1.9
     , vmensa

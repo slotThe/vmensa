@@ -1,5 +1,4 @@
-{-# LANGUAGE ApplicativeDo   #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ApplicativeDo #-}
 {- |
    Module      : CLI
    Description : Command line interface for the application.
@@ -32,11 +31,11 @@ import Data.Time.Calendar (Day, DayOfWeek (Friday, Monday, Saturday, Sunday, Thu
 import Options.Applicative (Parser, ParserInfo, ReadM, argument, auto, execParser, footer, fullDesc, header, help, helper, info, infoOption, long, metavar, option, short, str, switch, value, subparser, command)
 import Options.Applicative.CmdLine.Util (AttoParser, aliases, anyOf, anyOfRM, anyOfSkip, attoReadM, optionA, showSepChars, splitOn, splitWith)
 
-type Mode :: MensaState -> Type -> Type
-data Mode mensa date = OpeningTimes | Food (Options [Mensa mensa] date)
+type Mode :: Type -> Type -> Type
+data Mode mensen date = OpeningTimes | Food (Options mensen date)
 
 -- | Execute the Parser.
-execOptionParser :: IO (Mode 'NoMeals DatePP)
+execOptionParser :: IO (Mode ([TudMensa 'NoMeals], [UhhMensa 'NoMeals]) DatePP)
 execOptionParser = execParser options >>= \case
   -- We pattern match on this here, and then again in main; this is a bit
   -- awkward, but the idea is that we do the IO bits of the parsing here, and
@@ -55,7 +54,13 @@ execOptionParser = execParser options >>= \case
       opts { date = ppDate iso date
            , mensaOptions = mensaOptions
                { columns = cs
-               , canteen = addDate (tshow iso) <$> canteen mensaOptions
+               , canteen =
+                   let cans = map (\(m, l, k) -> (addDate (tshow iso) m, l, k))
+                                  (canteen mensaOptions)
+                       (dd, hh) = partition ((DD ==) . snd3) cans
+                   in ( map (\(m, _, _) -> TudMensa m  ) dd
+                      , map (\(m, _, k) -> UhhMensa m k) hh
+                      )
                }
            }
 
@@ -69,7 +74,7 @@ data Options mensa date = Options
 
 -- | Create an info type from the canteen options, adding help text and
 -- other nice features.
-options :: ParserInfo (Mode 'Incomplete Date)
+options :: ParserInfo (Mode [(Mensa 'Incomplete, Loc, Int)] Date)
 options = info
   (helper <*> versionOpt <*> pMode)
   (  header "vmensa: Query the Stundentenwerk API from inside your terminal!"
@@ -90,13 +95,13 @@ options = info
      )
 
 -- | Parse all command line options.
-pMode :: Parser (Mode 'Incomplete Date)
+pMode :: Parser (Mode [(Mensa 'Incomplete, Loc, Int)] Date)
 pMode = A.choice
   [ subparser (command "opening-times" (info (pure OpeningTimes) mempty))
   , Food <$> pOptions
   ]
  where
-  pOptions :: Parser (Options [Mensa 'Incomplete] Date)
+  pOptions :: Parser (Options [(Mensa 'Incomplete, Loc, Int)] Date)
   pOptions = do
     mealOptions <- do
       mealType <- pMealType
@@ -238,65 +243,89 @@ As command-line argument parsing is a local process, we still don't know
 the date here.  Hence, we are returning a 'Mensa' that still wants to
 know that information.
 -}
-pCanteens :: Parser [Mensa 'Incomplete]
+pCanteens :: Parser [(Mensa 'Incomplete, Loc, Int)]
 pCanteens = optionA (pCanteen `splitWith` sepChars)
    ( long "mensen"
   <> short 'm'
   <> metavar "CANTEENS"
   <> help "Specify the canteens that you want to show.  \
           \Default: Alte,Zeltschlösschen,U-Boot,Siedepunkt."
-  <> value (mkEmptyMensa <$> [ (fst (canteens ! 4 ), mensaURL 4 )
-                             , (fst (canteens ! 35), mensaURL 35)
-                             , (fst (canteens ! 29), mensaURL 29)
-                             , (fst (canteens ! 9 ), mensaURL 9 )
-                             ])
+  <> value (mkEmptyMensa <$>
+             [ (snd3 (canteens !  4),  4, DD)
+             , (snd3 (canteens ! 35), 35, DD)
+             , (snd3 (canteens ! 29), 29, DD)
+             , (snd3 (canteens !  9),  9, DD)
+             ])
    )
  where
-  pCanteen :: AttoParser (Mensa 'Incomplete)
-  pCanteen = mkEmptyMensa . second mensaURL
+  pCanteen :: AttoParser (Mensa 'Incomplete, Loc, Int)
+  pCanteen = mkEmptyMensa
          <$> A.choice (mkParser <$> Map.keys canteens)
           <* A.skipWhile (`notElem` sepChars)
 
   -- Construct an empty (i.e. no food to serve) 'Mensa'.
-  mkEmptyMensa :: (Text, Text -> Text) -> Mensa 'Incomplete
-  mkEmptyMensa = uncurry mkIncompleteMensa
+  mkEmptyMensa :: (Text, Int, Loc) -> (Mensa 'Incomplete, Loc, Int)
+  mkEmptyMensa (n, k, l) = (mkIncompleteMensa n (mensaURL k l), l, k)
 
-  mkParser :: Int -> AttoParser (Text, Int)
-  mkParser k = (name, k) <$ aliases als
-   where (name, als) :: (Text, [Text]) = canteens ! k
+  mkParser :: Int -> AttoParser (Text, Int, Loc)
+  mkParser k = (name, k, loc) <$ aliases als
+   where (loc, name, als) = canteens ! k
 
   -- __All__ available canteens.  We do have a lot of them, apparently.
-  canteens :: Map Int (Text, [Text])
+  canteens :: Map Int (Loc, Text, [Text])
   canteens = fromList
-    [ (4,  ("Alte Mensa"                     , ["A"]))
-    , (6,  ("Mensa Matrix"                   , ["Re", "Mat"]))
-    , (8,  ("Mensologie"                     , ["Me"]))
-    , (9,  ("Mensa Siedepunkt"               , ["Si"]))
-    , (10, ("Mensa TellerRandt"              , ["T"]))
-    , (11, ("Mensa Palucca Hochschule"       , ["Pal", "Ho"]))
-    , (13, ("Mensa Stimm-Gabel"              , ["St", "Ga"]))
-    , (24, ("Mensa Kraatschn"                , ["K"]))
-    , (25, ("Mensa Mahlwerk"                 , ["Mah"]))
-    , (28, ("MiO - Mensa im Osten"           , ["MiO", "Os"]))
-    , (29, ("BioMensa U-Boot"                , ["Bio", "U"]))
-    , (30, ("Mensa Sport"                    , ["Sport"]))
-    , (32, ("Mensa Johannstadt"              , ["Jo"]))
-    , (33, ("Mensa WUeins / Sportsbar"       , ["W", "Sports"]))
-    , (34, ("Mensa Brühl"                    , ["Br"]))
-    , (35, ("Zeltschlösschen"                , ["Z"]))
-    , (36, ("Grill Cube"                     , ["Gr", "C"]))
-    , (37, ("Pasta-Mobil"                    , ["Pas", "Mo"]))
-    , (38, ("Mensa Rothenburg"               , ["Ro"]))
-    , (39, ("Mensa Bautzen Polizeihochschule", ["Ba", "Po"]))
-    , (42, ("Mensa Oberschmausitz"           , ["Ob"]))
+    [ -- Dresden
+      (4,   (DD, "Alte Mensa"                     , ["A"]))
+    , (6,   (DD, "Mensa Matrix"                   , ["Re", "Mat"]))
+    , (8,   (DD, "Mensologie"                     , ["Me"]))
+    , (9,   (DD, "Mensa Siedepunkt"               , ["Si"]))
+    , (10,  (DD, "Mensa TellerRandt"              , ["T"]))
+    , (11,  (DD, "Mensa Palucca Hochschule"       , ["Pal", "Ho"]))
+    , (13,  (DD, "Mensa Stimm-Gabel"              , ["Sti", "Ga"]))
+    , (24,  (DD, "Mensa Kraatschn"                , ["K"]))
+    , (25,  (DD, "Mensa Mahlwerk"                 , ["Mah"]))
+    , (28,  (DD, "MiO - Mensa im Osten"           , ["MiO", "Os"]))
+    , (29,  (DD, "BioMensa U-Boot"                , ["Bio", "U"]))
+    , (30,  (DD, "Mensa Sport"                    , ["Sport"]))
+    , (32,  (DD, "Mensa Johannstadt"              , ["Jo"]))
+    , (33,  (DD, "Mensa WUeins / Sportsbar"       , ["W", "Sports"]))
+    , (34,  (DD, "Mensa Brühl"                    , ["Br"]))
+    , (35,  (DD, "Zeltschlösschen"                , ["Zel"]))
+    , (36,  (DD, "Grill Cube"                     , ["Gr", "Cu"]))
+    , (37,  (DD, "Pasta-Mobil"                    , ["Pas", "Mo"]))
+    , (38,  (DD, "Mensa Rothenburg"               , ["Ro"]))
+    , (39,  (DD, "Mensa Bautzen Polizeihochschule", ["Ba", "Po"]))
+    , (42,  (DD, "Mensa Oberschmausitz"           , ["Ob"]))
+    -- Hamburg
+    , (137, (HH, "Mensa Studierendenhaus"         , ["Stu"]))
+    , (142, (HH, "Mensa Blattwerk"                , ["Bl"]))
+    , (143, (HH, "Schlüters (Pizza & More)"       , ["Sc"]))
+    , (148, (HH, "Café dell'Arte"                 , ["D"]))
+    , (151, (HH, "Mensa Geomatikum"               , ["Ge"]))
+    , (154, (HH, "Mensa Überseering"              , ["Ü"]))
+    , (156, (HH, "Mensa Botanischer Garten"       , ["Bo"]))
+    , (158, (HH, "Mensa Harbug TU"                , ["Ha"]))
+    , (161, (HH, "Mensa Stellingen"               , ["Ste"]))
+    , (162, (HH, "Mensa Bucerius Law School"      , ["Buc", "L"]))
+    , (164, (HH, "Mensa Finkenau"                 , ["Fi"]))
+    , (166, (HH, "Mensa HCU HafenCity"            , ["HCU"]))
+    , (168, (HH, "Mensa Bergedorf"                , ["Berg"]))
+    , (170, (HH, "Mensa Berliner Tor"             , ["Berl"]))
+    , (175, (HH, "Café Jungiusstraße"             , ["J"]))
+    , (177, (HH, "Café CFEL"                      , ["CF"]))
+    , (178, (HH, "Café am Mittelweg"              , ["Mit"]))
+    , (179, (HH, "Campus Food Truck"              , ["Fo"]))
+    , (383, (HH, "Café ZessP TU"                  , ["Zes"]))
     ]
 
   -- Template URL for getting all meals of a certain Meals.
   mensaURL
-    :: Int   -- Number of the Mensa in the API
-    -> Text  -- Date at which we would like to see the food.
+    :: Int  -- Number of the Mensa in the API.
+    -> Loc  -- Mensa location.
+    -> Text -- Date at which we would like to see the food.
     -> Text
-  mensaURL num date = mconcat
+  mensaURL _   HH _    = "https://www.stwhh.de/speiseplan" -- XXX ignore date and number for now
+  mensaURL num DD date = mconcat
     [ "https://api.studentenwerk-dresden.de/openmensa/v2/canteens/"
     , tshow num , "/days/"
     , date      , "/meals"
