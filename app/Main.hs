@@ -16,20 +16,15 @@ import Mensa
 import Mensa.PP
 import OpeningTimes
 import Parser.Uhh qualified as Uhh
+import Parser.Util
 import Time (DatePP (Weekday, Weekend))
 import Util
 
 import Control.Concurrent.Async (Concurrently (Concurrently, runConcurrently), mapConcurrently)
 import Data.Aeson (decode')
-import Data.ByteString.Lazy.Char8 qualified as BL
-import Data.Text qualified as T
-import Data.Text.Encoding (decodeUtf8)
 import Data.Text.IO qualified as T
 import Network.HTTP.Client (Manager, httpLbs, newManager, parseUrlThrow, responseBody)
-import Network.HTTP.Client qualified as HTTP
 import Network.HTTP.Client.TLS (tlsManagerSettings)
-import Text.HTML.Parser qualified as P
-import Text.HTML.TagSoup (Tag (..))
 
 -- | Fetch all meals, process, format, and print them.
 main :: IO ()
@@ -57,22 +52,11 @@ getMensenUhh :: Manager -> MealOptions -> [UhhMensa 'NoMeals] -> IO [Mensa 'Comp
 getMensenUhh _ _ [] = pure []
 getMensenUhh manager opts ms@((UhhMensa m _) : _) =
   catch do req  <- parseUrlThrow . unpack . url $ Left m
-           tags <- map tokenToTag . P.parseTokens . decodeUtf8
-                 . BL.toStrict . responseBody <$> HTTP.httpLbs req manager
+           tags <- parseTagsUrl req manager
            mapConcurrently (\(UhhMensa m i) ->
                               pure $ addMeals (filterOptions opts (Uhh.parse tags i)) m)
                            ms
         \(_ :: SomeException) -> pure []
- where
-  tokenToTag :: P.Token -> Tag Text  -- html-parse to tagsoup.
-  tokenToTag = \case
-    P.TagOpen t as      -> TagOpen t (map (\(P.Attr a b) -> (a, b)) as)
-    P.TagClose t        -> TagClose t
-    P.ContentText t     -> TagText t
-    P.ContentChar t     -> TagText (T.pack [t])
-    P.Comment{}         -> TagComment ""          -- not needed
-    P.Doctype{}         -> TagComment ""          -- not needed
-    P.TagSelfClose t as -> TagOpen t (map (\(P.Attr a b) -> (a, b)) as)
 
 -- | Fetch all meals of a given list of TUD canteens and process them.
 getMensenTud :: Manager -> MealOptions -> [TudMensa 'NoMeals] -> IO [Mensa 'Complete]
