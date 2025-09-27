@@ -18,12 +18,14 @@ import Data.Text qualified as T
 import Text.HTML.Scalpel
 import Text.HTML.TagSoup (Tag (..))
 
--- | @parse ts i@ parses the mensa with id @i@ in @ts@.
-parse :: [Tag Text] -> Int -> [Meal]
-parse tags mensaId = concat . fromMaybe [[]] . flip scrape tags $
-  chroots ( "div" @: [hasClass "tx-epwerkmenu-menu-location-container", "data-location-id" @= show mensaId]
-         // select "tx-epwerkmenu-menu-timestamp-wrapper » menulist__categorywrapper"
-         ) do
+-- | @parse ts is@ parses the canteens with ids @is@ in the list of tags @ts@.
+parse :: [Tag Text] -> [Int] -> [Meals]
+parse tags ids = maybe [] (map concat) . flip scrape tags $ for ids \mensaId ->
+  chroots ( "div" @: [ hasClass "tx-epwerkmenu-menu-location-container"
+                     , "data-location-id" @= show mensaId
+                     ]
+          // select "tx-epwerkmenu-menu-timestamp-wrapper » menulist__categorywrapper"
+          ) do
     category <- stext $ _class "menulist__categorytitle"
     chroots (_class "menue-tile") do
       name <- stext $ _class "singlemeal__headline"

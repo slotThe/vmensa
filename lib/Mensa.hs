@@ -18,12 +18,13 @@ module Mensa (
   mkIncompleteMensa,
   addDate,
   addMeals,
-  locToMensa,
 
   -- * Getters
   mensaName,
   url,
   meals,
+  asMensa,
+  uhhId,
 ) where
 
 import Meal
@@ -54,8 +55,10 @@ mkIncompleteMensa :: Text -> (Text -> Text) -> Mensa 'Incomplete
 mkIncompleteMensa = IncompleteMensa
 
 -- | Add a missing date to a canteen.
-addDate :: Text -> Mensa 'Incomplete -> Mensa 'NoMeals
-addDate date (IncompleteMensa n f) = NoMealsMensa n (f date)
+addDate :: Text -> LocMensa 'Incomplete loc -> LocMensa 'NoMeals loc
+addDate date = \case
+  TudMensa (IncompleteMensa n f)   -> TudMensa (NoMealsMensa n (f date))
+  UhhMensa (IncompleteMensa n f) i -> UhhMensa (NoMealsMensa n (f date)) i
 
 -- | Add meals to a canteen.
 addMeals :: Meals -> Mensa 'NoMeals -> Mensa 'Complete
@@ -96,7 +99,10 @@ type UhhMensa :: MensaState -> Type
 type UhhMensa s = LocMensa s 'HH
 
 -- | Forget the location of a canteen.
-locToMensa :: LocMensa s l -> Mensa s
-locToMensa = \case
+asMensa :: LocMensa s l -> Mensa s
+asMensa = \case
   TudMensa m   -> m
   UhhMensa m _ -> m
+
+uhhId :: UhhMensa s -> Int
+uhhId (UhhMensa _ i) = i

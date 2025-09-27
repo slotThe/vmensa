@@ -50,12 +50,12 @@ main = do
 
 getMensenUhh :: Manager -> MealOptions -> [UhhMensa 'NoMeals] -> IO [Mensa 'Complete]
 getMensenUhh _ _ [] = pure []
-getMensenUhh manager opts ms@((UhhMensa m _) : _) =
-  catch do req  <- parseUrlThrow . unpack . url $ Left m
+getMensenUhh manager opts ms@(m : _) =
+  catch do req  <- parseUrlThrow . unpack . url . Left . asMensa $ m
            tags <- parseTagsUrl req manager
-           mapConcurrently (\(UhhMensa m i) ->
-                              pure $ addMeals (filterOptions opts (Uhh.parse tags i)) m)
-                           ms
+           pure $ zipWith (\m meals -> addMeals (filterOptions opts meals) (asMensa m))
+                          ms
+                          (Uhh.parse tags (map uhhId ms))
         \(_ :: SomeException) -> pure []
 
 -- | Fetch all meals of a given list of TUD canteens and process them.
