@@ -4,7 +4,7 @@
 #
 
 # Do the build.
-stack build "vmensa"
+cabal build "vmensa"
 
 # Install manpage
 sudo cp ./man/vmensa.1 /usr/local/share/man/man1
@@ -13,4 +13,4 @@ if type mandb > /dev/null 2>&1; then
 fi
 
 # Create a hard link at the requested destination, replacing any existing one.
-ln -f -T $(stack exec -- which "vmensa") "$1"
+ln -f -T $(cabal exec -- which "vmensa" 2> /dev/null) "$1"

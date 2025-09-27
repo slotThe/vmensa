@@ -1,8 +1,8 @@
 .hy
-.TH "vmensa" "1" "07 March 2020" "vmensa 0.2.0"
+.TH "vmensa" "1" "19 September 2025" "vmensa 0.3.1"
 .SH NAME
 .PP
-vmensa – Query the Stundentenwerk API from inside your terminal!
+vmensa – Mensa menus from inside your terminal!
 .SH SYNOPSIS
 .B vmensa
 [
@@ -13,7 +13,8 @@ vmensa – Query the Stundentenwerk API from inside your terminal!
 .SH DESCRIPTION
 .PP
 Through the power of a lonely and unwanted API, kindly provided by the
-Studentenwerk Dresden,
+Studentenwerk Dresden, as well as some good old HTML scraping in the
+case of the University of Hamburg,
 .I vmensa
 brings today's canteen menu directly to your terminal (or tomorrow's, or
 next Monday's... see the
@@ -22,9 +23,8 @@ for that)!
 
 Note that the "v" in
 .I vmensa
-stands for "vegan" and thusly only those meal options (plus the
-vegan ones) will be displayed by default.  To make the program fit your
-specific diet, see
+stands for "vegan" and thusly only those meal options will be displayed
+by default.  To make the program fit your specific diet, see
 .I OPTIONS.
 .SH OPTIONS
 Note that, for options allowing multiple arguments, you either need to
@@ -151,19 +151,18 @@ l l l .
 
 .BI \-m " canteens\fR,\fP " \-\-mensen= "canteens"
 .RS
-The canteens one would like to show.  We currently support all of the
-canteens that are supported by the Studentenwerk-API itself.  The
-following table will give the name of the canteen, as well as all
-available aliases for it (multiple aliases will be specified by tuples).
-Note that, after parsing an option, we always trim until the next
-separation symbol; i.e. while there is only a single "a" in the table
-for the
+The canteens one would like to show.  The following table will give the
+name of the canteen, as well as all available aliases for it (multiple
+aliases will be specified by tuples).  Note that, after parsing an
+option, we always trim until the next separation symbol; i.e. while
+there is only a single "a" in the table for the
 .I Alte Mensa,
 something like "alte", or even "Alte Mensa" will work just fine.  The
 order in which the canteens are specified will be the order in which
 they are printed.  Default: Alte Mensa, Zeltschlösschen, U-Boot,
 Siedepunkt.
 
+Available canteens for the TU Dresden are:
 .TS
 l c l l .
 	Alte Mensa                      <-->	A
@@ -188,6 +187,32 @@ l c l l .
 	Mensa Bautzen Polizeihochschule <-->	(Ba, Po)
 	Mensa Oberschmausitz            <-->	Ob
 .TE
+
+Available canteens for the University of Hamburg are:
+.TS
+l c l l .
+        Mensa Studierendenhaus         <-->	Stu
+        Mensa Blattwerk                <-->	Bl
+        Schlüters Pizza & More         <-->	Sc
+        Café dell'Arte                 <-->	D
+        Mensa Geomatikum               <-->	Ge
+        Mensa Überseering              <-->	Ü
+        Mensa Botanischer Garten       <-->	Bo
+        Mensa Harbug TU                <-->	Ha
+        Mensa Stellingen               <-->	Ste
+        Mensa Bucerius Law School      <-->	(Buc, L)
+        Mensa Finkenau                 <-->	Fi
+        Mensa HCU HafenCity            <-->	HCU
+        Mensa Bergedorf                <-->	Berg
+        Mensa Berliner Tor             <-->	Berl
+        Café Jungiusstraße             <-->	J
+        Café CFEL                      <-->	CF
+        Café am Mittelweg              <-->	Mit
+        Campus Food Truck              <-->	Fo
+        Café ZessP TU                  <-->	Zes
+.TE
+Canteens can be mixed and matched however one pleases—for those ever so
+important menu comparisons.
 .RE
 .SH POSITIONAL ARGUMENTS
 Pick the day (or date) when
