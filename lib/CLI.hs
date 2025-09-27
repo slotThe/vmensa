@@ -54,13 +54,9 @@ execOptionParser = execParser options >>= \case
       opts { date = ppDate iso date
            , mensaOptions = mensaOptions
                { columns = cs
-               , canteen =
-                   let cans = map (\(m, l, k) -> (addDate (tshow iso) m, l, k))
-                                  (canteen mensaOptions)
-                       (dd, hh) = partition ((DD ==) . snd3) cans
-                   in ( map (\(m, _, _) -> TudMensa m  ) dd
-                      , map (\(m, _, k) -> UhhMensa m k) hh
-                      )
+               , canteen = bimap (map (addDate (tshow iso)))
+                                 (map (addDate (tshow iso)))
+                                 (canteen mensaOptions)
                }
            }
 
@@ -74,7 +70,7 @@ data Options mensa date = Options
 
 -- | Create an info type from the canteen options, adding help text and
 -- other nice features.
-options :: ParserInfo (Mode [(Mensa 'Incomplete, Loc, Int)] Date)
+options :: ParserInfo (Mode ([TudMensa 'Incomplete], [UhhMensa 'Incomplete]) Date)
 options = info
   (helper <*> versionOpt <*> pMode)
   (  header "vmensa: Query the Stundentenwerk API from inside your terminal!"
@@ -95,13 +91,13 @@ options = info
      )
 
 -- | Parse all command line options.
-pMode :: Parser (Mode [(Mensa 'Incomplete, Loc, Int)] Date)
+pMode :: Parser (Mode ([TudMensa 'Incomplete], [UhhMensa 'Incomplete]) Date)
 pMode = A.choice
   [ subparser (command "opening-times" (info (pure OpeningTimes) mempty))
   , Food <$> pOptions
   ]
  where
-  pOptions :: Parser (Options [(Mensa 'Incomplete, Loc, Int)] Date)
+  pOptions :: Parser (Options ([TudMensa 'Incomplete], [UhhMensa 'Incomplete]) Date)
   pOptions = do
     mealOptions <- do
       mealType <- pMealType
@@ -243,20 +239,24 @@ As command-line argument parsing is a local process, we still don't know
 the date here.  Hence, we are returning a 'Mensa' that still wants to
 know that information.
 -}
-pCanteens :: Parser [(Mensa 'Incomplete, Loc, Int)]
-pCanteens = optionA (pCanteen `splitWith` sepChars)
-   ( long "mensen"
-  <> short 'm'
-  <> metavar "CANTEENS"
-  <> help "Specify the canteens that you want to show.  \
-          \Default: Alte,Zeltschlösschen,U-Boot,Siedepunkt."
-  <> value (mkEmptyMensa <$>
-             [ (snd3 (canteens !  4),  4, DD)
-             , (snd3 (canteens ! 35), 35, DD)
-             , (snd3 (canteens ! 29), 29, DD)
-             , (snd3 (canteens !  9),  9, DD)
-             ])
-   )
+pCanteens :: Parser ([TudMensa 'Incomplete], [UhhMensa 'Incomplete])
+pCanteens =
+  bimap (map (\(m, _, _) -> TudMensa m  ))
+        (map (\(m, _, k) -> UhhMensa m k))
+  . partition ((DD ==) . snd3) <$>
+      optionA (pCanteen `splitWith` sepChars)
+         ( long "mensen"
+        <> short 'm'
+        <> metavar "CANTEENS"
+        <> help "Specify the canteens that you want to show.  \
+                \Default: Alte,Zeltschlösschen,U-Boot,Siedepunkt."
+        <> value (mkEmptyMensa <$>
+                   [ (snd3 (canteens !  4),  4, DD)
+                   , (snd3 (canteens ! 35), 35, DD)
+                   , (snd3 (canteens ! 29), 29, DD)
+                   , (snd3 (canteens !  9),  9, DD)
+                   ])
+         )
  where
   pCanteen :: AttoParser (Mensa 'Incomplete, Loc, Int)
   pCanteen = mkEmptyMensa
