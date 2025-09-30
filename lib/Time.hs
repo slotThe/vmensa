@@ -1,7 +1,7 @@
 {- |
    Module      : Time
    Description : How vmensa knows __when__ to query the cafeterias.
-   Copyright   : (c) Tony Zorman  2020 2021 2022
+   Copyright   : (c) Tony Zorman  2020 2021 2022 2025
    License     : GPL-3
    Maintainer  : tonyzorman@mailbox.org
    Stability   : experimental
@@ -14,12 +14,13 @@ module Time (
   DatePP (..),  -- isomorphic to Either
   getDate,      -- :: Date -> IO Day
   ppDate,       -- :: Day -> Date -> DatePP
+  uhhDate,      -- :: Day -> Day -> Text
 ) where
 
 import Util
 
-import Data.Time (Day, DayOfWeek (Saturday, Sunday), NominalDiffTime, UTCTime (utctDay), addUTCTime, dayOfWeek, fromGregorian, getCurrentTime, nominalDay, toGregorian)
-
+import Data.Time (Day, DayOfWeek (..), NominalDiffTime, UTCTime (..), addUTCTime, dayOfWeek, fromGregorian, getCurrentTime, nominalDay, toGregorian, dayOfWeekDiff)
+import Data.Time.Clock.POSIX (posixSecondsToUTCTime, utcTimeToPOSIXSeconds)
 
 -- | Type for specifying exactly which day one wants to see the menu for.
 type Date :: Type
@@ -38,27 +39,22 @@ data Date
 
 -- | A pretty-printed date.
 type DatePP :: Type
-data DatePP = Weekday Text | Weekend Text
+data DatePP = Weekday Day Text | Weekend Text
 
 -- | Based on a certain weekday, calculate the day.
 -- Consistency assumption: We always want to walk forward in time.
 getDate :: Date -> IO Day
 getDate date = do
-  curTime    <- getCurrentTime
-  let curDay  = utctDay curTime
+  curDay <- utctDay <$> getCurrentTime
   pure case date of
     Today                 -> curDay
-    Tomorrow              -> utctDay $ addDays 1 curTime
-    Next wday             -> utctDay $ addDays diffToDay curTime
+    Tomorrow              -> addDays 1         curDay
+    Next wday             -> addDays diffToDay curDay
      where diffToDay = diffBetween wday (dayOfWeek curDay)
     ISODate d             -> d
     DMYDate (d, mbM, mbY) -> fromGregorian (fromMaybe y mbY) (fromMaybe m mbM) d
      where (y, m, _) = toGregorian curDay
  where
-  -- Add a specified number of days to a 'UTCTime'.
-  addDays :: NominalDiffTime -> UTCTime -> UTCTime
-  addDays = addUTCTime . (* nominalDay)
-
   -- Some enum hackery.  I don't like this but it's the best I can come
   -- up with right now.
   diffBetween :: DayOfWeek -> DayOfWeek -> NominalDiffTime
@@ -71,7 +67,7 @@ ppDate :: Day -> Date -> DatePP
 ppDate day date = fromMaybe mkDate checkWeekend
  where
   mkDate :: DatePP
-  mkDate = Weekday case date of
+  mkDate = Weekday day case date of
     ISODate{} -> mconcat ["On ", tshow day, " (", tshow (dayOfWeek day), ")"]
     DMYDate{} -> mconcat [ "On ", tshow d
                          , " "  , tshow (toEnum @Month m)
@@ -91,6 +87,24 @@ ppDate day date = fromMaybe mkDate checkWeekend
     Sunday   -> Just (Weekend warn)
     _        -> Nothing
    where warn :: Text = "Go home, it's the weekend."
+
+uhhDate :: Day     -- ^ Current date
+        -> Day     -- ^ Requested date
+        -> Text
+uhhDate curDay nextDate =
+  let curDw = dayOfWeek curDay
+      diff  = fromIntegral (dayOfWeekDiff Friday curDw)
+      friday = if curDw > Friday
+               then opDays subUTCTime (7 - diff) curDay
+               else addDays diff curDay
+  in if
+    | nextDate == curDay -> "today"
+    | nextDate == addDays 1 curDay -> "next_day"
+    | nextDate <= friday -> "this_week"
+    | dayOfWeek curDay `elem` [Friday, Saturday, Sunday]
+      && nextDate <= addDays 7 friday
+      -> "next_week"
+    | otherwise -> error "huh"
 
 -- | Arbitrary month.
 type Month :: Type
@@ -141,3 +155,12 @@ instance Enum Month where
     11 -> November
     12 -> December
     _  -> error "Bad argument to Time.toEnum for Month type"
+
+addDays :: NominalDiffTime -> Day -> Day
+addDays = opDays addUTCTime
+
+opDays :: (NominalDiffTime -> UTCTime -> UTCTime) -> NominalDiffTime -> Day -> Day
+opDays op n d = utctDay $ (n * nominalDay) `op` UTCTime d 0
+
+subUTCTime :: NominalDiffTime -> UTCTime -> UTCTime
+subUTCTime x t = posixSecondsToUTCTime (utcTimeToPOSIXSeconds t - x)

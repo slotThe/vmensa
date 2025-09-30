@@ -29,6 +29,8 @@ module Mensa (
 
 import Meal
 import Util hiding (Prefix)
+import Data.Time
+import Time (uhhDate)
 
 -- | All of the states a canteen can be in.
 type MensaState :: Type
@@ -55,10 +57,10 @@ mkIncompleteMensa :: Text -> (Text -> Text) -> Mensa 'Incomplete
 mkIncompleteMensa = IncompleteMensa
 
 -- | Add a missing date to a canteen.
-addDate :: Text -> LocMensa 'Incomplete loc -> LocMensa 'NoMeals loc
-addDate date = \case
-  TudMensa (IncompleteMensa n f)   -> TudMensa (NoMealsMensa n (f date))
-  UhhMensa (IncompleteMensa n f) i -> UhhMensa (NoMealsMensa n (f date)) i
+addDate :: Day -> Day -> LocMensa 'Incomplete loc -> LocMensa 'NoMeals loc
+addDate curDay reqDay = \case
+  TudMensa (IncompleteMensa n f)   -> TudMensa (NoMealsMensa n (f (tshow reqDay)))
+  UhhMensa (IncompleteMensa n f) i -> UhhMensa (NoMealsMensa n (f (uhhDate curDay reqDay))) i
 
 -- | Add meals to a canteen.
 addMeals :: Meals -> Mensa 'NoMeals -> Mensa 'Complete

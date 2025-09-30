@@ -44,6 +44,7 @@ default-extensions:
   - KindSignatures
   - FlexibleInstances
   - RecordWildCards
+  - MultiWayIf
 
 library:
   source-dirs: lib

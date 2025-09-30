@@ -27,8 +27,9 @@ import Data.Text.IO         qualified as T
 
 import Data.Attoparsec.Text ((<?>))
 import Data.Map.Strict ((!))
+import Data.Time (UTCTime (..), getCurrentTime)
 import Data.Time.Calendar (Day, DayOfWeek (Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday), fromGregorian)
-import Options.Applicative (Parser, ParserInfo, ReadM, argument, auto, execParser, footer, fullDesc, header, help, helper, info, infoOption, long, metavar, option, short, str, switch, value, subparser, command)
+import Options.Applicative (Parser, ParserInfo, ReadM, argument, auto, command, execParser, footer, fullDesc, header, help, helper, info, infoOption, long, metavar, option, short, str, subparser, switch, value)
 import Options.Applicative.CmdLine.Util (AttoParser, aliases, anyOf, anyOfRM, anyOfSkip, attoReadM, optionA, showSepChars, splitOn, splitWith)
 
 type Mode :: Type -> Type -> Type
@@ -50,12 +51,14 @@ execOptionParser = execParser options >>= \case
                                            \Defaulting to a single column…")
           else pure $ columns mensaOptions
     iso <- getDate date
+    curTime <- getCurrentTime
+    let curDay  = utctDay curTime
     pure . Food $
       opts { date = ppDate iso date
            , mensaOptions = mensaOptions
                { columns = cs
-               , canteen = bimap (map (addDate (tshow iso)))
-                                 (map (addDate (tshow iso)))
+               , canteen = bimap (map (addDate curDay iso))
+                                 (map (addDate curDay iso))
                                  (canteen mensaOptions)
                }
            }
@@ -325,7 +328,7 @@ pCanteens =
     -> Loc  -- Mensa location.
     -> Text -- Date at which we would like to see the food.
     -> Text
-  mensaURL _   HH _    = "https://www.stwhh.de/speiseplan" -- XXX ignore date and number for now
+  mensaURL _   HH date = "https://www.stwhh.de/speiseplan?t=" <> date
   mensaURL num DD date = mconcat
     [ "https://api.studentenwerk-dresden.de/openmensa/v2/canteens/"
     , tshow num , "/days/"

@@ -57,6 +57,7 @@ library
       KindSignatures
       FlexibleInstances
       RecordWildCards
+      MultiWayIf
   ghc-options: -Weverything -Wno-implicit-prelude -Wno-missing-import-lists -Wno-unused-packages -Wno-missing-safe-haskell-mode -Wno-all-missed-specialisations -Wno-unsafe -Wno-name-shadowing -Wno-missing-role-annotations -Wno-x-partial -O2
   build-depends:
       aeson
@@ -108,6 +109,7 @@ executable vmensa
       KindSignatures
       FlexibleInstances
       RecordWildCards
+      MultiWayIf
   ghc-options: -Weverything -Wno-implicit-prelude -Wno-missing-import-lists -Wno-unused-packages -Wno-missing-safe-haskell-mode -Wno-all-missed-specialisations -Wno-unsafe -Wno-name-shadowing -Wno-missing-role-annotations -Wno-x-partial -O2 -threaded -with-rtsopts=-N
   build-depends:
       aeson

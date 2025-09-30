@@ -25,6 +25,7 @@ import Data.Aeson (decode')
 import Data.Text.IO qualified as T
 import Network.HTTP.Client (Manager, httpLbs, newManager, parseUrlThrow, responseBody)
 import Network.HTTP.Client.TLS (tlsManagerSettings)
+import Data.Time (Day)
 
 -- | Fetch all meals, process, format, and print them.
 main :: IO ()
@@ -37,25 +38,25 @@ main = do
     Food(Options{ date, mealOptions, mensaOptions }) -> do
       case date of
         Weekend err -> T.putStrLn err  -- Canteens aren't open on the weekend.
-        Weekday d   -> do
+        Weekday d pd -> do
           mensen <- do
             let (dd, hh) = canteen mensaOptions
-            (\ms -> ppMensen d (mensaOptions{ canteen = ms })) -- Pretty print in bulk
+            (\ms -> ppMensen pd (mensaOptions{ canteen = ms })) -- Pretty print in bulk
               <$> runConcurrently (
-                    (<>) <$> Concurrently (getMensenUhh manager mealOptions hh)
-                         <*> Concurrently (getMensenTud manager mealOptions dd)
+                    (<>) <$> Concurrently (getMensenUhh d manager mealOptions hh)
+                         <*> Concurrently (getMensenTud   manager mealOptions dd)
                   )
           -- Print results synchronously, so as to respect the desired order.
           traverse_ T.putStr mensen
 
-getMensenUhh :: Manager -> MealOptions -> [UhhMensa 'NoMeals] -> IO [Mensa 'Complete]
-getMensenUhh _ _ [] = pure []
-getMensenUhh manager opts ms@(m : _) =
+getMensenUhh :: Day -> Manager -> MealOptions -> [UhhMensa 'NoMeals] -> IO [Mensa 'Complete]
+getMensenUhh _ _ _ [] = pure []
+getMensenUhh date manager opts ms@(m : _) =
   catch do req  <- parseUrlThrow . unpack . url . Left . asMensa $ m
            tags <- parseTagsUrl req manager
            pure $ zipWith (\m meals -> addMeals (filterOptions opts meals) (asMensa m))
                           ms
-                          (Uhh.parse tags (map uhhId ms))
+                          (Uhh.parse tags date (map uhhId ms))
         \(_ :: SomeException) -> pure []
 
 -- | Fetch all meals of a given list of TUD canteens and process them.
