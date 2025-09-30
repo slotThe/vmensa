@@ -275,7 +275,7 @@ pCanteens =
   canteens :: Map Int (Loc, Text, [Text])
   canteens = fromList
     [ -- Dresden
-      (4,   (DD, "Alte Mensa"                     , ["A"]))
+      (4,   (DD, "Alte Mensa"                     , ["Alt"]))
     , (6,   (DD, "Mensa Matrix"                   , ["Re", "Mat"]))
     , (8,   (DD, "Mensologie"                     , ["Me"]))
     , (9,   (DD, "Mensa Siedepunkt"               , ["Si"]))
@@ -302,7 +302,7 @@ pCanteens =
     , (143, (HH, "Schlüters (Pizza & More)"       , ["Sc"]))
     , (148, (HH, "Café dell'Arte"                 , ["D"]))
     , (151, (HH, "Mensa Geomatikum"               , ["Ge"]))
-    , (154, (HH, "Mensa Überseering"              , ["Ü"]))
+    , (154, (HH, "Mensa Philturm"                 , ["Ph"]))
     , (156, (HH, "Mensa Botanischer Garten"       , ["Bo"]))
     , (158, (HH, "Mensa Harbug TU"                , ["Ha"]))
     , (161, (HH, "Mensa Stellingen"               , ["Ste"]))
@@ -312,6 +312,7 @@ pCanteens =
     , (168, (HH, "Mensa Bergedorf"                , ["Berg"]))
     , (170, (HH, "Mensa Berliner Tor"             , ["Berl"]))
     , (175, (HH, "Café Jungiusstraße"             , ["J"]))
+    , (176, (HH, "Café Alexanderstraße"           , ["Ale"]))
     , (177, (HH, "Café CFEL"                      , ["CF"]))
     , (178, (HH, "Café am Mittelweg"              , ["Mit"]))
     , (179, (HH, "Campus Food Truck"              , ["Fo"]))
