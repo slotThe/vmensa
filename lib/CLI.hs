@@ -20,6 +20,8 @@ import Mensa.PP
 import Paths_vmensa (version)
 import Time
 import Util
+import Uhh qualified
+import Tud qualified
 
 import Data.Attoparsec.Text qualified as A
 import Data.Map.Strict      qualified as Map
@@ -57,8 +59,8 @@ execOptionParser = execParser options >>= \case
       opts { date = ppDate iso date
            , mensaOptions = mensaOptions
                { columns = cs
-               , canteen = bimap (map (addDate curDay iso))
-                                 (map (addDate curDay iso))
+               , canteen = bimap (map (Tud.addDate iso))
+                                 (map (Uhh.addDate curDay iso))
                                  (canteen mensaOptions)
                }
            }
@@ -268,7 +270,7 @@ pCanteens =
 
   -- Construct an empty (i.e. no food to serve) 'Mensa'.
   mkEmptyMensa :: (Text, Int, Loc) -> (Mensa 'Incomplete, Loc, Int)
-  mkEmptyMensa (n, k, l) = (mkIncompleteMensa n (mensaURL k l), l, k)
+  mkEmptyMensa (n, k, l) = (IncompleteMensa n (mensaURL k l), l, k)
 
   mkParser :: Int -> AttoParser (Text, Int, Loc)
   mkParser k = (name, k, loc) <$ aliases als
@@ -276,51 +278,7 @@ pCanteens =
 
   -- __All__ available canteens.  We do have a lot of them, apparently.
   canteens :: Map Int (Loc, Text, [Text])
-  canteens = fromList
-    [ -- Dresden
-      (4,   (DD, "Alte Mensa"                     , ["Alt"]))
-    , (6,   (DD, "Mensa Matrix"                   , ["Re", "Mat"]))
-    , (8,   (DD, "Mensologie"                     , ["Me"]))
-    , (9,   (DD, "Mensa Siedepunkt"               , ["Si"]))
-    , (10,  (DD, "Mensa TellerRandt"              , ["T"]))
-    , (11,  (DD, "Mensa Palucca Hochschule"       , ["Pal", "Ho"]))
-    , (13,  (DD, "Mensa Stimm-Gabel"              , ["Sti", "Ga"]))
-    , (24,  (DD, "Mensa Kraatschn"                , ["K"]))
-    , (25,  (DD, "Mensa Mahlwerk"                 , ["Mah"]))
-    , (28,  (DD, "MiO - Mensa im Osten"           , ["MiO", "Os"]))
-    , (29,  (DD, "BioMensa U-Boot"                , ["Bio", "U"]))
-    , (30,  (DD, "Mensa Sport"                    , ["Sport"]))
-    , (32,  (DD, "Mensa Johannstadt"              , ["Jo"]))
-    , (33,  (DD, "Mensa WUeins / Sportsbar"       , ["W", "Sports"]))
-    , (34,  (DD, "Mensa Brühl"                    , ["Br"]))
-    , (35,  (DD, "Zeltschlösschen"                , ["Zel"]))
-    , (36,  (DD, "Grill Cube"                     , ["Gr", "Cu"]))
-    , (37,  (DD, "Pasta-Mobil"                    , ["Pas", "Mo"]))
-    , (38,  (DD, "Mensa Rothenburg"               , ["Ro"]))
-    , (39,  (DD, "Mensa Bautzen Polizeihochschule", ["Ba", "Po"]))
-    , (42,  (DD, "Mensa Oberschmausitz"           , ["Ob"]))
-    -- Hamburg
-    , (137, (HH, "Mensa Studierendenhaus"         , ["Stu"]))
-    , (142, (HH, "Mensa Blattwerk"                , ["Bl"]))
-    , (143, (HH, "Schlüters (Pizza & More)"       , ["Sc"]))
-    , (148, (HH, "Café dell'Arte"                 , ["D"]))
-    , (151, (HH, "Mensa Geomatikum"               , ["Ge"]))
-    , (154, (HH, "Mensa Philturm"                 , ["Ph"]))
-    , (156, (HH, "Mensa Botanischer Garten"       , ["Bo"]))
-    , (158, (HH, "Mensa Harbug TU"                , ["Ha"]))
-    , (161, (HH, "Mensa Stellingen"               , ["Ste"]))
-    , (162, (HH, "Mensa Bucerius Law School"      , ["Buc", "L"]))
-    , (164, (HH, "Mensa Finkenau"                 , ["Fi"]))
-    , (166, (HH, "Mensa HCU HafenCity"            , ["HCU"]))
-    , (168, (HH, "Mensa Bergedorf"                , ["Berg"]))
-    , (170, (HH, "Mensa Berliner Tor"             , ["Berl"]))
-    , (175, (HH, "Café Jungiusstraße"             , ["J"]))
-    , (176, (HH, "Café Alexanderstraße"           , ["Ale"]))
-    , (177, (HH, "Café CFEL"                      , ["CF"]))
-    , (178, (HH, "Café am Mittelweg"              , ["Mit"]))
-    , (179, (HH, "Campus Food Truck"              , ["Fo"]))
-    , (383, (HH, "Café ZessP TU"                  , ["Zes"]))
-    ]
+  canteens = fromList $ Tud.canteens <> Uhh.canteens
 
   -- Template URL for getting all meals of a certain Meals.
   mensaURL

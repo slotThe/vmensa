@@ -9,14 +9,12 @@
 -}
 module Mensa (
   -- * Types for 'Mensa' and its meals.
-  Mensa,             -- abstract
+  Mensa (..),
   MensaState (..),
   Loc (..),
   LocMensa (..), UhhMensa, TudMensa,
 
   -- * Transformations
-  mkIncompleteMensa,
-  addDate,
   addMeals,
 
   -- * Getters
@@ -24,13 +22,10 @@ module Mensa (
   url,
   meals,
   asMensa,
-  uhhId,
 ) where
 
 import Meal
 import Util hiding (Prefix)
-import Data.Time
-import Time (uhhDate)
 
 -- | All of the states a canteen can be in.
 type MensaState :: Type
@@ -51,16 +46,6 @@ data Mensa state where
   IncompleteMensa :: Text -> (Text -> Text)          -> Mensa 'Incomplete
   NoMealsMensa    :: Text -> Text                    -> Mensa 'NoMeals
   CompleteMensa   :: Text -> Text           -> Meals -> Mensa 'Complete
-
--- | Generate a mensa that still needs a date and meals.
-mkIncompleteMensa :: Text -> (Text -> Text) -> Mensa 'Incomplete
-mkIncompleteMensa = IncompleteMensa
-
--- | Add a missing date to a canteen.
-addDate :: Day -> Day -> LocMensa 'Incomplete loc -> LocMensa 'NoMeals loc
-addDate curDay reqDay = \case
-  TudMensa (IncompleteMensa n f)   -> TudMensa (NoMealsMensa n (f (tshow reqDay)))
-  UhhMensa (IncompleteMensa n f) i -> UhhMensa (NoMealsMensa n (f (uhhDate curDay reqDay))) i
 
 -- | Add meals to a canteen.
 addMeals :: Meals -> Mensa 'NoMeals -> Mensa 'Complete
@@ -105,6 +90,3 @@ asMensa :: LocMensa s l -> Mensa s
 asMensa = \case
   TudMensa m   -> m
   UhhMensa m _ -> m
-
-uhhId :: UhhMensa s -> Int
-uhhId (UhhMensa _ i) = i

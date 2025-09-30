@@ -9,17 +9,19 @@
 -}
 
 module Time (
-  Date (..),    -- instances: Show
-  Month (..),   -- instances: Show, Enum
-  DatePP (..),  -- isomorphic to Either
-  getDate,      -- :: Date -> IO Day
-  ppDate,       -- :: Day -> Date -> DatePP
-  uhhDate,      -- :: Day -> Day -> Text
+  Date (..),
+  Month (..),
+  DatePP (..),
+  getDate,
+  ppDate,
+  addDays,
+  opDays,
+  subUTCTime,
 ) where
 
 import Util
 
-import Data.Time (Day, DayOfWeek (..), NominalDiffTime, UTCTime (..), addUTCTime, dayOfWeek, fromGregorian, getCurrentTime, nominalDay, toGregorian, dayOfWeekDiff)
+import Data.Time (Day, DayOfWeek (..), NominalDiffTime, UTCTime (..), addUTCTime, dayOfWeek, fromGregorian, getCurrentTime, nominalDay, toGregorian)
 import Data.Time.Clock.POSIX (posixSecondsToUTCTime, utcTimeToPOSIXSeconds)
 
 -- | Type for specifying exactly which day one wants to see the menu for.
@@ -87,24 +89,6 @@ ppDate day date = fromMaybe mkDate checkWeekend
     Sunday   -> Just (Weekend warn)
     _        -> Nothing
    where warn :: Text = "Go home, it's the weekend."
-
-uhhDate :: Day     -- ^ Current date
-        -> Day     -- ^ Requested date
-        -> Text
-uhhDate curDay nextDate =
-  let curDw = dayOfWeek curDay
-      diff  = fromIntegral (dayOfWeekDiff Friday curDw)
-      friday = if curDw > Friday
-               then opDays subUTCTime (7 - diff) curDay
-               else addDays diff curDay
-  in if
-    | nextDate == curDay -> "today"
-    | nextDate == addDays 1 curDay -> "next_day"
-    | nextDate <= friday -> "this_week"
-    | dayOfWeek curDay `elem` [Friday, Saturday, Sunday]
-      && nextDate <= addDays 7 friday
-      -> "next_week"
-    | otherwise -> error "huh"
 
 -- | Arbitrary month.
 type Month :: Type

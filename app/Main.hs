@@ -11,21 +11,17 @@
 module Main (main) where
 
 import CLI
-import Meal.Options
-import Mensa
 import Mensa.PP
 import OpeningTimes
-import Parser.Uhh qualified as Uhh
-import Parser.Util
+import Uhh qualified
+import Tud qualified
 import Time (DatePP (Weekday, Weekend))
 import Util
 
-import Control.Concurrent.Async (Concurrently (Concurrently, runConcurrently), mapConcurrently)
-import Data.Aeson (decode')
+import Control.Concurrent.Async (Concurrently (Concurrently, runConcurrently))
 import Data.Text.IO qualified as T
-import Network.HTTP.Client (Manager, httpLbs, newManager, parseUrlThrow, responseBody)
+import Network.HTTP.Client (newManager)
 import Network.HTTP.Client.TLS (tlsManagerSettings)
-import Data.Time (Day)
 
 -- | Fetch all meals, process, format, and print them.
 main :: IO ()
@@ -43,30 +39,8 @@ main = do
             let (dd, hh) = canteen mensaOptions
             (\ms -> ppMensen pd (mensaOptions{ canteen = ms })) -- Pretty print in bulk
               <$> runConcurrently (
-                    (<>) <$> Concurrently (getMensenUhh d manager mealOptions hh)
-                         <*> Concurrently (getMensenTud   manager mealOptions dd)
+                    (<>) <$> Concurrently (Uhh.fetch d manager mealOptions hh)
+                         <*> Concurrently (Tud.fetch   manager mealOptions dd)
                   )
           -- Print results synchronously, so as to respect the desired order.
           traverse_ T.putStr mensen
-
-getMensenUhh :: Day -> Manager -> MealOptions -> [UhhMensa 'NoMeals] -> IO [Mensa 'Complete]
-getMensenUhh _ _ _ [] = pure []
-getMensenUhh date manager opts ms@(m : _) =
-  catch do req  <- parseUrlThrow . unpack . url . Left . asMensa $ m
-           tags <- parseTagsUrl req manager
-           pure $ zipWith (\m meals -> addMeals (filterOptions opts meals) (asMensa m))
-                          ms
-                          (Uhh.parse tags date (map uhhId ms))
-        \(_ :: SomeException) -> pure []
-
--- | Fetch all meals of a given list of TUD canteens and process them.
-getMensenTud :: Manager -> MealOptions -> [TudMensa 'NoMeals] -> IO [Mensa 'Complete]
-getMensenTud manager opts ms = catMaybes <$> mapConcurrently go ms
- where
-  go :: LocMensa 'NoMeals 'DD -> IO (Maybe (Mensa 'Complete))
-  go (TudMensa mensa) =
-    catch do req  <- parseUrlThrow . unpack . url $ Left mensa
-             resp <- httpLbs req manager
-             pure . fmap (\ms -> addMeals (filterOptions opts ms) mensa)
-                  $ decode' (responseBody resp)
-          \(_ :: SomeException) -> pure Nothing

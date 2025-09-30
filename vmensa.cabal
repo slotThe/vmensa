@@ -4,7 +4,7 @@ cabal-version: 1.18
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: dacbf77fa570eff89565c3a379cddd7b4ad373484bcc7a2d764e4437cec0f438
+-- hash: dcb744e170812b7ffa05b3ed61f49b12bbdfb65ed83e7eaeef8030997b57cf19
 
 name:           vmensa
 version:        0.3.0
@@ -26,9 +26,9 @@ library
       Mensa
       Mensa.PP
       OpeningTimes
-      Parser.Uhh
-      Parser.Util
       Time
+      Tud
+      Uhh
       Util
   other-modules:
       Paths_vmensa
