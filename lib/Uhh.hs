@@ -8,6 +8,7 @@
    Maintainer  : Tony Zorman <mail@tony-zorman.com>
 -}
 module Uhh (
+  url,
   fetch,
   addDate,
   parse,
@@ -17,7 +18,7 @@ module Uhh (
 import Meal
 import Meal.Options
 import Mensa qualified as M
-import Mensa (Loc (..), LocMensa (..), Mensa, MensaState (..), UhhMensa, addMeals, asMensa, mapMensa, url)
+import Mensa (Loc (..), LocMensa (..), Mensa, MensaState (..), UhhMensa, addMeals, asMensa, mapMensa)
 import Time
 import Util hiding (id)
 
@@ -27,10 +28,13 @@ import Text.HTML.Scalpel
 import Text.HTML.TagSoup (Tag (..))
 import Data.Time hiding (addDays)
 
+url :: Int -> Text -> Text
+url _ date = "https://www.stwhh.de/speiseplan?t=" <> date
+
 fetch :: Day -> Manager -> MealOptions -> [UhhMensa 'NoMeals] -> IO [Mensa 'Complete]
 fetch _ _ _ [] = pure []
 fetch date manager opts ms@(m : _) =
-  catch do req  <- parseUrlThrow . unpack . url . Left . asMensa $ m
+  catch do req  <- parseUrlThrow . unpack . M.url . Left . asMensa $ m
            tags <- parseTagsUrl req manager
            pure $ zipWith (\m meals -> addMeals (filterOptions opts meals) (asMensa m))
                           ms

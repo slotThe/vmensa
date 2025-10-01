@@ -270,7 +270,7 @@ pCanteens =
 
   -- Construct an empty (i.e. no food to serve) 'Mensa'.
   mkEmptyMensa :: (Text, Int, Loc) -> (Mensa 'Incomplete, Loc, Int)
-  mkEmptyMensa (n, k, l) = (mkIncompleteMensa n (mensaURL k l), l, k)
+  mkEmptyMensa (n, k, l) = (mkIncompleteMensa n (mensaURL l k), l, k)
 
   mkParser :: Int -> AttoParser (Text, Int, Loc)
   mkParser k = (name, k, loc) <$ aliases als
@@ -282,16 +282,13 @@ pCanteens =
 
   -- Template URL for getting all meals of a certain Meals.
   mensaURL
-    :: Int  -- Number of the Mensa in the API.
-    -> Loc  -- Mensa location.
+    :: Loc  -- Mensa location.
+    -> Int  -- Number of the Mensa in the API.
     -> Text -- Date at which we would like to see the food.
     -> Text
-  mensaURL _   HH date = "https://www.stwhh.de/speiseplan?t=" <> date
-  mensaURL num DD date = mconcat
-    [ "https://api.studentenwerk-dresden.de/openmensa/v2/canteens/"
-    , tshow num , "/days/"
-    , date      , "/meals"
-    ]
+  mensaURL = \case
+    HH -> Uhh.url
+    DD -> Tud.url
 
 -- | Sections to be displayed, making sure that no sections appear twice.
 pSections :: Parser [Section]

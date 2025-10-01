@@ -6,6 +6,7 @@
    Maintainer  : Tony Zorman <mail@tony-zorman.com>
 -}
 module Tud (
+  url,
   fetch,
   addDate,
   canteens,
@@ -13,7 +14,7 @@ module Tud (
 
 import Meal.Options
 import Mensa qualified as M
-import Mensa (Loc (..), Mensa, MensaState (..), TudMensa, addMeals, asMensa, mapMensa, url)
+import Mensa (Loc (..), Mensa, MensaState (..), TudMensa, addMeals, asMensa, mapMensa)
 import Util
 
 import Control.Concurrent.Async (mapConcurrently)
@@ -21,13 +22,20 @@ import Data.Aeson (decode')
 import Data.Time
 import Network.HTTP.Client (Manager, httpLbs, parseUrlThrow, responseBody)
 
+url :: Int -> Text -> Text
+url num date = mconcat
+  [ "https://api.studentenwerk-dresden.de/openmensa/v2/canteens/"
+  , tshow num , "/days/"
+  , date      , "/meals"
+  ]
+
 -- | Fetch all meals of a given list of TUD canteens and process them.
 fetch :: Manager -> MealOptions -> [TudMensa 'NoMeals] -> IO [Mensa 'Complete]
 fetch manager opts ms = catMaybes <$> mapConcurrently go (map asMensa ms)
  where
   go :: Mensa 'NoMeals -> IO (Maybe (Mensa 'Complete))
   go mensa =
-    catch do req  <- parseUrlThrow . unpack . url $ Left mensa
+    catch do req  <- parseUrlThrow . unpack . M.url $ Left mensa
              resp <- httpLbs req manager
              pure . fmap (\ms -> addMeals (filterOptions opts ms) mensa)
                   $ decode' (responseBody resp)
