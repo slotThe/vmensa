@@ -9,13 +9,18 @@
 -}
 module Mensa (
   -- * Types for 'Mensa' and its meals.
-  Mensa (..),
+  Mensa,
   MensaState (..),
   Loc (..),
   LocMensa (..), UhhMensa, TudMensa,
 
+  -- * Setters
+  mkIncompleteMensa,
+
   -- * Transformations
   addMeals,
+  addDate,
+  mapMensa,
 
   -- * Getters
   mensaName,
@@ -47,6 +52,9 @@ data Mensa state where
   NoMealsMensa    :: Text -> Text                    -> Mensa 'NoMeals
   CompleteMensa   :: Text -> Text           -> Meals -> Mensa 'Complete
 
+mkIncompleteMensa :: Text -> (Text -> Text) -> Mensa 'Incomplete
+mkIncompleteMensa = IncompleteMensa
+
 -- | Add meals to a canteen.
 addMeals :: Meals -> Mensa 'NoMeals -> Mensa 'Complete
 addMeals ms (NoMealsMensa n u) = CompleteMensa n u ms
@@ -67,6 +75,11 @@ url = \case
 -- | Extract the meals out of a canteen.
 meals :: Mensa 'Complete -> Meals
 meals (CompleteMensa _ _ m) = m
+
+-- | Add a date to an incomplete canteen, so that it knows when to fetch
+-- meals.
+addDate :: Text -> Mensa 'Incomplete -> Mensa 'NoMeals
+addDate d (IncompleteMensa n f) = NoMealsMensa n (f d)
 
 -- | A location for a canteen.
 type Loc :: Type
@@ -90,3 +103,8 @@ asMensa :: LocMensa s l -> Mensa s
 asMensa = \case
   TudMensa m   -> m
   UhhMensa m _ -> m
+
+mapMensa :: (Mensa s -> Mensa s') -> LocMensa s l -> LocMensa s' l
+mapMensa f = \case
+  TudMensa m   -> TudMensa (f m)
+  UhhMensa m i -> UhhMensa (f m) i

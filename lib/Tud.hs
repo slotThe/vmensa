@@ -12,7 +12,8 @@ module Tud (
 ) where
 
 import Meal.Options
-import Mensa
+import Mensa qualified as M
+import Mensa (Loc (..), Mensa, MensaState (..), TudMensa, addMeals, asMensa, mapMensa, url)
 import Util
 
 import Control.Concurrent.Async (mapConcurrently)
@@ -22,10 +23,10 @@ import Network.HTTP.Client (Manager, httpLbs, parseUrlThrow, responseBody)
 
 -- | Fetch all meals of a given list of TUD canteens and process them.
 fetch :: Manager -> MealOptions -> [TudMensa 'NoMeals] -> IO [Mensa 'Complete]
-fetch manager opts ms = catMaybes <$> mapConcurrently go ms
+fetch manager opts ms = catMaybes <$> mapConcurrently go (map asMensa ms)
  where
-  go :: LocMensa 'NoMeals 'DD -> IO (Maybe (Mensa 'Complete))
-  go (TudMensa mensa) =
+  go :: Mensa 'NoMeals -> IO (Maybe (Mensa 'Complete))
+  go mensa =
     catch do req  <- parseUrlThrow . unpack . url $ Left mensa
              resp <- httpLbs req manager
              pure . fmap (\ms -> addMeals (filterOptions opts ms) mensa)
@@ -34,8 +35,7 @@ fetch manager opts ms = catMaybes <$> mapConcurrently go ms
 
 -- | Add a missing date to a canteen.
 addDate :: Day -> TudMensa 'Incomplete -> TudMensa 'NoMeals
-addDate reqDay (TudMensa (IncompleteMensa n f)) =
-  TudMensa (NoMealsMensa n (f (tshow reqDay)))
+addDate reqDay = mapMensa (M.addDate (tshow reqDay))
 
 canteens :: [(Int, (Loc, Text, [Text]))]
 canteens = map (\(a,(b,c)) -> (a,(DD,b,c)))

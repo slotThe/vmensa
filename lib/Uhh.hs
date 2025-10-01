@@ -16,7 +16,8 @@ module Uhh (
 
 import Meal
 import Meal.Options
-import Mensa
+import Mensa qualified as M
+import Mensa (Loc (..), LocMensa (..), Mensa, MensaState (..), UhhMensa, addMeals, asMensa, mapMensa, url)
 import Time
 import Util hiding (id)
 
@@ -41,8 +42,7 @@ fetch date manager opts ms@(m : _) =
 
 -- | Add a missing date to a canteen.
 addDate :: Day -> Day -> UhhMensa 'Incomplete  -> UhhMensa 'NoMeals
-addDate curDay reqDay (UhhMensa (IncompleteMensa n f) i) =
-  UhhMensa (NoMealsMensa n (f (uhhDate curDay reqDay))) i
+addDate curDay reqDay = mapMensa (M.addDate (uhhDate curDay reqDay))
  where
   uhhDate :: Day  -- Current date
           -> Day  -- Requested date
@@ -75,7 +75,7 @@ parse tags (showGregorian -> date) ids =
                        ]
             // _class "tx-epwerkmenu-menu-timestamp-wrapper"
             ) do
-      guard . (date ==) . unpack =<< attr "data-timestamp" "div"
+      guard . (date ==) . unpack =<< attr "data-timestamp" "div" -- for multi-day views
       chroots (_class "menulist__categorywrapper") do
         category <- stext $ _class "menulist__categorytitle"
         chroots (_class "menue-tile") do

@@ -270,7 +270,7 @@ pCanteens =
 
   -- Construct an empty (i.e. no food to serve) 'Mensa'.
   mkEmptyMensa :: (Text, Int, Loc) -> (Mensa 'Incomplete, Loc, Int)
-  mkEmptyMensa (n, k, l) = (IncompleteMensa n (mensaURL k l), l, k)
+  mkEmptyMensa (n, k, l) = (mkIncompleteMensa n (mensaURL k l), l, k)
 
   mkParser :: Int -> AttoParser (Text, Int, Loc)
   mkParser k = (name, k, loc) <$ aliases als
