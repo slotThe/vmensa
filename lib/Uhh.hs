@@ -90,7 +90,7 @@ parse tags (showGregorian -> date) ids =
             prices <- do -- XXX trust; could also visit the sibling node instead.
               raw <- stexts (select "dlist » singlemeal__info » singlemeal__info--semibold")
               let pPrice :: Text -> Double
-                    = read . unpack . replace "," "." . head . words
+                    = fromMaybe (-1) . readMaybe . unpack . replace "," "." . head . words
                   student  = pPrice (raw !! 0)
                   employee = pPrice (raw !! 1)
               pure $ Just Prices{..}
