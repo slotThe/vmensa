@@ -1,5 +1,8 @@
 # vmensa
 
+> [!CAUTION]
+> [This repository moved to Codeberg](https://codeberg.org/slotThe/vmensa)
+
 `vmensa` brings the mensa menus of the [TU Dresden][Studentenwerk API],
 as well as the [University of Hamburg](https://www.stwhh.de/speiseplan)
 to your command line.
