@@ -115,6 +115,7 @@ pMode = A.choice
       noAdds   <- pNoAdds
       lineWrap <- pLineWrap
       columns  <- pColumns
+      compact  <- pCompact
       pure MensaOptions{..}
     date     <- pDate
     pure Options{..}
@@ -326,6 +327,14 @@ pColumns = option auto
   <> metavar "N"
   <> help "Whether canteens should be printed in an N-column layout."
   <> value 1
+  )
+
+-- | Whether to use compact layout without cross-column alignment.
+pCompact :: Parser Bool
+pCompact = switch
+  (  long "compact"
+  <> short 'C'
+  <> help "Use compact layout: columns flow independently without alignment."
   )
 
 -- | Our separator chars.

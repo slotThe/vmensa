@@ -47,6 +47,7 @@ data MensaOptions mensa = MensaOptions
                            --   parentheses, like @(A, A1, C, G)@
   , lineWrap  :: Natural   -- ^ Line wrap in the output
   , columns   :: Natural   -- ^ Print the meals in an n-column layout
+  , compact   :: Bool      -- ^ Whether to use compact layout (no cross-column alignment)
   }
 
 -- | A possible prefix that will be style with ANSI escape codes.
@@ -55,8 +56,8 @@ data Prefix = Prefix Text | NoPrefix
 
 -- | Pretty print multiple canteens.
 ppMensen :: Text -> MensaOptions [Mensa 'Complete] -> [Text]
-ppMensen day opts@MensaOptions{ lineWrap = lw, columns, canteen = canteens }
-  = toColumns lw columns
+ppMensen day opts@MensaOptions{ lineWrap=lw, columns, compact=cpt, canteen=canteens }
+  = toColumns lw columns cpt
   . map (\m -> ppMensa opts{ canteen = m })
   . filter (not . null . meals)
   $ canteens
@@ -142,28 +143,32 @@ fill pfx (fi -> lw) str =
   style :: Text -> Text
   style s = "\x1b[33m" <> s <> "\x1b[0m"
 
-toColumns :: Natural -> Natural -> [[[[Text]]]] -> [Text]
-toColumns (fi -> lw) (fi -> cols) ms =
-  map (T.unlines . map (mconcat . map T.unlines)) go
+toColumns :: Natural -> Natural -> Bool -> [[[[Text]]]] -> [Text]
+toColumns (fi -> lw) (fi -> cols) cpt ms
+  | cpt = map (T.unlines . map (T.intercalate "    ")
+                 . intertwine fill
+                 . map (concatMap (concat . (<> [[fill]]))))
+              (mkEven [] (chunks ms))
+  | otherwise = map (T.unlines . map (mconcat . map T.unlines)) go
  where
+  fill :: Text = T.replicate lw " "
   go :: [[[[Text]]]]  -- lol
   go | lw == 0 || cols <= 1 = ms
      | otherwise =
-         map                                                -- canteens
-           (map                                             -- meals
-              (map                                          -- sections
-                 (map (T.intercalate "    ")                -- lines
-                      . intertwine (T.replicate lw " "))
-                 . intertwine mempty)
-              . intertwine mempty)
+         map
+           ( map                                 -- meals
+               ( map                             -- sections
+                   ( map (T.intercalate "    ")  -- lines
+                   . intertwine fill)
+               . intertwine mempty)
+           . intertwine mempty)
            (mkEven [] (chunks ms))
 
   chunks :: [a] -> [[a]]
   chunks = takeWhile (not . null) . unfoldr (Just . splitAt cols)
 
   intertwine :: a -> [[a]] -> [[a]]
-  intertwine def (mkEven def -> xs) = map (\i -> map (!! i) xs) [0 .. (n - 1)]
-   where n = List.length (head xs)
+  intertwine = (transpose .) . mkEven
 
   mkEven :: a -> [[a]] -> [[a]]
   mkEven def xs = map (\lst -> lst <> replicate (n - List.length lst) def) xs
